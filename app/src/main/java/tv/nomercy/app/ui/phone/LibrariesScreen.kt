@@ -4,7 +4,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -133,7 +132,10 @@ fun LibraryContent(
     val currentLibrary by viewModel.currentLibrary.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    LazyColumn(modifier = modifier.border(1.dp, MaterialTheme.colorScheme.outline)) {
+    LazyColumn(
+        modifier = modifier
+            .border(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
 
         when {
             !isLoading == currentLibrary.isEmpty() -> {
