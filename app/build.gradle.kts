@@ -109,6 +109,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.paging.compose)
 
     // Debug tools
     debugImplementation(libs.androidx.compose.ui.tooling)

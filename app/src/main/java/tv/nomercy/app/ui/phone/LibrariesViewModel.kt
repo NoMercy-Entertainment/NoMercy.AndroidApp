@@ -32,7 +32,7 @@ class LibrariesViewModel(
     }
 
     fun loadLibrary(link: String?, forceRefresh: Boolean = false) {
-        if (!forceRefresh && link == currentLibraryId.value && currentLibrary.value.isNotEmpty()) {
+        if (!forceRefresh && currentLibrary.value.isNotEmpty() && libraryItems.value.containsKey(link)) {
             return
         }
         val library = libraries.value.find { it.link == link }
