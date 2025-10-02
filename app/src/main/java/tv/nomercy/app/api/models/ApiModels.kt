@@ -1,6 +1,7 @@
 package tv.nomercy.app.api.models
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
 /**
  * Response wrapper for API responses
@@ -94,9 +95,9 @@ data class PermissionsResponse(
  */
 data class Library(
     val id: String,
-    val name: String,
-    val type: String, // "movie", "tv", "music", "collection"
-    val path: String?,
+    val title: String,
+    val type: String,
+    val link: String,
     val autoRefreshInterval: Int?,
     val perfectSubtitleMatch: Boolean?,
     val realtime: Boolean?,
@@ -110,37 +111,79 @@ data class Library(
 )
 
 /**
+ * Library response containing dynamic components
+ * This matches your actual API response structure
+ */
+@Serializable
+data class LibraryResponse(
+    val id: String,
+    val data: Component<MediaItem>
+)
+
+/**
  * Media item model for library contents
  */
+@Serializable
 data class MediaItem(
     val id: String,
-    val title: String,
+    val title: String? = null,
+    val name: String? = null,
     val type: String,
-    val year: Int?,
-    val overview: String?,
-    val poster: String?,
-    val backdrop: String?,
-    val logo: String?,
-    val rating: Double?,
-    val voteAverage: Double?,
-    val voteCount: Int?,
-    val adult: Boolean?,
-    val releaseDate: String?,
-    val runtime: Int?,
-    val genres: List<Genre>?,
-    val seasons: Int?, // For TV shows
-    val episodes: Int?, // For TV shows
-    val status: String?, // For TV shows
-    val createdAt: String?,
-    val updatedAt: String?
+    val year: Int? = null,
+    val overview: String? = null,
+    val poster: String? = null,
+    val backdrop: String? = null,
+    val logo: String? = null,
+    val rating: Double? = null,
+    val voteAverage: Double? = null,
+    val voteCount: Int? = null,
+    val adult: Boolean? = null,
+    val releaseDate: String? = null,
+    val runtime: Int? = null,
+    val genres: List<Genre>? = null,
+    val seasons: Int? = null, // For TV shows
+    val episodes: Int? = null, // For TV shows
+    val status: String? = null, // For TV shows
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    @kotlinx.serialization.SerialName("media_type")
+    val mediaType: String? = null,
+    @kotlinx.serialization.SerialName("number_of_items")
+    val numberOfItems: Int? = null,
+    @kotlinx.serialization.SerialName("have_items")
+    val haveItems: Int? = null,
+    @kotlinx.serialization.SerialName("color_palette")
+    val colorPalette: Map<String, Map<String, String>>? = null,
+    val favorite: Boolean? = null,
+    val watched: Boolean? = null,
+    val link: String,
+    val videos: List<VideoInfo>? = null,
+    @kotlinx.serialization.SerialName("titleSort")
+    val titleSort: String? = null,
+    @kotlinx.serialization.SerialName("videoId")
+    val videoId: String? = null
+)
+
+/**
+ * Video information
+ */
+@Serializable
+data class VideoInfo(
+    val src: String,
+    val type: String,
+    val name: String,
+    val site: String,
+    val size: Int
 )
 
 /**
  * Genre model
  */
+@Serializable
 data class Genre(
     val id: Int,
-    val name: String
+    val name: String,
+    val link: String? = null
 )
 
 /**

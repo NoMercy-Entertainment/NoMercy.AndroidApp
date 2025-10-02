@@ -6,11 +6,11 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import tv.nomercy.app.api.models.ApiResponse
 import tv.nomercy.app.api.models.AppConfig
-import tv.nomercy.app.api.models.PermissionsResponse
-import tv.nomercy.app.api.models.UserProfile
+import tv.nomercy.app.api.models.Component
 import tv.nomercy.app.api.models.Library
 import tv.nomercy.app.api.models.MediaItem
-import tv.nomercy.app.api.models.LibraryStats
+import tv.nomercy.app.api.models.PermissionsResponse
+import tv.nomercy.app.api.models.UserProfile
 
 /**
  * Domain API service for NoMercy TV API endpoints
@@ -63,20 +63,13 @@ interface ServerApiService {
     /**
      * Get media items from a specific library
      */
-    @GET("libraries/{libraryId}/items")
+    @GET("libraries{link}")
     suspend fun getLibraryItems(
-        @Path("libraryId") libraryId: String,
+        @Path(value = "link", encoded = true) link: String,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
-    ): Response<ApiResponse<List<MediaItem>>>
+    ): Response<ApiResponse<List<Component<MediaItem>>>>
 
-    /**
-     * Get library statistics
-     */
-    @GET("libraries/{libraryId}/stats")
-    suspend fun getLibraryStats(
-        @Path("libraryId") libraryId: String
-    ): Response<ApiResponse<LibraryStats>>
 }
 
 /**

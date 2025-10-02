@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 android {
@@ -94,6 +95,7 @@ dependencies {
 
     // JSON parsing
     implementation(libs.gson)
+    implementation(libs.kotlinx.serialization.json)
 
     // OAuth2/OIDC Authentication (instead of Keycloak Android SDK)
     implementation(libs.appauth)
@@ -105,6 +107,8 @@ dependencies {
     // DataStore for preferences
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.ui.tooling.preview)
 
     // Debug tools
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -116,4 +120,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom.v20231001))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
 }

@@ -110,8 +110,19 @@ class AppConfigStore(
      * Set the current server and save preference
      */
     fun setCurrentServer(server: Server) {
+        println("DEBUG AppConfigStore: setCurrentServer called")
+        println("DEBUG AppConfigStore: Server ID: ${server.id}")
+        println("DEBUG AppConfigStore: Server Name: ${server.name}")
+        println("DEBUG AppConfigStore: Server URL: '${server.serverApiUrl}'")
+        println("DEBUG AppConfigStore: Server URL isBlank: ${server.serverApiUrl.isBlank()}")
+
         _currentServer.value = server
         saveSelectedServerId(server.id)
+
+        // Immediately fetch libraries when server is set
+        println("DEBUG AppConfigStore: Server set, triggering library fetch...")
+        val libraryStore = GlobalStores.getLibraryStore(context)
+        libraryStore.fetchLibraries()
     }
 
     /**

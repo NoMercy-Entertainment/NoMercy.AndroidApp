@@ -4,11 +4,15 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import tv.nomercy.app.api.models.Component
 import tv.nomercy.app.api.models.Library
-import tv.nomercy.app.api.models.LibraryStats
 import tv.nomercy.app.api.models.MediaItem
 import tv.nomercy.app.api.repository.LibraryRepository
 
@@ -35,16 +39,20 @@ class LibraryStore(
     private val _librariesError = MutableStateFlow<String?>(null)
     val librariesError: StateFlow<String?> = _librariesError.asStateFlow()
 
-    // Media items state
-    private val _mediaItems = MutableStateFlow<Map<String, List<MediaItem>>>(emptyMap())
-    val mediaItems: StateFlow<Map<String, List<MediaItem>>> = _mediaItems.asStateFlow()
+     private val _libraryItems = MutableStateFlow<Map<String, List<Component<MediaItem>>>>(emptyMap())
+     val libraryItems: StateFlow<Map<String, List<Component<MediaItem>>>> = _libraryItems.asStateFlow()
 
-    private val _isLoadingMediaItems = MutableStateFlow<Set<String>>(emptySet())
-    val isLoadingMediaItems: StateFlow<Set<String>> = _isLoadingMediaItems.asStateFlow()
+    private val _currentLibraryId = MutableStateFlow<String?>(null)
+    val currentLibraryId: StateFlow<String?> = _currentLibraryId.asStateFlow()
 
-    // Library stats state
-    private val _libraryStats = MutableStateFlow<Map<String, LibraryStats>>(emptyMap())
-    val libraryStats: StateFlow<Map<String, LibraryStats>> = _libraryStats.asStateFlow()
+    val currentLibrary: StateFlow<List<Component<MediaItem>>> =
+        combine(_currentLibraryId, _libraryItems) { libraryId, libraryMap ->
+            libraryId?.let { libraryMap[it] } ?: emptyList()
+        }.stateIn(
+            scope,
+            SharingStarted.Lazily,
+            emptyList()
+        )
 
     /**
      * Get current server URL from app config store
@@ -82,77 +90,37 @@ class LibraryStore(
         }
     }
 
-    /**
-     * Fetch media items for a specific library from the current server
-     */
-    fun fetchLibraryItems(libraryId: String, page: Int = 1, limit: Int = 20) {
+    fun fetchLibrary(link: String, page: Int = 1, limit: Int = 20) {
         val serverUrl = getCurrentServerUrl()
         if (serverUrl == null) {
+            _librariesError.value = "No server selected"
             return
         }
 
         scope.launch {
-            _isLoadingMediaItems.value = _isLoadingMediaItems.value + libraryId
+            _isLoadingLibraries.value = true
+            _librariesError.value = null
 
-            repository.getLibraryItems(serverUrl, libraryId, page, limit).collect { result ->
+            repository.getLibraryItems(serverUrl, link, page, limit).collect { result ->
                 result.fold(
-                    onSuccess = { items ->
-                        val currentItems = _mediaItems.value[libraryId] ?: emptyList()
-                        val updatedItems = if (page == 1) items else currentItems + items
-                        _mediaItems.value = _mediaItems.value + (libraryId to updatedItems)
-                        _isLoadingMediaItems.value = _isLoadingMediaItems.value - libraryId
+                    onSuccess = { component ->
+                        // Handle the fetched component data as needed
+                        println("DEBUG LibraryStore: Fetched library items for $link: ${component.size} items")
+
+                        // Update the map with new data
+                        val currentMap = _libraryItems.value.toMutableMap()
+                        currentMap[link] = component
+                        _libraryItems.value = currentMap
+
+                        _isLoadingLibraries.value = false
                     },
                     onFailure = { error ->
-                        _isLoadingMediaItems.value = _isLoadingMediaItems.value - libraryId
-                        // Could add error handling for specific library items
+                        _librariesError.value = error.message ?: "Failed to fetch library items for $link"
+                        _isLoadingLibraries.value = false
                     }
                 )
             }
         }
-    }
-
-    /**
-     * Fetch statistics for a specific library from the current server
-     */
-    fun fetchLibraryStats(libraryId: String) {
-        val serverUrl = getCurrentServerUrl()
-        if (serverUrl == null) {
-            return
-        }
-
-        scope.launch {
-            repository.getLibraryStats(serverUrl, libraryId).collect { result ->
-                result.fold(
-                    onSuccess = { stats ->
-                        _libraryStats.value = _libraryStats.value + (libraryId to stats)
-                    },
-                    onFailure = { error ->
-                        // Could add error handling for library stats
-                    }
-                )
-            }
-        }
-    }
-
-    /**
-     * Get libraries by type (movie, tv, music, collection)
-     */
-    fun getLibrariesByType(type: String): List<Library> {
-        return _libraries.value.filter { it.type.equals(type, ignoreCase = true) }
-    }
-
-    /**
-     * Get media items for a specific library
-     */
-    fun getMediaItemsForLibrary(libraryId: String): List<MediaItem> {
-        return _mediaItems.value[libraryId] ?: emptyList()
-    }
-
-    /**
-     * Get stats for a specific library
-     */
-    fun getStatsForLibrary(libraryId: String): LibraryStats? {
-        return _libraryStats.value[libraryId]
     }
 
     /**
@@ -160,16 +128,21 @@ class LibraryStore(
      */
     fun clearLibraryData() {
         _libraries.value = emptyList()
-        _mediaItems.value = emptyMap()
-        _libraryStats.value = emptyMap()
         _librariesError.value = null
     }
 
     /**
-     * Refresh libraries when server changes
+     * Clear library error message
      */
-    fun onServerChanged() {
-        clearLibraryData()
-        fetchLibraries()
+    fun clearLibraryError() {
+        _librariesError.value = null
+    }
+
+    fun setCurrentLibraryId(libraryId: String?) {
+        _currentLibraryId.value = libraryId
+    }
+
+    fun setIsLoading(value: Boolean) {
+        _isLoadingLibraries.value = value
     }
 }

@@ -6,7 +6,6 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import tv.nomercy.app.auth.AuthService
@@ -27,11 +26,13 @@ open class BaseApiClient(
     private val authInterceptor = object : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val originalRequest = chain.request()
+            val userLocale = context.resources.configuration.locales.get(0)
 
             // Add standard headers
             val requestBuilder = originalRequest.newBuilder()
                 .addHeader("Accept", "application/json")
                 .addHeader("Content-Type", "application/json")
+                .addHeader("Accept-Language", userLocale.language)
 
             // Get token from shared AuthStore
             val token = runBlocking {
@@ -77,6 +78,7 @@ open class BaseApiClient(
                             .addHeader("Accept", "application/json")
                             .addHeader("Content-Type", "application/json")
                             .addHeader("Authorization", "Bearer $refreshedToken")
+                            .addHeader("Accept-Language", userLocale.language)
 
                         return chain.proceed(retryRequestBuilder.build())
                     }
@@ -91,9 +93,6 @@ open class BaseApiClient(
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        })
         .connectTimeout(timeout, TimeUnit.SECONDS)
         .readTimeout(timeout, TimeUnit.SECONDS)
         .writeTimeout(timeout, TimeUnit.SECONDS)
