@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -132,44 +133,36 @@ fun LibraryContent(
     val currentLibrary by viewModel.currentLibrary.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    LazyColumn(
-        modifier = modifier
-            .border(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
+    if (!isLoading == currentLibrary.isEmpty()) {
+            EmptyGrid(modifier = modifier, text = "No content available in this library.")
+    }
 
-        when {
-            !isLoading == currentLibrary.isEmpty() -> {
-                item {
-                    EmptyGrid(modifier = Modifier, text = "No content available in this library.")
+    if(currentLibrary.isNotEmpty()) {
+        currentLibrary.forEach { component ->
+            when (component.component) {
+                "NMGrid" -> {
+                    NMGrid(
+                        gridItems = component.props.items,
+                        modifier = modifier
+                    )
+                }
+
+                "NMCarousel" -> {
+                    NMCarousel(
+                        title = component.props.title,
+                        items = component.props.items,
+                        modifier = modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = "Unsupported component type: ${component.component}",
+                        modifier = modifier.padding(16.dp)
+                    )
                 }
             }
-
-            currentLibrary.isNotEmpty() ->
-                items(currentLibrary) { component ->
-                    when (component.component) {
-                        "NMGrid" -> {
-                            NMGrid(
-                                gridItems = component.props.items,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-
-                        "NMCarousel" -> {
-                            NMCarousel(
-                                title = component.props.title,
-                                items = component.props.items,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
-
-                        else -> {
-                            Text(
-                                text = "Unsupported component type: ${component.component}",
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
-                    }
-                }
         }
     }
+
 }
