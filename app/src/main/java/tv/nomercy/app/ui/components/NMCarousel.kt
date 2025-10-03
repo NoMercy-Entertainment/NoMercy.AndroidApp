@@ -1,4 +1,3 @@
-
 package tv.nomercy.app.ui.components
 
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import tv.nomercy.app.api.models.Component
@@ -22,10 +20,9 @@ fun NMCarousel(
     modifier: Modifier = Modifier,
     title: String,
     items: List<Component<MediaItem>>,
-    moreLink: String? = null // Add this line
+    navController: NavController, // Accept NavController as a parameter
+    moreLink: String? = null
 ) {
-    val navController = NavController(LocalContext.current);
-
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier

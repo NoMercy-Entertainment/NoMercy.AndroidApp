@@ -33,12 +33,13 @@ class LibrariesViewModel(
     val currentLibrary: StateFlow<List<Component<MediaItem>>> = combine(
         currentLibraryId,
         libraryStore.libraryItems,
-        _libraryLetterSelections
-    ) { id, itemsMap, letterSelections ->
-        val library = libraries.value.find { it.link == id }
+        _libraryLetterSelections,
+        libraries
+    ) { id, itemsMap, letterSelections, libs ->
+        val library = libs.find { it.link == id }
         val path = if (library?.type == "movie") {
             val letter = letterSelections[library.id]
-            if (letter != null) "libraries/${library.id}/letter/$letter" else library.link
+            if (letter != null && letter != '#') "${library.link}/letter/$letter" else library.link
         } else {
             id
         }
@@ -62,11 +63,40 @@ class LibrariesViewModel(
                 _showIndexer.value = library.any { it.component == "NMGrid" }
             }
         }
+
+        viewModelScope.launch {
+            combine(currentLibraryId, _libraryLetterSelections) { _, _ ->
+                loadCurrentLibrary()
+            }.collect{}
+        }
+    }
+
+    private fun loadCurrentLibrary(forceRefresh: Boolean = false) {
+        val libraryId = currentLibraryId.value ?: return
+        val library = libraries.value.find { it.link == libraryId }
+
+        if (library != null) {
+            val path = if (library.type == "movie") {
+                val letter = _libraryLetterSelections.value[library.id]
+                if (letter != null && letter != '#') {
+                    "${library.link}/letter/$letter"
+                } else {
+                    library.link
+                }
+            } else {
+                library.link
+            }
+            libraryStore.fetchLibrary(path, page = 0, limit = 50, force = forceRefresh)
+        } else {
+             // Handle cases like /collections which are not in the libraries list
+            libraryStore.fetchLibrary(libraryId, page = 0, limit = 50, force = forceRefresh)
+        }
     }
 
     fun onIndexSelected(char: Char) {
         val index = indexerCharacters.indexOf(char)
         _selectedIndex.value = index
+
         val libraryId = currentLibraryId.value ?: return
         val library = libraries.value.find { it.link == libraryId }
 
@@ -74,13 +104,6 @@ class LibrariesViewModel(
             val currentSelections = _libraryLetterSelections.value.toMutableMap()
             currentSelections[library.id] = char
             _libraryLetterSelections.value = currentSelections
-
-            val linkToLoad = if (char == 'A') {
-                library.link
-            } else {
-                "libraries/${library.id}/letter/$char"
-            }
-            loadLibrary(linkToLoad, forceRefresh = true)
         } else {
             viewModelScope.launch {
                 val gridItems = this@LibrariesViewModel.currentLibrary.value.firstOrNull { it.component == "NMGrid" }?.props?.items
@@ -104,14 +127,8 @@ class LibrariesViewModel(
         libraryStore.fetchLibraries()
     }
 
-    private fun loadLibrary(link: String?, forceRefresh: Boolean = false) {
-        if (link == null) return
-
-        libraryStore.fetchLibrary(link, page = 0, limit = 50, force = forceRefresh)
-    }
-
     fun refresh() {
-        loadLibrary(currentLibraryId.value, forceRefresh = true)
+        loadCurrentLibrary(forceRefresh = true)
     }
 
     fun clearError() {
@@ -120,20 +137,17 @@ class LibrariesViewModel(
 
     fun selectLibrary(libraryId: String?) {
         if (currentLibraryId.value == libraryId) return
+        
         _currentLibraryId.value = libraryId
-        if (libraryId != null) {
-            val library = libraries.value.find { it.link == libraryId }
-            if (library?.type == "movie") {
-                if (!_libraryLetterSelections.value.containsKey(library.id)) {
-                    val currentSelections = _libraryLetterSelections.value.toMutableMap()
-                    val defaultChar = 'A'
-                    currentSelections[library.id] = defaultChar
-                    _libraryLetterSelections.value = currentSelections
-                    val index = indexerCharacters.indexOf(defaultChar)
-                    _selectedIndex.value = index
-                }
-            }
-            loadLibrary(libraryId)
+        
+        val library = libraries.value.find { it.link == libraryId }
+        if (library?.type == "movie" && !_libraryLetterSelections.value.containsKey(library.id)) {
+            val currentSelections = _libraryLetterSelections.value.toMutableMap()
+            val defaultChar = '#'
+            currentSelections[library.id] = defaultChar
+            _libraryLetterSelections.value = currentSelections
+            val index = indexerCharacters.indexOf(defaultChar)
+            _selectedIndex.value = index
         }
     }
 }

@@ -1,4 +1,3 @@
-
 package tv.nomercy.app.ui.components
 
 import androidx.compose.foundation.BorderStroke
@@ -24,9 +23,9 @@ import tv.nomercy.app.lib.pickPaletteColor
 @Composable
 fun NMCard(
     modifier: Modifier = Modifier,
-    mediaItem: MediaItem
+    mediaItem: MediaItem,
 ) {
-    val navController = NavController(LocalContext.current);
+    var navController = NavController(LocalContext.current)
 
     var isFocused by remember { mutableStateOf(false) }
 
@@ -40,7 +39,7 @@ fun NMCard(
             .onFocusChanged { isFocused = it.isFocused },
         border = if (isFocused && focusColor != null) BorderStroke(2.dp, focusColor) else null,
         onClick = {
-//            navController.navigate(mediaItem.link)
+            mediaItem.link?.let { navController.navigate(it) }
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -50,7 +49,6 @@ fun NMCard(
                 aspect = "poster",
                 size = 180
             )
-
         }
     }
 }

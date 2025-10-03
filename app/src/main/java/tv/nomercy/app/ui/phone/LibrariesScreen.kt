@@ -1,5 +1,6 @@
 package tv.nomercy.app.ui.phone
 
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -129,10 +130,11 @@ fun LibrariesScreen(navController: NavController) {
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight(),
+                            navController = navController
                         )
 
                         Indexer(
-                            isVisible = showIndexer,
+                            isEnabled = showIndexer,
                             selectedIndex = selectedIndex,
                             onIndexSelected = { char -> viewModel.onIndexSelected(char) }
                         )
@@ -147,6 +149,7 @@ fun LibrariesScreen(navController: NavController) {
 fun LibraryContent(
     viewModel: LibrariesViewModel,
     modifier: Modifier,
+    navController: NavController
 ) {
     val currentLibrary by viewModel.currentLibrary.collectAsState()
     val scrollRequest by viewModel.scrollRequest.collectAsState()
@@ -158,7 +161,7 @@ fun LibraryContent(
     LaunchedEffect(viewModel) {
         viewModel.scrollRequest.collectLatest {
             if (it != null) {
-                lazyGridState.scrollToItem(it)
+                lazyGridState.animateScrollToItem(it)
                 viewModel.onScrollRequestCompleted()
             }
         }
@@ -188,6 +191,7 @@ fun LibraryContent(
                             title = component.props.title,
                             items = component.props.items,
                             modifier = Modifier.padding(vertical = 8.dp),
+                            navController = navController
                         )
                     }
                 }
