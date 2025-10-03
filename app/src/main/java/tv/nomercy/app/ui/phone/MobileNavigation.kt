@@ -319,7 +319,7 @@ fun MobileNavHost(
             MobileHomeScreen()
         }
         composable(MobileNavItem.Libraries.route) {
-            LibrariesScreen()
+            LibrariesScreen(navController = navController)
         }
         composable(MobileNavItem.Search.route) {
             SearchScreen()

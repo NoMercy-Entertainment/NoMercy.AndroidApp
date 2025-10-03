@@ -40,7 +40,7 @@ fun NMCard(
             .onFocusChanged { isFocused = it.isFocused },
         border = if (isFocused && focusColor != null) BorderStroke(2.dp, focusColor) else null,
         onClick = {
-            navController.navigate(mediaItem.link)
+//            navController.navigate(mediaItem.link)
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {

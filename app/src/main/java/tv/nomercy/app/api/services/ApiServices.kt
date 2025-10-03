@@ -63,7 +63,7 @@ interface ServerApiService {
     /**
      * Get media items from a specific library
      */
-    @GET("libraries{link}")
+    @GET("{link}")
     suspend fun getLibraryItems(
         @Path(value = "link", encoded = true) link: String,
         @Query("page") page: Int = 1,

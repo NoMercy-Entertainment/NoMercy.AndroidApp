@@ -30,7 +30,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
                     R.drawable.tv,
                     onClick = {
                         selectedTabIndex = libraries.indexOf(library)
-                        viewModel.loadLibrary(library.link)
+                        viewModel.selectLibrary(library.link)
                     }))
 
                 "movie" -> add(TabItem(
@@ -41,7 +41,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
                     R.drawable.filmmedia,
                     onClick = {
                         selectedTabIndex = libraries.indexOf(library)
-                        viewModel.loadLibrary(library.link)
+                        viewModel.selectLibrary(library.link)
                     }))
 
                 "tv" -> add(TabItem(
@@ -52,7 +52,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
                     R.drawable.tv,
                     onClick = {
                         selectedTabIndex = libraries.indexOf(library)
-                        viewModel.loadLibrary(library.link)
+                        viewModel.selectLibrary(library.link)
                     }))
 
                 //"music" -> add(TabItem(
@@ -63,7 +63,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
                 //    R.drawable.noteeighthpair,
                 //    onClick = {
                 //        selectedTabIndex = libraries.indexOf(library)
-                //        viewModel.loadLibrary("music/home")
+                //        viewModel.selectLibrary("music/home")
                 //    }))
             }
         }
@@ -77,7 +77,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
             R.drawable.collection1,
             onClick = {
                 selectedTabIndex = libraries.size - 1;
-                viewModel.loadLibrary("/collections")
+                viewModel.selectLibrary("/collections")
             }))
         add(TabItem(
             "specials",
@@ -87,7 +87,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
             R.drawable.sparkles,
             onClick = {
                 selectedTabIndex = libraries.size;
-                viewModel.loadLibrary("/specials")
+                viewModel.selectLibrary("/specials")
             }))
         add(TabItem(
             "genres",
@@ -97,7 +97,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
             R.drawable.witchhat,
             onClick = {
                 selectedTabIndex = libraries.size + 1;
-                viewModel.loadLibrary("/genres")
+                viewModel.selectLibrary("/genres")
             }))
         add(TabItem(
             "people",
@@ -107,7 +107,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
             R.drawable.user,
             onClick = {
                 selectedTabIndex = libraries.size + 2;
-                viewModel.loadLibrary("/people")
+                viewModel.selectLibrary("/people")
             }))
     }
 
