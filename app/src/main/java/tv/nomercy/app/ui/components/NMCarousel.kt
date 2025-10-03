@@ -16,12 +16,10 @@ import tv.nomercy.app.api.models.Component
 import tv.nomercy.app.api.models.MediaItem
 
 @Composable
-fun NMCarousel(
-    modifier: Modifier = Modifier,
-    title: String,
-    items: List<Component<MediaItem>>,
-    navController: NavController, // Accept NavController as a parameter
-    moreLink: String? = null
+fun <T> NMCarousel(
+    modifier: Modifier,
+    component: Component<T>,
+    navController: NavController
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -29,20 +27,27 @@ fun NMCarousel(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Text(text = title, modifier = Modifier.weight(1f))
-            if (moreLink != null) {
+            Text(text = component.props.title, modifier = Modifier.weight(1f))
+            if (component.props.moreLink != null) {
                 TextButton(onClick = {
-                    navController.navigate(moreLink)
+                    navController.navigate(component.props.moreLink)
                 }) {
                     Text(text = "See more")
                 }
             }
         }
         LazyRow {
-            items(items) { item ->
-                NMCard(
-                    mediaItem = item.props.data ?: return@items,
-                    modifier = Modifier.padding(8.dp)
+            item {
+                if (component.props.items.isEmpty()) {
+                    Text(
+                        text = "No items available",
+                        modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+                    )
+                }
+                NMComponent(
+                    components = component.props.items,
+                    navController = navController,
+                    modifier = Modifier.padding(start = 16.dp, end = 8.dp)
                 )
             }
         }

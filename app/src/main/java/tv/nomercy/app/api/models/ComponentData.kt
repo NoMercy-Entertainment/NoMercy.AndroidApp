@@ -37,28 +37,3 @@ data class Props<out T> (
     val items: List<Component<T>> = emptyList(),
     val data: T? = null
 )
-
-//@Serializable
-//data class Body(
-//    @SerialName("replace_id") val replaceId: String,
-//    val additionalFields: JsonObject = JsonObject(emptyMap())
-//)
-//
-//@Serializable
-//data class Component(
-//    val id: String,
-//    val component: String,
-//    val props: Props,
-//    val update: Update? = null
-//)
-//
-//@Serializable
-//data class Props(
-//    val id: String? = null,
-//    val title: String,
-//    @SerialName("more_link")
-//    val moreLink: String? = null,
-//    val children: List<JsonElement> = emptyList(),
-//    val items: List<Component<MediaItem>> = emptyList(),
-//    val data: JsonElement? = null
-//)

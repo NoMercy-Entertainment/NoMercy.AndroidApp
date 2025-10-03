@@ -67,6 +67,7 @@ class LibraryRepository(
 
             if (response.isSuccessful) {
                 val apiResponse = response.body()
+                println("DEBUG LibraryRepository: API response: $apiResponse")
                 if (apiResponse?.data != null) {
                     emit(Result.success(apiResponse.data))
                 } else {

@@ -108,8 +108,9 @@ class LibrariesViewModel(
             viewModelScope.launch {
                 val gridItems = this@LibrariesViewModel.currentLibrary.value.firstOrNull { it.component == "NMGrid" }?.props?.items
                 if (gridItems != null) {
-                    val itemIndex = gridItems.indexOfFirst { 
-                        it.props.data?.title?.startsWith(char, ignoreCase = true) == true 
+                    val itemIndex = gridItems.indexOfFirst {
+                        true
+//                        it.props.data?.title?.startsWith(char, ignoreCase = true) == true
                     }
                     if (itemIndex != -1) {
                         _scrollRequest.value = itemIndex

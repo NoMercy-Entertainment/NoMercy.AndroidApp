@@ -11,6 +11,7 @@ import tv.nomercy.app.api.models.Component
 import tv.nomercy.app.api.models.Library
 import tv.nomercy.app.api.models.MediaItem
 import tv.nomercy.app.api.repository.LibraryRepository
+import kotlin.fold
 
 class LibraryStore(
     private val context: Context,

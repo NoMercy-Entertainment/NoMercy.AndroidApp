@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,6 +41,8 @@ import tv.nomercy.app.ui.components.Indexer
 import tv.nomercy.app.ui.components.LibraryTabScroller
 import tv.nomercy.app.ui.components.NMCarousel
 import tv.nomercy.app.ui.components.NMCard
+import tv.nomercy.app.ui.components.NMComponent
+import tv.nomercy.app.ui.components.NMGrid
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,82 +128,23 @@ fun LibrariesScreen(navController: NavController) {
                 }
                 else -> {
                     Row(modifier = Modifier.fillMaxSize()) {
-                        LibraryContent(
-                            viewModel = viewModel,
+                        val currentLibrary by viewModel.currentLibrary.collectAsState()
+
+                        NMComponent(
+                            components = currentLibrary,
+                            navController = navController,
                             modifier = Modifier
                                 .weight(1f)
-                                .fillMaxHeight(),
-                            navController = navController
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                )
+                                .fillMaxSize(),
                         )
-
                         Indexer(
                             isEnabled = showIndexer,
                             selectedIndex = selectedIndex,
                             onIndexSelected = { char -> viewModel.onIndexSelected(char) }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun LibraryContent(
-    viewModel: LibrariesViewModel,
-    modifier: Modifier,
-    navController: NavController
-) {
-    val currentLibrary by viewModel.currentLibrary.collectAsState()
-    val scrollRequest by viewModel.scrollRequest.collectAsState()
-
-    val lazyGridState = rememberLazyGridState()
-    val columns = 2
-    val spacing = 16.dp
-
-    LaunchedEffect(viewModel) {
-        viewModel.scrollRequest.collectLatest {
-            if (it != null) {
-                lazyGridState.animateScrollToItem(it)
-                viewModel.onScrollRequestCompleted()
-            }
-        }
-    }
-
-    LazyVerticalGrid(
-        state = lazyGridState,
-        columns = GridCells.Fixed(columns),
-        modifier = modifier.border(1.dp, MaterialTheme.colorScheme.outline),
-        contentPadding = PaddingValues(spacing),
-        verticalArrangement = Arrangement.spacedBy(spacing),
-        horizontalArrangement = Arrangement.spacedBy(spacing),
-    ) {
-        currentLibrary.forEach { component ->
-            when (component.component) {
-                "NMGrid" -> {
-                    itemsIndexed(component.props.items) { index, item ->
-                        NMCard(
-                            mediaItem = item.props.data ?: return@itemsIndexed,
-                        )
-                    }
-                }
-
-                "NMCarousel" -> {
-                    item(span = { GridItemSpan(columns) }) {
-                        NMCarousel(
-                            title = component.props.title,
-                            items = component.props.items,
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            navController = navController
-                        )
-                    }
-                }
-
-                else -> {
-                    item(span = { GridItemSpan(columns) }) {
-                        Text(
-                            text = "Unsupported component type: ${component.component}",
-                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
