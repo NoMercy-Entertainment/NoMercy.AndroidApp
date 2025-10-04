@@ -1,0 +1,10 @@
+package tv.nomercy.app.shared.models
+
+import ComponentData
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class HomeResponse<T: ComponentData>(
+    val id: String,
+    val data: List<Component<T>>
+)
