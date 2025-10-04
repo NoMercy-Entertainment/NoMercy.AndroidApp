@@ -73,41 +73,41 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
             "collections",
             "Collections",
             "collections",
-            "/collections",
+            "collection",
             R.drawable.collection1,
             onClick = {
                 selectedTabIndex = libraries.size - 1;
-                viewModel.selectLibrary("/collections")
+                viewModel.selectLibrary("collection")
             }))
         add(TabItem(
             "specials",
             "Specials",
             "specials",
-            "/specials",
+            "specials",
             R.drawable.sparkles,
             onClick = {
                 selectedTabIndex = libraries.size;
-                viewModel.selectLibrary("/specials")
+                viewModel.selectLibrary("specials")
             }))
         add(TabItem(
             "genres",
             "Genres",
             "genres",
-            "/genres",
+            "genre",
             R.drawable.witchhat,
             onClick = {
                 selectedTabIndex = libraries.size + 1;
-                viewModel.selectLibrary("/genres")
+                viewModel.selectLibrary("genre")
             }))
         add(TabItem(
             "people",
             "People",
             "people",
-            "/people",
+            "person",
             R.drawable.user,
             onClick = {
                 selectedTabIndex = libraries.size + 2;
-                viewModel.selectLibrary("/people")
+                viewModel.selectLibrary("person")
             }))
     }
 
