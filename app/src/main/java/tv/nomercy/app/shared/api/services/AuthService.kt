@@ -166,7 +166,7 @@ class AuthService(
                     ) { tokenResponse, tokenException ->
                         if (tokenException != null || tokenResponse == null) {
                             continuation.resume(false)
-                        } else if (tokenResponse != null) {
+                        } else {
                             // Update auth state
                             currentAuthState.update(tokenResponse, tokenException)
                             authState = currentAuthState

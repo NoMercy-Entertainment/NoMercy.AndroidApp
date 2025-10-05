@@ -1,8 +1,11 @@
+package tv.nomercy.app.shared.routes
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import tv.nomercy.app.shared.routes.AppNavItem
 import tv.nomercy.app.mobile.screens.base.MobileHomeScreen
 import tv.nomercy.app.mobile.screens.base.SearchScreen
 import tv.nomercy.app.mobile.screens.base.library.LibraryScreen

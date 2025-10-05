@@ -1,6 +1,6 @@
 package tv.nomercy.app.mobile.layout
 
-import AppNavItem
+import tv.nomercy.app.shared.routes.AppNavItem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize

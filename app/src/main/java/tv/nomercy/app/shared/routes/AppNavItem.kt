@@ -1,3 +1,5 @@
+package tv.nomercy.app.shared.routes
+
 import tv.nomercy.app.R
 
 sealed class AppNavItem(

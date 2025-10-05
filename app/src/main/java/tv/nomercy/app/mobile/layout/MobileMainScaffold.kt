@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.mobile.layout.BottomNavigationBar
+import tv.nomercy.app.shared.routes.AppNavItem
+import tv.nomercy.app.shared.routes.MobileNavHost
 
 @Composable
 fun MobileMainScaffold(

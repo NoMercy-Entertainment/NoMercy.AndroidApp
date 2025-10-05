@@ -1,6 +1,6 @@
 package tv.nomercy.app.mobile.layout
 
-import AppNavItem
+import tv.nomercy.app.shared.routes.AppNavItem
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
