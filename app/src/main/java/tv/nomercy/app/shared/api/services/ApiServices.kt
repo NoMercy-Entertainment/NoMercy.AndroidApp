@@ -9,6 +9,7 @@ import tv.nomercy.app.shared.models.ApiResponse
 import tv.nomercy.app.shared.models.AppConfig
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.Library
+import tv.nomercy.app.shared.models.MediaItem
 import tv.nomercy.app.shared.models.PermissionsResponse
 import tv.nomercy.app.shared.models.Server
 import tv.nomercy.app.shared.models.UserProfile
@@ -72,12 +73,12 @@ interface ServerApiService {
         @Path(value = "link", encoded = true) link: String,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
-    ): Response<ApiResponse<List<Component<*>>>>
+    ): Response<ApiResponse<List<Component<MediaItem>>>>
 
-    @GET("{path}")
-    suspend fun getComponentResponse(
-        @Path("path", encoded = true) path: String
-    ): Response<ApiResponse<List<Component<*>>>>
+     @GET("{path}")
+     suspend fun getComponentResponse(
+         @Path("path", encoded = true) path: String
+     ): Response<ApiResponse<List<Component<*>>>>
 
 
 }

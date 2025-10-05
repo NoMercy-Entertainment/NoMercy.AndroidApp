@@ -27,18 +27,20 @@ import tv.nomercy.app.mobile.screens.auth.AuthViewModelFactory
 import tv.nomercy.app.shared.api.services.UserInfo
 import tv.nomercy.app.shared.models.Server
 import tv.nomercy.app.shared.stores.AppConfigStore
+import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.stores.ServerConfigStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(LocalContext.current)),
-    appConfigStore: AppConfigStore,
     onNavigateToServerSelection: () -> Unit = {},
     onNavigateToServerInfo: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {}
 ) {
+    val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(LocalContext.current))
     val userInfo by authViewModel.userInfo.collectAsState()
-    val currentServer by appConfigStore.currentServer.collectAsState()
+    val currentServer by serverConfigStore.currentServer.collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -47,7 +49,7 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item {
-            ProfileHeader(userInfo = userInfo, appConfigStore = appConfigStore)
+            ProfileHeader(userInfo = userInfo)
         }
 
         currentServer?.let { server ->
@@ -93,10 +95,9 @@ fun ProfileScreen(
 @Composable
 private fun ProfileHeader(
     userInfo: UserInfo?,
-    appConfigStore: AppConfigStore
 ) {
+    val appConfigStore = GlobalStores.getAppConfigStore(LocalContext.current)
     val userProfile by appConfigStore.userProfile.collectAsState()
-    val currentServer by appConfigStore.currentServer.collectAsState()
 
     val avatarUrl = userProfile?.avatarUrl?.takeIf { it.isNotBlank() }
         ?: userInfo?.avatarUrl?.takeIf { it.isNotBlank() }

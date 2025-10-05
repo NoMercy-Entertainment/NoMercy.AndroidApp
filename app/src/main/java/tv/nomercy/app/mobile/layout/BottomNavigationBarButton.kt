@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -35,18 +36,18 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import tv.nomercy.app.R
 import tv.nomercy.app.mobile.screens.auth.AuthViewModel
-import tv.nomercy.app.shared.stores.AppConfigStore
+import tv.nomercy.app.mobile.screens.auth.AuthViewModelFactory
+import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.gradientButtonBackground
-
 
 @Composable
 fun BottomNavigationBarButton(
     item: AppNavItem,
     navController: NavHostController,
-    appConfigStore: AppConfigStore,
-    authViewModel: AuthViewModel,
     modifier: Modifier = Modifier
 ) {
+    val appConfigStore = GlobalStores.getAppConfigStore(LocalContext.current)
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(LocalContext.current))
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination

@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.NMComponents
+package tv.nomercy.app.shared.components.nMComponents
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -53,7 +53,7 @@ fun <T> NMGenreCard(
 
     val style = genreStyle(data.title)
 
-    val isHovered = false;
+    val isHovered = false
 
     val hoverRotation = if (isHovered) {
         if (index % 2 == 0) -4f else 4f

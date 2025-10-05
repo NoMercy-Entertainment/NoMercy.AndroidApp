@@ -1,6 +1,5 @@
-package tv.nomercy.app.shared.components.NMComponents
+package tv.nomercy.app.shared.components.nMComponents
 
-import ComponentData
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -13,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import tv.nomercy.app.shared.models.Component
+import tv.nomercy.app.shared.models.ComponentData
 
 @Composable
 fun <T: ComponentData> NMGrid(

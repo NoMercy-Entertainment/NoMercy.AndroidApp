@@ -85,7 +85,7 @@ fun gradientButtonBackground(active: Boolean = false): Modifier {
     val top = colorResource(id = R.color.theme_9)
     val bottom = colorResource(id = R.color.theme_8)
 
-    return Modifier.drawWithCache() {
+    return Modifier.drawWithCache {
         val radial1 = Brush.radialGradient(
             colors = listOf(top.copy(alpha = 0.2f), bottom.copy(alpha = 0f)),
             center = Offset(size.width * 0.63f, size.height * -0.0315f),

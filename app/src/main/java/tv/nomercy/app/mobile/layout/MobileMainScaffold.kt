@@ -3,14 +3,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import tv.nomercy.app.mobile.screens.auth.AuthViewModel
 import tv.nomercy.app.mobile.layout.BottomNavigationBar
-import tv.nomercy.app.shared.stores.AppConfigStore
 
 @Composable
 fun MobileMainScaffold(
-    authViewModel: AuthViewModel,
-    appConfigStore: AppConfigStore
 ) {
     val navController = rememberNavController()
     val navItems = listOf(
@@ -26,15 +22,11 @@ fun MobileMainScaffold(
             BottomNavigationBar(
                 navController = navController,
                 navItems = navItems.filter { it.isMobileVisible },
-                appConfigStore = appConfigStore,
-                authViewModel = authViewModel
             )
         }
     ) { innerPadding ->
         MobileNavHost(
             navController = navController,
-            authViewModel = authViewModel,
-            appConfigStore = appConfigStore,
             modifier = Modifier.padding(innerPadding)
         )
     }

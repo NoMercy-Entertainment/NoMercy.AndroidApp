@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
     private var authResponseCallback: ((AuthorizationResponse?, AuthorizationException?) -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         setContent {
             NoMercyTheme {

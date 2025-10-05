@@ -4,30 +4,15 @@ import android.content.Context
 import tv.nomercy.app.shared.api.DomainApiClient
 import tv.nomercy.app.shared.api.services.AuthService
 
-/**
- * Global store manager to ensure singleton instances
- * This prevents multiple store instances and ensures true global state
- */
 object GlobalStores {
 
-    @Volatile
-    private var authStoreInstance: AuthStore? = null
+    @Volatile private var authStoreInstance: AuthStore? = null
+    @Volatile private var authServiceInstance: AuthService? = null
+    @Volatile private var domainApiClientInstance: DomainApiClient? = null
+    @Volatile private var serverConfigStoreInstance: ServerConfigStore? = null
+    @Volatile private var libraryStoreInstance: LibraryStore? = null
+    @Volatile private var appConfigStoreInstance: AppConfigStore? = null
 
-    @Volatile
-    private var appConfigStoreInstance: AppConfigStore? = null
-
-    @Volatile
-    private var authServiceInstance: AuthService? = null
-
-    @Volatile
-    private var domainApiClientInstance: DomainApiClient? = null
-
-    @Volatile
-    private var libraryStoreInstance: LibraryStore? = null
-
-    /**
-     * Get the singleton AuthStore instance
-     */
     fun getAuthStore(context: Context): AuthStore {
         return authStoreInstance ?: synchronized(this) {
             authStoreInstance ?: AuthStore(context.applicationContext).also {
@@ -36,9 +21,6 @@ object GlobalStores {
         }
     }
 
-    /**
-     * Get the singleton AuthService instance
-     */
     fun getAuthService(context: Context): AuthService {
         val authStore = getAuthStore(context)
         return authServiceInstance ?: synchronized(this) {
@@ -48,31 +30,9 @@ object GlobalStores {
         }
     }
 
-    /**
-     * Get the singleton AppConfigStore instance
-     */
-    fun getAppConfigStore(context: Context): AppConfigStore {
-        val authStore = getAuthStore(context)
-        val authService = getAuthService(context)
-
-        return appConfigStoreInstance ?: synchronized(this) {
-            appConfigStoreInstance ?: AppConfigStore(
-                context.applicationContext,
-                authService,
-                authStore
-            ).also {
-                appConfigStoreInstance = it
-            }
-        }
-    }
-
-    /**
-     * Get the singleton DomainApiClient instance with proper authentication
-     */
     fun getDomainApiClient(context: Context): DomainApiClient {
         val authStore = getAuthStore(context)
         val authService = getAuthService(context)
-
         return domainApiClientInstance ?: synchronized(this) {
             domainApiClientInstance ?: DomainApiClient(context.applicationContext, authService, authStore).also {
                 domainApiClientInstance = it
@@ -80,36 +40,62 @@ object GlobalStores {
         }
     }
 
-    /**
-     * Get the singleton LibraryStore instance
-     */
+    fun getServerConfigStore(context: Context): ServerConfigStore {
+        val authStore = getAuthStore(context)
+        val authService = getAuthService(context)
+        val appConfigStore = getAppConfigStore(context) // safe now
+
+        return serverConfigStoreInstance ?: synchronized(this) {
+            serverConfigStoreInstance ?: ServerConfigStore(
+                context.applicationContext,
+                authService,
+                authStore,
+                appConfigStore
+            ).also {
+                serverConfigStoreInstance = it
+            }
+        }
+    }
+
     fun getLibraryStore(context: Context): LibraryStore {
         val authStore = getAuthStore(context)
-        val appConfigStore = getAppConfigStore(context)
-
+        val serverConfigStore = getServerConfigStore(context)
         return libraryStoreInstance ?: synchronized(this) {
             libraryStoreInstance ?: LibraryStore(
                 context.applicationContext,
                 authStore,
-                appConfigStore
+                serverConfigStore
             ).also {
                 libraryStoreInstance = it
             }
         }
     }
 
-    /**
-     * Clear all store instances (for logout)
-     */
+    fun getAppConfigStore(context: Context): AppConfigStore {
+        val authStore = getAuthStore(context)
+
+        return appConfigStoreInstance ?: synchronized(this) {
+            appConfigStoreInstance ?: AppConfigStore(
+                context.applicationContext,
+                authStore
+            ).also {
+                appConfigStoreInstance = it
+            }
+        }
+    }
+
     fun clearAll() {
         synchronized(this) {
-            authStoreInstance?.clearAuth()
+            authStoreInstance?.clearData()
             appConfigStoreInstance?.clearData()
-            libraryStoreInstance?.clearLibraryData()
+            serverConfigStoreInstance?.clearData()
+            libraryStoreInstance?.clearData()
+
             authStoreInstance = null
-            appConfigStoreInstance = null
             authServiceInstance = null
             domainApiClientInstance = null
+            appConfigStoreInstance = null
+            serverConfigStoreInstance = null
             libraryStoreInstance = null
         }
     }

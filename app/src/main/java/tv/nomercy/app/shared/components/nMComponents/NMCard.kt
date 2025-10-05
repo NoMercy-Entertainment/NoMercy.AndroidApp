@@ -1,6 +1,5 @@
-package tv.nomercy.app.shared.components.NMComponents
+package tv.nomercy.app.shared.components.nMComponents
 
-import ComponentData
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import tv.nomercy.app.shared.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
+import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.MediaItem
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
@@ -48,7 +48,7 @@ fun <T: ComponentData> NMCard(
 
     val focusColor: Color = remember(data.colorPalette) {
         val palette = data.colorPalette?.poster
-        val color = pickPaletteColor(palette);
+        val color = pickPaletteColor(palette)
         color
     }
 
@@ -83,7 +83,7 @@ fun <T: ComponentData> NMCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.Black.copy(alpha = 0.75f))
-                    .align(androidx.compose.ui.Alignment.BottomStart)
+                    .align(Alignment.BottomStart)
                 ) {
                 Text(
                     text = data.title,

@@ -3,8 +3,6 @@ package tv.nomercy.app.mobile.screens.base.library
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,20 +10,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.Library
-import tv.nomercy.app.shared.models.MediaItem
-import tv.nomercy.app.shared.stores.AppConfigStore
 import tv.nomercy.app.shared.stores.LibraryStore
 
 class LibrariesViewModel(
-    private val libraryStore: LibraryStore,
-    private val appConfigStore: AppConfigStore
+    private val libraryStore: LibraryStore
 ) : ViewModel() {
 
     val libraries = libraryStore.libraries
-    val isLoading = libraryStore.isLoadingLibraries
-    val errorMessage = libraryStore.librariesError
+    val isLoading = libraryStore.isLoading
+    val errorMessage = libraryStore.error
 
     private val _currentLibraryId = MutableStateFlow<String?>(null)
     val currentLibraryId = _currentLibraryId.asStateFlow()
@@ -45,6 +39,9 @@ class LibrariesViewModel(
     private val _showIndexer = MutableStateFlow(false)
     val showIndexer = _showIndexer.asStateFlow()
 
+    private val _activeIndexerLetters = MutableStateFlow<Set<Char>>(emptySet())
+    val activeIndexerLetters = _activeIndexerLetters.asStateFlow()
+
     private val _selectedIndex = MutableStateFlow(0)
     val selectedIndex = _selectedIndex.asStateFlow()
 
@@ -56,12 +53,46 @@ class LibrariesViewModel(
     private val _isEmptyStable = MutableStateFlow(false)
     val isEmptyStable = _isEmptyStable.asStateFlow()
 
-    private var emptyCheckJob: Job? = null
-
     init {
         viewModelScope.launch {
-            currentLibrary.collect { library ->
-                _showIndexer.value = library.any { it.component == "NMGrid" }
+            currentLibrary.collect { components ->
+
+                val routeIncludesLetter = _currentLibraryId.value?.contains("/letter/") == true
+
+                val hasIndexableContent = components.any {
+                    it.component == "NMGrid" &&
+                            it.props.items.any { item ->
+                                item.component == "NMCard" &&
+                                        item.props.data?.type in setOf("movie", "tv")
+                            }
+                }
+
+                _showIndexer.value = hasIndexableContent || routeIncludesLetter
+
+                val containsMovie = components.any {
+                    it.component == "NMGrid" &&
+                            it.props.items.any { item ->
+                                item.component == "NMCard" && item.props.data?.type == "movie"
+                            }
+                }
+
+                val activeLetters = if (containsMovie || routeIncludesLetter) {
+                    indexerCharacters.toSet()
+                } else {
+                    components
+                        .filter { it.component == "NMGrid" }
+                        .flatMap { it.props.items }
+                        .filter { it.component == "NMCard" }
+                        .mapNotNull { it.props.data?.titleSort }
+                        .mapNotNull { sortTitle ->
+                            val trimmed = sortTitle.trim()
+                            val firstChar = trimmed.firstOrNull { it.isLetterOrDigit() }
+                            firstChar?.uppercaseChar()?.let { if (!it.isLetter()) '#' else it }
+                        }
+                        .toSet()
+                }
+
+                _activeIndexerLetters.value = activeLetters
             }
         }
 
@@ -116,12 +147,28 @@ class LibrariesViewModel(
 
     fun selectLibrary(libraryId: String?) {
         if (_currentLibraryId.value == libraryId) return
-        _currentLibraryId.value = libraryId
 
-        val library = libraries.value.find { it.link == libraryId }
-        if (library?.type == "movie" && !_libraryLetterSelections.value.containsKey(library.id)) {
-            _libraryLetterSelections.update { it + (library.id to 'A') }
-            _selectedIndex.value = indexerCharacters.indexOf('A')
+        val baseLibraryId = libraryId?.substringBefore("/letter/")
+        val letterSegment = libraryId?.substringAfter("/letter/", "")
+        val letterFromRoute = letterSegment?.firstOrNull()?.uppercaseChar()
+            ?.takeIf { it in indexerCharacters }
+
+        val library = libraries.value.find { it.link == baseLibraryId }
+        val isMovie = library?.type == "movie"
+
+        if (isMovie) {
+            val selectedLetter = letterFromRoute
+                ?: _libraryLetterSelections.value[library.id]
+                ?: 'A'
+
+            // Update selection BEFORE changing route
+            _libraryLetterSelections.update { it + (library.id to selectedLetter) }
+            _selectedIndex.value = indexerCharacters.indexOf(selectedLetter)
+
+            // Now update the route
+            _currentLibraryId.value = "libraries/${library.id}/letter/$selectedLetter"
+        } else {
+            _currentLibraryId.value = libraryId
         }
 
         _scrollRequest.value = 0
@@ -129,31 +176,23 @@ class LibrariesViewModel(
 
     fun refresh() = loadCurrentLibrary(forceRefresh = true)
 
-    fun clearError() = libraryStore.clearLibraryError()
-
-    fun loadLibraries() = libraryStore.fetchLibraries()
-
-    fun checkIfEmpty(content: List<Component<MediaItem>>) {
-        emptyCheckJob?.cancel()
-        emptyCheckJob = viewModelScope.launch {
-            delay(150)
-            _isEmptyStable.value = content.isEmpty()
-        }
-    }
+    fun clearError() = libraryStore.clearError()
 
     fun setSelectedIndexFromScroll(index: Int) {
+        if(isLoading.value) return
         _selectedIndex.value = index
     }
 }
 
 class LibrariesViewModelFactory(
     private val libraryStore: LibraryStore,
-    private val appConfigStore: AppConfigStore
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LibrariesViewModel::class.java)) {
-            return LibrariesViewModel(libraryStore, appConfigStore) as T
+            return LibrariesViewModel(
+                libraryStore = libraryStore
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -30,17 +30,13 @@ import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.components.EmptyGrid
 import tv.nomercy.app.shared.components.Indexer
 import tv.nomercy.app.shared.components.LibraryTabScroller
-import tv.nomercy.app.shared.components.NMComponents.NMComponent
+import tv.nomercy.app.shared.components.nMComponents.NMComponent
 
 @Composable
-fun LibrariesScreen(navController: NavController) {
-    val appConfigStore = GlobalStores.getAppConfigStore(LocalContext.current)
-    val libraryStore = GlobalStores.getLibraryStore(LocalContext.current)
-
+fun LibraryScreen(navController: NavController) {
     val viewModel: LibrariesViewModel = viewModel(
         factory = LibrariesViewModelFactory(
-            libraryStore = libraryStore,
-            appConfigStore = appConfigStore
+            libraryStore = GlobalStores.getLibraryStore(LocalContext.current),
         )
     )
 
@@ -49,7 +45,6 @@ fun LibrariesScreen(navController: NavController) {
     val errorMessage by viewModel.errorMessage.collectAsState()
     val currentLibraryId by viewModel.currentLibraryId.collectAsState()
     val currentLibrary by viewModel.currentLibrary.collectAsState()
-    val showIndexer by viewModel.showIndexer.collectAsState()
     val selectedIndex by viewModel.selectedIndex.collectAsState()
     val isEmptyStable by viewModel.isEmptyStable.collectAsState()
 
@@ -72,6 +67,7 @@ fun LibrariesScreen(navController: NavController) {
         val char = titleSort.firstOrNull()?.uppercaseChar() ?: '#'
         if (char in 'A'..'Z') char else '#'
     }
+
 
     LaunchedEffect(visibleChar) {
         val index = viewModel.indexerCharacters.indexOf(visibleChar)
@@ -158,9 +154,7 @@ fun LibrariesScreen(navController: NavController) {
                 }
 
                 Indexer(
-                    isEnabled = showIndexer,
-                    selectedIndex = selectedIndex,
-                    onIndexSelected = { char -> viewModel.onIndexSelected(char) }
+                    modifier = Modifier,
                 )
             }
         }

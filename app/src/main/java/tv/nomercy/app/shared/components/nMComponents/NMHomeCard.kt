@@ -1,6 +1,5 @@
-package tv.nomercy.app.shared.components.NMComponents
+package tv.nomercy.app.shared.components.nMComponents
 
-import ComponentData
 import HomeItem
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -40,7 +39,7 @@ import androidx.navigation.NavController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.MediaItem
+import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor

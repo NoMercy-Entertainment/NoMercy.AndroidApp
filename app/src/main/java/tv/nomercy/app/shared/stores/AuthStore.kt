@@ -103,13 +103,13 @@ class AuthStore(private val context: Context) {
      * Clear all authentication data
      */
     suspend fun clearTokens() {
-        clearAuth()
+        clearData()
     }
 
     /**
      * Clear all authentication data
      */
-    fun clearAuth() {
+    fun clearData() {
         _isAuthenticated.value = false
         _userInfo.value = null
         _accessToken.value = null

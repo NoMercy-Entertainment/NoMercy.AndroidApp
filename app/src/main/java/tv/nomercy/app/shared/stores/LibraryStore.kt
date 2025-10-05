@@ -3,92 +3,88 @@ package tv.nomercy.app.shared.stores
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import tv.nomercy.app.shared.api.repository.LibraryRepository
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.Library
 import tv.nomercy.app.shared.models.MediaItem
-import tv.nomercy.app.shared.api.repository.LibraryRepository
-import kotlin.fold
 
 class LibraryStore(
     private val context: Context,
     private val authStore: AuthStore,
-    private val appConfigStore: AppConfigStore
+    private val serverConfigStore: ServerConfigStore
 ) {
     private val authService = GlobalStores.getAuthService(context)
     private val repository = LibraryRepository(context, authStore, authService)
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private val _libraries = MutableStateFlow<List<Library>>(emptyList())
-    val libraries = _libraries.asStateFlow()
-
-    private val _isLoadingLibraries = MutableStateFlow(false)
-    val isLoadingLibraries = _isLoadingLibraries.asStateFlow()
-
-    private val _librariesError = MutableStateFlow<String?>(null)
-    val librariesError = _librariesError.asStateFlow()
+    val libraries: StateFlow<List<Library>> = _libraries.asStateFlow()
 
     private val _libraryItems = MutableStateFlow<Map<String, List<Component<MediaItem>>>>(emptyMap())
-    val libraryItems = _libraryItems.asStateFlow()
+    val libraryItems: StateFlow<Map<String, List<Component<MediaItem>>>> = _libraryItems.asStateFlow()
 
-    private fun getServerUrl(): String? = appConfigStore.currentServer.value?.serverApiUrl
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    private fun getServerUrl(): String? = serverConfigStore.currentServer.value?.serverApiUrl
 
     fun fetchLibraries() {
         val serverUrl = getServerUrl() ?: run {
-            _librariesError.value = "No server selected"
+            _error.value = "No server selected"
             return
         }
 
         scope.launch {
-            _isLoadingLibraries.value = true
-            _librariesError.value = null
+            _isLoading.value = true
+            _error.value = null
 
             repository.getLibraries(serverUrl).collect { result ->
                 result.fold(
                     onSuccess = { _libraries.value = it },
-                    onFailure = { _librariesError.value = it.message ?: "Failed to fetch libraries" }
+                    onFailure = { _error.value = it.message ?: "Failed to fetch libraries" }
                 )
-                _isLoadingLibraries.value = false
+                _isLoading.value = false
             }
         }
     }
 
-    fun fetchLibrary(link: String, page: Int = 1, limit: Int = 20, force: Boolean = false) {
+    fun fetchLibrary(link: String, page: Int = 0, limit: Int = 20, force: Boolean = false) {
         val serverUrl = getServerUrl() ?: run {
-            _librariesError.value = "No server selected"
+            _error.value = "No server selected"
             return
         }
 
         if (!force && _libraryItems.value.containsKey(link)) return
 
         scope.launch {
-            _isLoadingLibraries.value = true
-            _librariesError.value = null
+            _isLoading.value = true
+            _error.value = null
 
             repository.getLibraryItems(serverUrl, link, page, limit).collect { result ->
                 result.fold(
                     onSuccess = { items ->
-                        _libraryItems.value = _libraryItems.value.toMutableMap().apply {
-                            this[link] = items
-                        }
+                        _libraryItems.update { it + (link to items) }
                     },
-                    onFailure = { _librariesError.value = it.message ?: "Failed to fetch items for $link" }
+                    onFailure = { _error.value = it.message ?: "Failed to fetch items for $link" }
                 )
-                _isLoadingLibraries.value = false
+                _isLoading.value = false
             }
         }
     }
 
-    fun clearLibraryData() {
+    fun clearData() {
         _libraries.value = emptyList()
         _libraryItems.value = emptyMap()
-        _librariesError.value = null
-        _isLoadingLibraries.value = false
+        _error.value = null
+        _isLoading.value = false
     }
 
-    fun clearLibraryError() {
-        _librariesError.value = null
+    fun clearError() {
+        _error.value = null
     }
 }

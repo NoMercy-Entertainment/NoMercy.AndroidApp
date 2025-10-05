@@ -1,5 +1,6 @@
 import kotlinx.serialization.SerialName
 import tv.nomercy.app.shared.models.ColorPalettes
+import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.ExtendedVideo
 import tv.nomercy.app.shared.models.Rating
 

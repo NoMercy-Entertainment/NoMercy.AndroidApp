@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.models.Server
 import tv.nomercy.app.shared.stores.AppConfigStore
+import tv.nomercy.app.shared.stores.ServerConfigStore
 
 /**
  * ViewModel for handling app setup flow independent of authentication
  */
 class SelectServerViewModel(
-    private val appConfigStore: AppConfigStore
+    private val appConfigStore: AppConfigStore,
+    private val serverConfigStore: ServerConfigStore
 ) : ViewModel() {
 
     private val _setupState = MutableStateFlow<SetupState>(SetupState.CheckingConfiguration)
@@ -25,8 +27,7 @@ class SelectServerViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     // Observe store data
-    val servers = appConfigStore.servers
-    val currentServer = appConfigStore.currentServer
+    val currentServer = serverConfigStore.currentServer
     val userProfile = appConfigStore.userProfile
 
     init {
@@ -45,7 +46,6 @@ class SelectServerViewModel(
 
             result.fold(
                 onSuccess = {
-                    // Configuration loaded successfully, check what's needed
                     determineSetupState()
                 },
                 onFailure = { exception ->
@@ -61,11 +61,11 @@ class SelectServerViewModel(
      * Select a server during setup
      */
     fun selectServer(server: Server) {
-        appConfigStore.setCurrentServer(server)
+        serverConfigStore.setCurrentServer(server)
 
         // Fetch server permissions after selecting server
         viewModelScope.launch {
-            val permissionsResult = appConfigStore.fetchServerPermissions()
+            val permissionsResult = serverConfigStore.fetchServerPermissions()
             permissionsResult.fold(
                 onSuccess = {
                     determineSetupState()
@@ -108,7 +108,7 @@ class SelectServerViewModel(
         viewModelScope.launch {
             // Combine all relevant state to determine setup requirements
             combine(
-                servers,
+                appConfigStore.servers,
                 currentServer,
                 userProfile
             ) { _, _, _ ->
@@ -121,7 +121,7 @@ class SelectServerViewModel(
     }
 
     private fun determineSetupState() {
-        val serversList = servers.value
+        val serversList = appConfigStore.servers.value
         val selectedServer = currentServer.value
 
         when {
@@ -138,7 +138,7 @@ class SelectServerViewModel(
             // Single server - auto-select and validate
             serversList.size == 1 && selectedServer == null -> {
                 val singleServer = serversList[0]
-                appConfigStore.setCurrentServer(singleServer)
+                serverConfigStore.setCurrentServer(singleServer)
 
                 // Set loading state while validating server
                 _setupState.value = SetupState.CheckingConfiguration
@@ -146,7 +146,7 @@ class SelectServerViewModel(
                 // Validate server connectivity
                 viewModelScope.launch {
                     _isLoading.value = true
-                    val permissionsResult = appConfigStore.fetchServerPermissions()
+                    val permissionsResult = serverConfigStore.fetchServerPermissions()
                     _isLoading.value = false
 
                     permissionsResult.fold(
@@ -186,12 +186,13 @@ sealed class SetupState {
 }
 
 class SetupViewModelFactory(
-    private val appConfigStore: AppConfigStore
+    private val appConfigStore: AppConfigStore,
+    private val serverConfigStore: ServerConfigStore
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SelectServerViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return SelectServerViewModel(appConfigStore) as T
+            return SelectServerViewModel(appConfigStore, serverConfigStore) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

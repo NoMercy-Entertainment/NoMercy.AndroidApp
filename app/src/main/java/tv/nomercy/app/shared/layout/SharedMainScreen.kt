@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tv.nomercy.app.Platform
@@ -27,6 +28,7 @@ import tv.nomercy.app.mobile.screens.selectServer.SelectServerScreen
 import tv.nomercy.app.mobile.screens.selectServer.SelectServerViewModel
 import tv.nomercy.app.mobile.screens.selectServer.SetupViewModelFactory
 import tv.nomercy.app.shared.stores.AppConfigStore
+import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.tv.auth.TvLoginScreen
 import tv.nomercy.app.tv.layout.TVMainScreen
 
@@ -34,11 +36,13 @@ import tv.nomercy.app.tv.layout.TVMainScreen
 fun SharedMainScreen(
     platform: Platform,
     authViewModel: AuthViewModel,
-    appConfigStore: AppConfigStore
+    appConfigStore: AppConfigStore,
 ) {
+    val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
     val authState by authViewModel.authState.collectAsState()
+
     val selectServerViewModel: SelectServerViewModel = viewModel(
-        factory = SetupViewModelFactory(appConfigStore)
+        factory = SetupViewModelFactory(appConfigStore, serverConfigStore)
     )
 
     var isSetupComplete by remember { mutableStateOf(false) }
@@ -76,8 +80,8 @@ fun SharedMainScreen(
                 )
             } else {
                 when (platform) {
-                    Platform.Mobile -> MobileMainScaffold(authViewModel, appConfigStore)
-                    Platform.TV -> TVMainScreen(authViewModel, appConfigStore)
+                    Platform.Mobile -> MobileMainScaffold()
+                    Platform.TV -> TVMainScreen()
                 }
             }
         }

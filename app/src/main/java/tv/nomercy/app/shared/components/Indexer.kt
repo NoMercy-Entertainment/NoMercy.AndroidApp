@@ -32,13 +32,11 @@ import tv.nomercy.app.shared.stores.GlobalStores
 fun Indexer(
     modifier: Modifier
 ) {
-    val appConfigStore = GlobalStores.getAppConfigStore(LocalContext.current)
     val libraryStore = GlobalStores.getLibraryStore(LocalContext.current)
 
     val viewModel: LibrariesViewModel = viewModel(
         factory = LibrariesViewModelFactory(
             libraryStore = libraryStore,
-            appConfigStore = appConfigStore
         )
     )
 

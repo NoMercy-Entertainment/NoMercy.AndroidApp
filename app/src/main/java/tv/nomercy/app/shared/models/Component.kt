@@ -2,6 +2,8 @@ package tv.nomercy.app.shared.models
 
 import kotlinx.serialization.Serializable
 
+interface ComponentData
+
 @Serializable
 data class Component<out T>(
     val id: String,

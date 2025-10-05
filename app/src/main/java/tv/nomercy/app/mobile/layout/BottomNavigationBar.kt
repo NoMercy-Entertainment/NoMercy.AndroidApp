@@ -13,15 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import tv.nomercy.app.mobile.screens.auth.AuthViewModel
-import tv.nomercy.app.shared.stores.AppConfigStore
 
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
     navItems: List<AppNavItem>,
-    appConfigStore: AppConfigStore,
-    authViewModel: AuthViewModel
 ) {
 
     Surface(
@@ -38,7 +34,7 @@ fun BottomNavigationBar(
         ) {
 
             navItems.forEach { item ->
-                BottomNavigationBarButton(item, navController, appConfigStore, authViewModel, Modifier.weight(1f))
+                BottomNavigationBarButton(item, navController, Modifier.weight(1f))
             }
         }
     }

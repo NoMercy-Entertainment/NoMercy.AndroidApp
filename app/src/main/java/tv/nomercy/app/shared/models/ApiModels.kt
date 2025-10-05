@@ -1,24 +1,27 @@
 package tv.nomercy.app.shared.models
 
-import ComponentData
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Response wrapper for API responses
  */
+@Serializable
 data class ApiResponse<T>(
-    val data: T?,
-    val message: String?,
-    val status: String?
+    val data: T? = null,
+    val message: String? = null,
+    val status: String? = null
 )
 
 /**
  * App configuration response containing user info, servers, and permissions
  */
+@Serializable
 data class AppConfig(
     val servers: List<Server>,
-    val messages: List<Message>?,
-    val notifications: List<Notification>?,
+    val messages: List<Message>? = emptyList(),
+    val notifications: List<Notification>? = emptyList(),
     val locale: String?,
     val name: String?,
     val avatarUrl: String?,
@@ -30,46 +33,59 @@ data class AppConfig(
 /**
  * Server information
  */
+@Serializable
 data class Server(
     val id: String,
     val name: String,
-    @SerialName("server_api_url")
-    val serverApiUrl: String,
-    val description: String?,
-    val version: String?,
-    val status: String?,
-    @SerialName("is_owner")
-    val isOwner: Boolean? = null,
-    @SerialName("is_manager")
-    val isManager: Boolean? = null
+    @SerialName("server_api_url") val serverApiUrl: String,
+    val description: String? = null,
+    val version: String? = null,
+    val status: String? = null,
+    @SerialName("is_owner") val isOwner: Boolean? = null,
+    @SerialName("is_manager") val isManager: Boolean? = null
 )
 
 /**
  * Message model
  */
+@Serializable
 data class Message(
-    val id: String,
-    val title: String,
-    val content: String,
+    val id: Int,
+    val title: String? = null,
+    @SerialName("body") val content: String,
     val type: String,
-    val timestamp: String?
+    val read: Boolean = false,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("updated_at") val updatedAt: String? = null,
+    val from: Sender? = null
 )
 
+@Serializable
+data class Sender(
+    val id: String? = null,
+    val name: String? = null,
+    val email: String? = null,
+    @SerialName("avatarUrl") val avatarUrl: String? = null
+)
 /**
  * Notification model
  */
+@Serializable
 data class Notification(
-    val id: String,
-    val title: String,
-    val message: String,
+    val id: Int,
+    val title: String? = null,
+    @SerialName("body") val message: String,
     val type: String,
     val read: Boolean,
-    val timestamp: String?
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("updated_at") val updatedAt: String? = null,
+    val from: JsonElement? = null // can be string or object
 )
 
 /**
  * User profile information
  */
+@Serializable
 data class UserProfile(
     val id: String,
     val name: String,
@@ -85,6 +101,7 @@ data class UserProfile(
 /**
  * Server permissions response
  */
+@Serializable
 data class PermissionsResponse(
     val owner: Boolean,
     val manager: Boolean
@@ -93,6 +110,7 @@ data class PermissionsResponse(
 /**
  * Library model for server libraries
  */
+@Serializable
 data class Library(
     val id: String,
     val title: String,
@@ -103,19 +121,5 @@ data class Library(
     val realtime: Boolean?,
     val specialSeasonName: String?,
     val order: Int?,
-    val blurHash: String?,
-    val colorPalette: String?,
     val image: String?,
-    val createdAt: String?,
-    val updatedAt: String?
 )
-
-/**
- * Library response containing dynamic components
- * This matches your actual API response structure
- */
-data class LibraryResponse<T: ComponentData>(
-    val id: String,
-    val data: Component<T>
-)
-

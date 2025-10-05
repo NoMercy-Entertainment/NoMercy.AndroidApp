@@ -95,8 +95,9 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     // JSON parsing
-    implementation(libs.gson)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.json.v160)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
 
     // OAuth2/OIDC Authentication (instead of Keycloak Android SDK)
     implementation(libs.appauth)

@@ -1,6 +1,5 @@
 package tv.nomercy.app.shared.models
 
-import ComponentData
 import kotlinx.serialization.Serializable
 
 @Serializable

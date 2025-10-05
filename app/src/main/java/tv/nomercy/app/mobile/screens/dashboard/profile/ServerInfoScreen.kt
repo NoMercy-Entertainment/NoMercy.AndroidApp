@@ -6,20 +6,25 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import tv.nomercy.app.R
+import tv.nomercy.app.mobile.screens.auth.AuthViewModel
+import tv.nomercy.app.mobile.screens.auth.AuthViewModelFactory
 import tv.nomercy.app.shared.models.Server
 import tv.nomercy.app.shared.stores.AppConfigStore
+import tv.nomercy.app.shared.stores.GlobalStores
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServerInfoScreen(
-    appConfigStore: AppConfigStore,
     onNavigateBack: () -> Unit = {}
 ) {
-    val currentServer by appConfigStore.currentServer.collectAsState()
+    val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
+    val currentServer by serverConfigStore.currentServer.collectAsState()
 
     LazyColumn(
         modifier = Modifier

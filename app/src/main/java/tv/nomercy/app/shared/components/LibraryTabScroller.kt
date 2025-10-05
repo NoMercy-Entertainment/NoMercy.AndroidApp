@@ -69,26 +69,26 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
         }
 
         // Add static tabs
-//        add(TabItem(
-//            "collections",
-//            "Collections",
-//            "collections",
-//            "collection",
-//            R.drawable.collection1,
-//            onClick = {
-//                selectedTabIndex = libraries.size - 1;
-//                viewModel.selectLibrary("collection")
-//            }))
-//        add(TabItem(
-//            "specials",
-//            "Specials",
-//            "specials",
-//            "specials",
-//            R.drawable.sparkles,
-//            onClick = {
-//                selectedTabIndex = libraries.size;
-//                viewModel.selectLibrary("specials")
-//            }))
+        add(TabItem(
+            "collections",
+            "Collections",
+            "collections",
+            "collection",
+            R.drawable.collection1,
+            onClick = {
+                selectedTabIndex = libraries.size - 1
+                viewModel.selectLibrary("collection")
+            }))
+        add(TabItem(
+            "specials",
+            "Specials",
+            "specials",
+            "specials",
+            R.drawable.sparkles,
+            onClick = {
+                selectedTabIndex = libraries.size
+                viewModel.selectLibrary("specials")
+            }))
         add(TabItem(
             "genres",
             "Genres",
@@ -96,7 +96,7 @@ fun LibraryTabScroller(viewModel: LibrariesViewModel, cb: (selectedTab: TabItem?
             "genre",
             R.drawable.witchhat,
             onClick = {
-                selectedTabIndex = libraries.size - 1;
+                selectedTabIndex = libraries.size + 1
                 viewModel.selectLibrary("genre")
             }))
 //        add(TabItem(
