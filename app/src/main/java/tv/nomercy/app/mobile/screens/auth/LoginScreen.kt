@@ -1,9 +1,28 @@
 package tv.nomercy.app.mobile.screens.auth
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -12,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tv.nomercy.app.R
+import tv.nomercy.app.tv.auth.TvLoginInstructions
 
 @Composable
 fun LoginScreen(
@@ -49,32 +69,6 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // App Logo/Icon
-                Icon(
-                    painter = painterResource(R.drawable.home),
-                    contentDescription = "NoMercy TV",
-                    modifier = Modifier.size(80.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                // App Title
-                Text(
-                    text = "NoMercy TV",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                // Welcome Text
-                Text(
-                    text = "Welcome back! Please sign in to continue.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 // Login Button
                 when (val currentState = authState) {
                     is AuthState.Loading -> {
@@ -83,6 +77,7 @@ fun LoginScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
+
                     is AuthState.Error -> {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -109,7 +104,54 @@ fun LoginScreen(
                             }
                         }
                     }
+
+                    is AuthState.TvInstructions -> {
+                        TvLoginInstructions(
+                            verificationUri = currentState.verificationUri
+                                .replace("auth-", "")
+                                .replace("/realms/NoMercyTV/device", "/tv"),
+                            userCode = currentState.userCode,
+                            onConfirm = { authViewModel.pollForToken() }
+                        )
+                    }
+
+                    is AuthState.TvPolling -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            CircularProgressIndicator()
+                            Text(text = "Waiting for login on another device...")
+                        }
+                    }
+
                     else -> {
+                        // App Logo/Icon
+                        Icon(
+                            painter = painterResource(R.drawable.home),
+                            contentDescription = "NoMercy TV",
+                            modifier = Modifier.size(80.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+
+                        // App Title
+                        Text(
+                            text = "NoMercy TV",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        // Welcome Text
+                        Text(
+                            text = "Welcome back! Please sign in to continue.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         Button(
                             onClick = { authViewModel.login() },
                             modifier = Modifier
@@ -150,3 +192,4 @@ fun LoginScreen(
         }
     }
 }
+

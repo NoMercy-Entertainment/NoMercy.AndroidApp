@@ -69,7 +69,7 @@ class LibraryRepository(
             val response = serverApiService.getLibraryItems(link, page, limit)
 
             if (response.isSuccessful) {
-                val rawJson = response.body()?.string()
+                val rawJson = response.body()?.toString()
 //                println("DEBUG LibraryRepository: Raw JSON: $rawJson")
 
                 val json = Json { ignoreUnknownKeys = true }

@@ -5,8 +5,9 @@ appauth = "0.11.1"
 browser = "1.9.0"
 coilCompose = "2.7.0"
 composeBom = "2025.09.01"
-composeBomVersion = "2023.10.01"
+composeBomVersion = "2025.09.01"
 converterGson = "3.0.0"
+core = "3.5.3"
 coreSplashscreen = "1.0.1"
 datastorePreferences = "1.1.7"
 gson = "2.13.2"
@@ -65,6 +66,7 @@ androidx-security-crypto = { module = "androidx.security:security-crypto", versi
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+core = { module = "com.google.zxing:core", version.ref = "core" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

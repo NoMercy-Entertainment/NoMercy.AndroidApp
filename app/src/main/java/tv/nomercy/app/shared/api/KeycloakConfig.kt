@@ -54,4 +54,8 @@ object KeycloakConfig {
 
         return AuthorizationService(context, builder.build())
     }
+
+    fun isTv(context: Context): Boolean {
+        return context.packageManager.hasSystemFeature("android.software.leanback")
+    }
 }

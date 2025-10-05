@@ -9,10 +9,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
-import net.openid.appauth.*
-import net.openid.appauth.AuthState as AppAuthState
+import net.openid.appauth.AuthState
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationRequest
+import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.AuthorizationService
 import org.json.JSONObject
+import tv.nomercy.app.shared.api.DeviceAuthClient
+import tv.nomercy.app.shared.api.DeviceAuthResponse
 import tv.nomercy.app.shared.api.KeycloakConfig
+import tv.nomercy.app.shared.api.TokenResponse
 import tv.nomercy.app.shared.stores.AuthStore
 import kotlin.coroutines.resume
 
@@ -21,7 +27,11 @@ class AuthService(
     private val authStore: AuthStore
 ) {
     private var authService: AuthorizationService? = null
-    private var authState: AppAuthState? = null
+    private var authState: AuthState? = null
+    private val deviceAuthClient = DeviceAuthClient(
+        authUrl = "https://auth-dev.nomercy.tv", // Replace with your auth URL
+        clientId = "nomercy-ui" // Replace with your client ID
+    )
 
     private fun getAuthService(): AuthorizationService {
         if (authService == null) {
@@ -30,7 +40,20 @@ class AuthService(
         return authService!!
     }
 
-    fun login(): AuthResult {
+    private suspend fun loginTv(): AuthResult {
+        val response = deviceAuthClient.startDeviceFlow()
+        return if (response != null) {
+            AuthResult.TvLogin(response)
+        } else {
+            AuthResult.Error("Failed to start device flow")
+        }
+    }
+
+    suspend fun login(): AuthResult {
+        if (KeycloakConfig.isTv(context)) {
+            return loginTv()
+        }
+
         return try {
             val authRequest = KeycloakConfig.createAuthorizationRequest()
             val authIntent = getAuthService().getAuthorizationRequestIntent(authRequest)
@@ -42,6 +65,35 @@ class AuthService(
         }
     }
 
+    suspend fun pollForToken(deviceCode: String): AuthResult {
+        val tokenResponse = deviceAuthClient.pollForToken(deviceCode)
+
+        return when {
+            tokenResponse?.accessToken != null -> {
+                val userInfo = extractUserInfoFromIdToken(tokenResponse.idToken)
+                runBlocking {
+                    saveTokens(
+                        accessToken = tokenResponse.accessToken,
+                        refreshToken = tokenResponse.refreshToken ?: "",
+                        idToken = tokenResponse.idToken ?: "",
+                        userInfo = userInfo
+                    )
+                }
+                AuthResult.Success(tokenResponse.accessToken, userInfo)
+            }
+            tokenResponse?.error == "authorization_pending" -> {
+                AuthResult.Error("pending")
+            }
+            tokenResponse?.error == "slow_down" -> {
+                AuthResult.Error("slow down")
+            }
+            else -> {
+                AuthResult.Error(tokenResponse?.errorDescription ?: "Token exchange failed")
+            }
+        }
+    }
+
+
     suspend fun handleAuthorizationResponse(
         authResponse: AuthorizationResponse?,
         authException: AuthorizationException?
@@ -51,6 +103,7 @@ class AuthService(
                 authException != null -> {
                     continuation.resume(AuthResult.Error(authException.message ?: "Authorization failed"))
                 }
+
                 authResponse != null -> {
                     val tokenRequest = authResponse.createTokenExchangeRequest()
 
@@ -59,12 +112,12 @@ class AuthService(
                             continuation.resume(AuthResult.Error(tokenException.message ?: "Token exchange failed"))
                         } else if (tokenResponse != null) {
                             // Update auth state
-                            authState = AppAuthState(authResponse, tokenResponse, tokenException)
+                            authState = AuthState(authResponse, tokenResponse, tokenException)
 
                             // Extract user info from ID token
                             val userInfo = extractUserInfoFromIdToken(tokenResponse.idToken)
 
-                            // Save tokens synchronously to ensure they're available immediately
+                            // Save tokens synchronously to ensure they'''re available immediately
                             runBlocking {
                                 saveTokens(
                                     accessToken = tokenResponse.accessToken ?: "",
@@ -83,6 +136,7 @@ class AuthService(
                         }
                     }
                 }
+
                 else -> {
                     continuation.resume(AuthResult.Error("No authorization response received"))
                 }
@@ -122,7 +176,8 @@ class AuthService(
                             CoroutineScope(Dispatchers.IO).launch {
                                 saveTokens(
                                     accessToken = tokenResponse.accessToken ?: "",
-                                    refreshToken = tokenResponse.refreshToken ?: currentAuthState.refreshToken ?: "",
+                                    refreshToken = tokenResponse.refreshToken
+                                        ?: currentAuthState.refreshToken ?: "",
                                     idToken = tokenResponse.idToken ?: "",
                                     userInfo = userInfo
                                 )
@@ -227,6 +282,7 @@ sealed class AuthResult {
     data class Success(val accessToken: String, val user: UserInfo) : AuthResult()
     data class Error(val message: String) : AuthResult()
     data class LoginIntent(val intent: Intent, val request: AuthorizationRequest) : AuthResult()
+    data class TvLogin(val response: DeviceAuthResponse) : AuthResult()
 }
 
 data class UserInfo(

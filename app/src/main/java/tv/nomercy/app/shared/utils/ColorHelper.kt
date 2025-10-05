@@ -9,26 +9,26 @@ fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 160):
         return Color.Transparent
     }
 
-    if (!isColorLight(palette.lightVibrant, light) && !isColorDark(palette.lightVibrant, dark)) {
+    if (palette.lightVibrant != null && !isColorLight(palette.lightVibrant, light) && !isColorDark(palette.lightVibrant, dark)) {
         return palette.lightVibrant.toColor()
     }
-    if (!isColorLight(palette.primary, light) && !isColorDark(palette.primary, dark)) {
+    if (palette.primary != null && !isColorLight(palette.primary, light) && !isColorDark(palette.primary, dark)) {
         return palette.primary.toColor()
     }
-    if (!isColorLight(palette.dominant, light) && !isColorDark(palette.dominant, dark)) {
+    if (palette.dominant != null && !isColorLight(palette.dominant, light) && !isColorDark(palette.dominant, dark)) {
         return palette.dominant.toColor()
     }
-    if (!isColorLight(palette.darkVibrant, light) && !isColorDark(palette.darkVibrant, dark)) {
+    if (palette.darkVibrant != null && !isColorLight(palette.darkVibrant, light) && !isColorDark(palette.darkVibrant, dark)) {
         return palette.darkVibrant.toColor()
     }
-    if (!isColorLight(palette.darkMuted, light) && !isColorDark(palette.darkMuted, dark)) {
+    if (palette.darkMuted != null && !isColorLight(palette.darkMuted, light) && !isColorDark(palette.darkMuted, dark)) {
         return palette.darkMuted.toColor()
     }
-    if (!isColorLight(palette.lightMuted, light) && !isColorDark(palette.lightMuted, dark)) {
+    if (palette.lightMuted != null && !isColorLight(palette.lightMuted, light) && !isColorDark(palette.lightMuted, dark)) {
         return palette.lightMuted.toColor()
     }
 
-    return palette.primary.toColor()
+    return Color.Transparent
 }
 
 fun String.toColor(): Color {
@@ -67,4 +67,31 @@ fun hexToRgb(color: String): Map<String, String> {
         "green" to ((c shr 8) and 0xFF).toString(),
         "blue" to (c and 0xFF).toString()
     )
+}
+
+data class PercentColor(val pct: Int, val color: Color)
+
+val redToGreen = listOf(
+    PercentColor(0, Color(0xFFCC0000)),     // red
+    PercentColor(50, Color(0xFFEEEE00)),    // yellow
+    PercentColor(99, Color(0xFF009000)),    // green
+    PercentColor(100, Color(0xFF004000))    // dark green
+)
+
+fun getColorFromPercent(pct: Int, scheme: List<PercentColor> = redToGreen): Color {
+    val clampedPct = pct.coerceIn(0, 100)
+    val i = scheme.indexOfFirst { clampedPct < it.pct }.takeIf { it > 0 } ?: scheme.lastIndex
+    val lower = scheme[i - 1]
+    val upper = scheme[i]
+
+    val range = (upper.pct - lower.pct).coerceAtLeast(1)
+    val rangePct = (clampedPct - lower.pct).toFloat() / range
+    val pctLower = 1f - rangePct
+    val pctUpper = rangePct
+
+    val r = (lower.color.red * pctLower + upper.color.red * pctUpper)
+    val g = (lower.color.green * pctLower + upper.color.green * pctUpper)
+    val b = (lower.color.blue * pctLower + upper.color.blue * pctUpper)
+
+    return Color(r, g, b)
 }

@@ -33,6 +33,9 @@ fun Modifier.aspectFromType(aspectRatio: AspectRatio?): Modifier {
 @Composable
 fun Modifier.paletteBackground(palette: PaletteColors?): Modifier {
     if (palette == null) return background(MaterialTheme.colorScheme.primary)
+    if (palette.dominant == null || palette.lightVibrant == null || palette.darkVibrant == null) {
+        return background(MaterialTheme.colorScheme.primary)
+    }
 
     val topLeft = palette.lightVibrant.toColor().copy(alpha = 0.75f)
     val topRight = palette.dominant.toColor().copy(alpha = 0.70f)
@@ -79,8 +82,8 @@ private fun DrawScope.drawRadialCornerGradient(color: Color, center: Offset, rad
 @Composable
 fun gradientButtonBackground(active: Boolean = false): Modifier {
 
-    val top = colorResource(id = R.color.theme_8)
-    val bottom = colorResource(id = R.color.theme_5)
+    val top = colorResource(id = R.color.theme_9)
+    val bottom = colorResource(id = R.color.theme_8)
 
     return Modifier.drawWithCache() {
         val radial1 = Brush.radialGradient(
@@ -96,7 +99,7 @@ fun gradientButtonBackground(active: Boolean = false): Modifier {
         )
 
         val linear = Brush.verticalGradient(
-            colors = listOf(top.copy(alpha = 0.2f), bottom.copy(alpha = 0f))
+            colors = listOf(top.copy(alpha = 0.4f), bottom.copy(alpha = 0.1f))
         )
 
         onDrawBehind {

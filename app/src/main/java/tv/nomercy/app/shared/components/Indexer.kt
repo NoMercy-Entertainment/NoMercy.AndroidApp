@@ -7,49 +7,69 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import tv.nomercy.app.mobile.screens.base.library.LibrariesViewModel
+import tv.nomercy.app.mobile.screens.base.library.LibrariesViewModelFactory
+import tv.nomercy.app.shared.stores.GlobalStores
 
 @Composable
 fun Indexer(
-    isEnabled: Boolean,
-    selectedIndex: Int,
-    onIndexSelected: (Char) -> Unit
+    modifier: Modifier
 ) {
+    val appConfigStore = GlobalStores.getAppConfigStore(LocalContext.current)
+    val libraryStore = GlobalStores.getLibraryStore(LocalContext.current)
+
+    val viewModel: LibrariesViewModel = viewModel(
+        factory = LibrariesViewModelFactory(
+            libraryStore = libraryStore,
+            appConfigStore = appConfigStore
+        )
+    )
+
+    val showIndexer by viewModel.showIndexer.collectAsState()
+    val selectedIndex = viewModel.selectedIndex.collectAsState()
+    val activeLetters by viewModel.activeIndexerLetters.collectAsState()
+
     val characters = listOf('#') + ('A'..'Z').toList()
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxHeight()
             .padding(end = 4.dp)
-            .alpha(if (isEnabled) 1f else 0.4f),
+            .width(if (!showIndexer) 0.dp else 32.dp)
+            .alpha(if (showIndexer) 1f else 0.4f),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         characters.forEachIndexed { index, char ->
-            val isSelected = selectedIndex == index
-            val backgroundColor = when {
-                isSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                else -> Color.Transparent
-            }
-            val textColor = MaterialTheme.colorScheme.onSurface
+            val isSelected = selectedIndex.value == index
+            val isActive = activeLetters.contains(char)
+            val backgroundColor = if (isSelected) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color.Transparent
+            val textColor = if (isActive) MaterialTheme.colorScheme.onSurface else Color.Gray
 
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
-                    .clip(shape = CircleShape.copy(CornerSize(5.dp)))
+                    .clip(CircleShape.copy(CornerSize(5.dp)))
                     .background(backgroundColor)
-                    .clickable(enabled = isEnabled) { onIndexSelected(char) },
+                    .clickable(enabled = showIndexer && isActive) { viewModel.onIndexSelected(char) }
+                    .alpha(if (isActive) 1f else 0.3f),
                 contentAlignment = Alignment.Center
             ) {
                 Text(

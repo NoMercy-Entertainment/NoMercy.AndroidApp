@@ -2,10 +2,10 @@
     <!-- Base application theme for Compose - Night mode -->
     <style name="Theme.NoMercyTv" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_200</item>
+        <item name="colorPrimary">@color/crimson_12</item>
         <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondary">@color/crimson_11</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@android:color/transparent</item>
@@ -14,7 +14,7 @@
 
     <!-- Splash Screen Theme -->
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="android:windowSplashScreenBackground">@color/theme_1</item>
+        <item name="android:windowSplashScreenBackground">@color/theme_12</item>
 <!--        <item name="windowSplashScreenAnimatedIcon">@drawable/icon_dark</item>-->
         <item name="postSplashScreenTheme">@style/Theme.NoMercyTv</item>
     </style>

@@ -2,14 +2,25 @@ package tv.nomercy.app.shared.components.NMComponents
 
 import ComponentData
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import tv.nomercy.app.shared.components.TMDBImage
@@ -17,6 +28,7 @@ import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.MediaItem
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
+import tv.nomercy.app.shared.utils.getColorFromPercent
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
 
@@ -45,11 +57,13 @@ fun <T: ComponentData> NMCard(
             .fillMaxWidth()
             .aspectFromType(aspectRatio),
         border = BorderStroke(2.dp, focusColor.copy(alpha = 0.5f)),
+        shape = RoundedCornerShape(6.dp),
         onClick = {
-//            datalink.let { navController.navigate(it) }
+//            data.link.let { navController.navigate(it) }
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize()
+        Box(modifier = Modifier
+            .fillMaxSize()
             .paletteBackground(data.colorPalette?.poster)) {
             TMDBImage(
                 path = data.poster,
@@ -57,6 +71,100 @@ fun <T: ComponentData> NMCard(
                 aspectRatio = AspectRatio.Poster,
                 size = 180,
             )
+
+            CompletionOverlay(
+                data = data,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 0.dp, top = 16.dp)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.75f))
+                    .align(androidx.compose.ui.Alignment.BottomStart)
+                ) {
+                Text(
+                    text = data.title,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    minLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+
+                )
+            }
         }
     }
+}
+
+
+
+@Composable
+fun CompletionOverlay(
+    data: MediaItem,
+    modifier: Modifier = Modifier
+) {
+
+    val percent = calculateCompletionPercent(data.haveItems, data.numberOfItems)
+    val color = getColorFromPercent(percent)
+    val collapsed = shouldCollapsePill(data)
+
+    val value = remember(data.haveItems, data.numberOfItems) {
+        if (data.haveItems == null || data.numberOfItems == null || (data.haveItems == 0 && data.numberOfItems == 0)) null
+        else "${data.haveItems} of ${data.numberOfItems}"
+    }
+
+    if (value != null) {
+        Box(
+            modifier = modifier
+                .background(
+                    color = color,
+                    shape = RoundedCornerShape(
+                        topEnd = 6.dp,
+                        bottomEnd = 6.dp
+                    )
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color.Black.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(
+                        topEnd = 6.dp,
+                        bottomEnd = 6.dp
+                    )
+                )
+                .padding(
+                    horizontal = if (collapsed) 0.dp else 6.dp,
+                    vertical = 1.dp
+                )
+                .defaultMinSize(
+                    minWidth = 8.dp,
+                    minHeight = 16.dp
+                )
+        ) {
+            if (!collapsed) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if(percent > 30 && percent < 80) Color.Black else  Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+fun calculateCompletionPercent(haveItems: Int?, numberOfItems: Int?): Int {
+    if (haveItems == null || numberOfItems == null || numberOfItems == 0) return 0
+    return ((haveItems.toFloat() / numberOfItems) * 100).toInt().coerceIn(0, 100)
+}
+
+fun shouldCollapsePill(data: MediaItem): Boolean {
+    return data.type == "movie" &&
+            data.numberOfItems == 1 &&
+            (data.haveItems == 0 || data.haveItems == 1)
 }

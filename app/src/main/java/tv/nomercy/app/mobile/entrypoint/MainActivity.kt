@@ -1,7 +1,6 @@
 package tv.nomercy.app.mobile.entrypoint
 
 import HandleAuthResponse
-import SharedMainScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +16,7 @@ import net.openid.appauth.AuthorizationResponse
 import tv.nomercy.app.Platform
 import tv.nomercy.app.mobile.screens.auth.AuthViewModel
 import tv.nomercy.app.mobile.screens.auth.AuthViewModelFactory
+import tv.nomercy.app.shared.layout.SharedMainScreen
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.NoMercyTheme
 

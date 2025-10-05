@@ -4,7 +4,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import tv.nomercy.app.mobile.screens.auth.AuthViewModel
-import tv.nomercy.app.mobile.screens.base.library.LibrariesScreen
+import tv.nomercy.app.mobile.screens.base.library.LibraryScreen
 import tv.nomercy.app.shared.stores.AppConfigStore
 import tv.nomercy.app.mobile.screens.dashboard.profile.AboutScreen
 import tv.nomercy.app.mobile.screens.base.MobileHomeScreen
@@ -23,7 +23,7 @@ fun MobileNavHost(
 ) {
     NavHost(navController = navController, startDestination = AppNavItem.Home.route, modifier = modifier) {
         composable(AppNavItem.Home.route) { MobileHomeScreen() }
-        composable(AppNavItem.Libraries.route) { LibrariesScreen(navController) }
+        composable(AppNavItem.Libraries.route) { LibraryScreen(navController) }
         composable(AppNavItem.Search.route) { SearchScreen() }
         composable(AppNavItem.Music.route) { MusicScreen() }
         composable(AppNavItem.Profile.route) {

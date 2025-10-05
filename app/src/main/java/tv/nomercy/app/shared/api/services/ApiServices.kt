@@ -72,7 +72,12 @@ interface ServerApiService {
         @Path(value = "link", encoded = true) link: String,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
-    ): Response<ResponseBody>
+    ): Response<ApiResponse<List<Component<*>>>>
+
+    @GET("{path}")
+    suspend fun getComponentResponse(
+        @Path("path", encoded = true) path: String
+    ): Response<ApiResponse<List<Component<*>>>>
 
 
 }

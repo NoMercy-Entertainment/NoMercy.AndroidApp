@@ -23,16 +23,8 @@ fun <T: ComponentData> NMComponent(
         when (component.component) {
             "NMGrid" -> NMGrid(component, modifier, navController, lazyGridState)
             "NMCarousel" -> NMCarousel(component, modifier, navController)
-            "NMCard" -> {
-                when (component.props.data) {
-                    is HomeItem -> NMCard(component, modifier, navController)
-                    is MediaItem -> NMCard(component, modifier, navController)
-                    else -> Text(
-                        text = "NMCard received unsupported data type: ${component.props.data?.javaClass?.simpleName}",
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            }
+            "NMGenreCard" -> NMGenreCard(component, modifier, navController)
+            "NMHomeCard" -> NMHomeCard(component, modifier, navController)
             else -> Text(
                 text = "${component.component} is not supported",
                 modifier = Modifier.padding(16.dp)

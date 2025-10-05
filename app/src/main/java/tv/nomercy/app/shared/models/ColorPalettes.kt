@@ -13,10 +13,10 @@ data class ColorPalettes(
 
 @Serializable
 data class PaletteColors(
-    val dominant: String,
-    val primary: String,
-    val lightVibrant: String,
-    val darkVibrant: String,
-    val lightMuted: String,
-    val darkMuted: String
+    val dominant: String? = null,
+    val primary: String? = null,
+    val lightVibrant: String? = null,
+    val darkVibrant: String? = null,
+    val lightMuted: String? = null,
+    val darkMuted: String? = null,
 )

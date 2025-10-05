@@ -40,17 +40,26 @@ import androidx.navigation.NavController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
+import tv.nomercy.app.shared.models.MediaItem
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
 
 @Composable
-fun <T : ComponentData> NMHomeCard(
-    modifier: Modifier = Modifier,
-    component: Component<HomeItem>,
-    navController: NavController
+fun <T: ComponentData> NMHomeCard(
+    component: Component<T>,
+    modifier: Modifier,
+    navController: NavController,
+    aspectRatio: AspectRatio? = null,
 ) {
-    val posterPalette = component.props.data?.colorPalette?.backdrop
+    val data = component.props.data ?: return
+
+    if (data !is HomeItem) {
+        println("NMCard received unexpected data type: ${data::class.simpleName}")
+        return
+    }
+
+    val posterPalette = data.colorPalette?.backdrop
     val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
 
     Card(
@@ -61,7 +70,7 @@ fun <T : ComponentData> NMHomeCard(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         onClick = {
-            // navController.navigate(component.props.data?.link)
+            // navController.navigate(data.link)
         }
     ) {
         Box(
@@ -70,8 +79,8 @@ fun <T : ComponentData> NMHomeCard(
                 .paletteBackground(posterPalette)
         ) {
             TMDBImage(
-                path = component.props.data?.backdrop,
-                title = component.props.data?.title ?: component.props.data?.name,
+                path = data.backdrop,
+                title = data.title ?: data.name,
                 aspectRatio = AspectRatio.Backdrop,
                 size = 180,
                 modifier = Modifier
@@ -101,7 +110,7 @@ fun <T : ComponentData> NMHomeCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = component.props.data?.title ?: component.props.data?.name ?: "Unknown Title",
+                        text = data.title ?: data.name ?: "Unknown Title",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
@@ -109,9 +118,9 @@ fun <T : ComponentData> NMHomeCard(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (component.props.data?.tags?.isNotEmpty() ?: false) {
+                    if (data.tags?.isNotEmpty() ?: false) {
                         Text(
-                            text = component.props.data.tags.take(4).joinToString(", ") { it.replaceFirstChar(Char::uppercaseChar) },
+                            text = data.tags.take(4).joinToString(", ") { it.replaceFirstChar(Char::uppercaseChar) },
                             style = MaterialTheme.typography.bodySmall,
                             textAlign = TextAlign.Center
                         )
@@ -124,7 +133,7 @@ fun <T : ComponentData> NMHomeCard(
                         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
                     ) {
                         Button(
-                            onClick = { navController.navigate("${component.props.data?.link}/watch") },
+                            onClick = { navController.navigate("${data.link}/watch") },
                             modifier = Modifier.height(40.dp)
                         ) {
                             Image(
@@ -137,7 +146,7 @@ fun <T : ComponentData> NMHomeCard(
                         }
 
                         OutlinedButton(
-                            onClick = { component.props.data?.link?.let { navController.navigate(it) } },
+                            onClick = { data.link?.let { navController.navigate(it) } },
                             modifier = Modifier.height(40.dp)
                         ) {
                             Image(

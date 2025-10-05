@@ -105,6 +105,8 @@ dependencies {
     // Secure storage for tokens
     implementation(libs.androidx.security.crypto)
 
+    implementation(libs.core)
+
     // DataStore for preferences
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.compose)

@@ -1,3 +1,6 @@
+package tv.nomercy.app.shared.layout
+
+import MobileMainScaffold
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +27,7 @@ import tv.nomercy.app.mobile.screens.selectServer.SelectServerScreen
 import tv.nomercy.app.mobile.screens.selectServer.SelectServerViewModel
 import tv.nomercy.app.mobile.screens.selectServer.SetupViewModelFactory
 import tv.nomercy.app.shared.stores.AppConfigStore
+import tv.nomercy.app.tv.auth.TvLoginScreen
 import tv.nomercy.app.tv.layout.TVMainScreen
 
 @Composable
@@ -85,6 +89,15 @@ fun SharedMainScreen(
                     Text("Signing you in...", style = MaterialTheme.typography.bodyMedium)
                 }
             }
+        }
+
+        is AuthState.TvInstructions,
+        is AuthState.TvPolling -> {
+            TvLoginScreen(
+                authViewModel = authViewModel,
+                onLoginSuccess = { /* handled via authViewModel */ },
+                authState = authState
+            )
         }
     }
 }

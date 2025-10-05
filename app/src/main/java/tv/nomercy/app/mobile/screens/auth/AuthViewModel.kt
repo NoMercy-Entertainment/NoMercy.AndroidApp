@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import tv.nomercy.app.shared.api.DeviceAuthResponse
 import tv.nomercy.app.shared.api.services.AuthResult
 import tv.nomercy.app.shared.api.services.AuthService
 import tv.nomercy.app.shared.api.services.UserInfo
@@ -27,6 +29,8 @@ class AuthViewModel(
 
     private val _loginIntent = MutableStateFlow<AuthResult.LoginIntent?>(null)
     val loginIntent: StateFlow<AuthResult.LoginIntent?> = _loginIntent.asStateFlow()
+
+    private var deviceAuthResponse: DeviceAuthResponse? = null
 
     init {
         checkAuthStatus()
@@ -70,12 +74,56 @@ class AuthViewModel(
                     _authState.value = AuthState.Authenticated
                     _userInfo.value = result.user
                 }
+
                 is AuthResult.Error -> {
                     _authState.value = AuthState.Error(result.message)
                 }
+
                 is AuthResult.LoginIntent -> {
                     _loginIntent.value = result
                     _authState.value = AuthState.AwaitingLogin
+                }
+
+                is AuthResult.TvLogin -> {
+                    deviceAuthResponse = result.response
+                    _authState.value = AuthState.TvInstructions(
+                        result.response.verificationUri,
+                        result.response.userCode
+                    )
+                }
+            }
+        }
+    }
+
+    fun pollForToken() {
+        viewModelScope.launch {
+            _authState.value = AuthState.TvPolling
+            var polling = true
+            while (polling) {
+                val response = deviceAuthResponse ?: break
+                when (val result = authService.pollForToken(response.deviceCode)) {
+                    is AuthResult.Success -> {
+                        _authState.value = AuthState.Authenticated
+                        _userInfo.value = result.user
+                        polling = false
+                    }
+
+                    is AuthResult.Error -> {
+                        if (result.message == "pending") {
+                            delay(response.interval * 1000L) // Poll at the specified interval
+                        } else if (result.message == "slow down") {
+                            delay((response.interval + 5) * 1000L) // Slow down and poll after a longer delay
+                        } else {
+                            _authState.value = AuthState.Error(result.message)
+                            polling = false
+                        }
+                    }
+
+                    else -> {
+                        // Should not happen
+                        _authState.value = AuthState.Error("Unexpected result during polling")
+                        polling = false
+                    }
                 }
             }
         }
@@ -93,11 +141,18 @@ class AuthViewModel(
                     _authState.value = AuthState.Authenticated
                     _userInfo.value = result.user
                 }
+
                 is AuthResult.Error -> {
                     _authState.value = AuthState.Error(result.message)
                 }
+
                 is AuthResult.LoginIntent -> {
                     _authState.value = AuthState.Error("Unexpected login intent")
+                }
+
+                is AuthResult.TvLogin -> {
+                    // This should not happen in this flow
+                    _authState.value = AuthState.Error("Unexpected TV login result")
                 }
             }
         }
@@ -157,5 +212,7 @@ sealed class AuthState {
     object Authenticated : AuthState()
     object Unauthenticated : AuthState()
     object AwaitingLogin : AuthState()
+    data class TvInstructions(val verificationUri: String, val userCode: String) : AuthState()
+    object TvPolling : AuthState()
     data class Error(val message: String) : AuthState()
 }
