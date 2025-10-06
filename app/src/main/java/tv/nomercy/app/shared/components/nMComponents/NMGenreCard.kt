@@ -33,20 +33,21 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.MediaItem
+import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 
 
 @Composable
-fun <T> NMGenreCard(
-    component: Component<T>,
+fun <T : ComponentData> NMGenreCard(
+    component: Component<out T>,
     modifier: Modifier,
     navController: NavController,
     index: Int = 0
 ) {
     val data = component.props.data ?: return
-    if (data !is MediaItem) {
+    if (data !is NMCardProps) {
         println("NMCard received unexpected data type: ${data::class.simpleName}")
         return
     }

@@ -109,6 +109,7 @@ fun AboutScreen(
                     )
 
                     AboutInfoRow("Version", packageInfo?.versionName ?: "Unknown")
+                    @Suppress("DEPRECATION")
                     AboutInfoRow("Version Code", packageInfo?.versionCode?.toString() ?: "Unknown")
                     AboutInfoRow("Package Name", context.packageName)
                     AboutInfoRow("Build Type", if (BuildConfig.DEBUG) "Debug" else "Release")

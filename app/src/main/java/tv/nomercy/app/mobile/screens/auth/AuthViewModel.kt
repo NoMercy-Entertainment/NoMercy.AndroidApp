@@ -199,8 +199,8 @@ class AuthViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
             val store = authStore ?: AuthStore(context)
+            @Suppress("UNCHECKED_CAST")
             return AuthViewModel(AuthService(context, store)) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

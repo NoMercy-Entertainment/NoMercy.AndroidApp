@@ -11,7 +11,9 @@ object GlobalStores {
     @Volatile private var domainApiClientInstance: DomainApiClient? = null
     @Volatile private var serverConfigStoreInstance: ServerConfigStore? = null
     @Volatile private var libraryStoreInstance: LibraryStore? = null
+    @Volatile private var homeStoreInstance: HomeStore? = null
     @Volatile private var appConfigStoreInstance: AppConfigStore? = null
+
 
     fun getAuthStore(context: Context): AuthStore {
         return authStoreInstance ?: synchronized(this) {
@@ -84,12 +86,29 @@ object GlobalStores {
         }
     }
 
+    fun getHomeStore(context: Context): HomeStore {
+        val authStore = getAuthStore(context)
+        val serverConfigStore = getServerConfigStore(context)
+
+        return homeStoreInstance ?: synchronized(this) {
+            homeStoreInstance ?: HomeStore(
+                context.applicationContext,
+                authStore,
+                serverConfigStore
+            ).also {
+                homeStoreInstance = it
+            }
+        }
+    }
+
+
     fun clearAll() {
         synchronized(this) {
             authStoreInstance?.clearData()
             appConfigStoreInstance?.clearData()
             serverConfigStoreInstance?.clearData()
             libraryStoreInstance?.clearData()
+            homeStoreInstance?.clearData()
 
             authStoreInstance = null
             authServiceInstance = null
@@ -97,6 +116,7 @@ object GlobalStores {
             appConfigStoreInstance = null
             serverConfigStoreInstance = null
             libraryStoreInstance = null
+            homeStoreInstance = null
         }
     }
 }

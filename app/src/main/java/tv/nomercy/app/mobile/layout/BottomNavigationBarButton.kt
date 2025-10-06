@@ -1,6 +1,6 @@
 package tv.nomercy.app.mobile.layout
 
-import tv.nomercy.app.shared.routes.AppNavItem
+import AppNavItem
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -70,7 +70,7 @@ fun BottomNavigationBarButton(
             .fillMaxSize()
             .padding(top = 6.dp, start = 6.dp, bottom = 4.dp, end = 6.dp)
     ) {
-        if (item.route == "profile") {
+        if (item.route == "/profile") {
             // Get user info for fallback avatar
             val userInfo by authViewModel.userInfo.collectAsState()
             val userProfile by appConfigStore.userProfile.collectAsState()
@@ -135,6 +135,7 @@ fun BottomNavigationBarButton(
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = if (isSelected) Color.White else Color(0xFF9E9E9E),
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             maxLines = 1
         )
     }

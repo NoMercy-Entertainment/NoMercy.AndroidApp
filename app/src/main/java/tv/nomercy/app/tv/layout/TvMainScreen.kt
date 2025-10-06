@@ -1,12 +1,13 @@
 package tv.nomercy.app.tv.layout
 
-import tv.nomercy.app.shared.routes.AppNavItem
+import AppNavItem
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
+import tv.nomercy.app.R
 import tv.nomercy.app.mobile.layout.BottomNavigationBar
 import tv.nomercy.app.shared.routes.MobileNavHost
 import tv.nomercy.app.shared.stores.GlobalStores
@@ -20,18 +21,18 @@ fun TVMainScaffold() {
 
     val navController = rememberNavController()
     val navItems = listOf(
-        AppNavItem.Home,
-        AppNavItem.Libraries,
-        AppNavItem.Search,
-        AppNavItem.Music,
-        AppNavItem.Profile
+        AppNavItem("/home", "Home", R.drawable.home1, "Main dashboard"),
+        AppNavItem("/libraries", "Libraries", R.drawable.folder, "Libraries"),
+        AppNavItem("/search", "Search", R.drawable.searchmagnifyingglass, "Global search"),
+        AppNavItem("/music/start", "Music", R.drawable.noteeighthpair, "Music playback"),
+        AppNavItem("/profile", "Profile", R.drawable.user, "User settings"),
     )
 
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
                 navController = navController,
-                navItems = navItems.filter { it.isMobileVisible },
+                navItems = navItems,
             )
         }
     ) { innerPadding ->

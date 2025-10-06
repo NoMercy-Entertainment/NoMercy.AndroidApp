@@ -1,6 +1,5 @@
 package tv.nomercy.app.shared.api.services
 
-import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -8,8 +7,9 @@ import retrofit2.http.Query
 import tv.nomercy.app.shared.models.ApiResponse
 import tv.nomercy.app.shared.models.AppConfig
 import tv.nomercy.app.shared.models.Component
+import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.Library
-import tv.nomercy.app.shared.models.MediaItem
+import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.models.PermissionsResponse
 import tv.nomercy.app.shared.models.Server
 import tv.nomercy.app.shared.models.UserProfile
@@ -56,8 +56,8 @@ interface ServerApiService {
     @GET("permissions")
     suspend fun getServerPermissions(): Response<ApiResponse<PermissionsResponse>>
 
-    @GET("/")
-    suspend fun getHome(): Response<ApiResponse<List<Component<*>>>>
+    @GET("home") // raw json
+    suspend fun getHome(): Response<ApiResponse<List<Component<NMCardProps>>>>
 
     /**
      * Get libraries from the user's server
@@ -73,7 +73,7 @@ interface ServerApiService {
         @Path(value = "link", encoded = true) link: String,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
-    ): Response<ApiResponse<List<Component<MediaItem>>>>
+    ): Response<ApiResponse<List<Component<NMCardProps>>>>
 
      @GET("{path}")
      suspend fun getComponentResponse(

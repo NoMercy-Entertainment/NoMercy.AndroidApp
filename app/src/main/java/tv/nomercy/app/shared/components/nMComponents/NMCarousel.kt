@@ -1,54 +1,114 @@
 package tv.nomercy.app.shared.components.nMComponents
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import tv.nomercy.app.shared.components.EmptyGrid
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.utils.AspectRatio
+
 
 @Composable
-fun <T: ComponentData> NMCarousel(
-    component: Component<T>,
+fun <T : ComponentData> NMCarousel(
+    component: Component<out T>,
     modifier: Modifier,
-    navController: NavController
+    navController: NavController,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(max = 270.dp)
+    ) {
+        // Header row
         Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .height(52.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
         ) {
-            Text(text = component.props.title, modifier = Modifier.weight(1f))
-            if (component.props.moreLink != null) {
-                TextButton(onClick = {
-                    navController.navigate(component.props.moreLink)
-                }) {
-                    Text(text = "See more")
+            Text(
+                text = component.props.title,
+                color = Color.White,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.weight(4f)
+            )
+
+            component.props.moreLink?.let {
+                Box(
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate(it)
+                        }
+                        .background(
+                            Color.White.copy(alpha = 0.25f),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .clip(RoundedCornerShape(4.dp))
+                        .padding(horizontal = 6.dp, vertical = 0.dp)
+                ) {
+                    Text(
+                        text = component.props.moreLinkText ?: "See all",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
-        LazyRow {
-            item {
-                if (component.props.items.isEmpty()) {
-                    Text(
-                        text = "No items available",
-                        modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+
+        val items = component.props.items
+        val spacing = 16.dp
+
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = spacing),
+            horizontalArrangement = Arrangement.spacedBy(spacing),
+        ) {
+            if (items.isEmpty()) {
+                item {
+                    EmptyGrid(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        text = "No items available"
                     )
                 }
-                NMComponent(
-                    components = component.props.items,
-                    navController = navController,
-                    modifier = Modifier.padding(start = 16.dp, end = 8.dp),
-                )
-            }
+            } else
+                items(items, key = { it.id }) { item ->
+                    NMComponent(
+                        components = listOf(item),
+                        navController = navController,
+                        aspectRatio = AspectRatio.Poster
+                    )
+                }
         }
     }
 }

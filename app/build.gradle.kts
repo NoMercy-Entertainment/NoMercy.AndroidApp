@@ -115,6 +115,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.paging.compose)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.compose.foundation.layout)
 
     // Debug tools
     debugImplementation(libs.androidx.compose.ui.tooling)

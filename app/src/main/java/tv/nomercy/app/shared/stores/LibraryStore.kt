@@ -8,11 +8,11 @@ import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.api.repository.LibraryRepository
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.Library
-import tv.nomercy.app.shared.models.MediaItem
+import tv.nomercy.app.shared.models.NMCardProps
 
 class LibraryStore(
-    private val context: Context,
-    private val authStore: AuthStore,
+    context: Context,
+    authStore: AuthStore,
     private val serverConfigStore: ServerConfigStore
 ) {
     private val authService = GlobalStores.getAuthService(context)
@@ -22,8 +22,8 @@ class LibraryStore(
     private val _libraries = MutableStateFlow<List<Library>>(emptyList())
     val libraries: StateFlow<List<Library>> = _libraries.asStateFlow()
 
-    private val _libraryItems = MutableStateFlow<Map<String, List<Component<MediaItem>>>>(emptyMap())
-    val libraryItems: StateFlow<Map<String, List<Component<MediaItem>>>> = _libraryItems.asStateFlow()
+    private val _libraryItems = MutableStateFlow<Map<String, List<Component<NMCardProps>>>>(emptyMap())
+    val libraryItems: StateFlow<Map<String, List<Component<NMCardProps>>>> = _libraryItems.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

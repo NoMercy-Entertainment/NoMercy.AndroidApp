@@ -16,7 +16,7 @@ import tv.nomercy.app.shared.models.ComponentData
 
 @Composable
 fun <T: ComponentData> NMGrid(
-    component: Component<T>,
+    component: Component<out T>,
     modifier: Modifier,
     navController: NavController,
     lazyGridState: LazyGridState?

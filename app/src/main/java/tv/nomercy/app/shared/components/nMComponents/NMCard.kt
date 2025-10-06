@@ -21,11 +21,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import tv.nomercy.app.shared.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
-import tv.nomercy.app.shared.models.MediaItem
+import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.getColorFromPercent
@@ -34,14 +35,14 @@ import tv.nomercy.app.shared.utils.pickPaletteColor
 
 @Composable
 fun <T: ComponentData> NMCard(
-    component: Component<T>,
+    component: Component<out T>,
     modifier: Modifier,
     navController: NavController,
     aspectRatio: AspectRatio? = null,
 ) {
     val data = component.props.data ?: return
 
-    if (data !is MediaItem) {
+    if (data !is NMCardProps) {
         println("NMCard received unexpected data type: ${data::class.simpleName}")
         return
     }
@@ -54,12 +55,12 @@ fun <T: ComponentData> NMCard(
 
     Card(
         modifier = modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .aspectFromType(aspectRatio),
         border = BorderStroke(2.dp, focusColor.copy(alpha = 0.5f)),
         shape = RoundedCornerShape(6.dp),
         onClick = {
-//            data.link.let { navController.navigate(it) }
+            data.link.let { navController.navigate(it) }
         }
     ) {
         Box(modifier = Modifier
@@ -87,7 +88,7 @@ fun <T: ComponentData> NMCard(
                 ) {
                 Text(
                     text = data.title,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.dp.value.sp),
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     minLines = 2,
@@ -104,7 +105,7 @@ fun <T: ComponentData> NMCard(
 
 @Composable
 fun CompletionOverlay(
-    data: MediaItem,
+    data: NMCardProps,
     modifier: Modifier = Modifier
 ) {
 
@@ -163,7 +164,7 @@ fun calculateCompletionPercent(haveItems: Int?, numberOfItems: Int?): Int {
     return ((haveItems.toFloat() / numberOfItems) * 100).toInt().coerceIn(0, 100)
 }
 
-fun shouldCollapsePill(data: MediaItem): Boolean {
+fun shouldCollapsePill(data: NMCardProps): Boolean {
     return data.type == "movie" &&
             data.numberOfItems == 1 &&
             (data.haveItems == 0 || data.haveItems == 1)

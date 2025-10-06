@@ -9,9 +9,9 @@ import kotlinx.serialization.json.JsonElement
  */
 @Serializable
 data class ApiResponse<T>(
+    val status: String? = null,
     val data: T? = null,
-    val message: String? = null,
-    val status: String? = null
+    val message: String? = null
 )
 
 /**

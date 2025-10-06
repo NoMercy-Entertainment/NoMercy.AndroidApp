@@ -1,6 +1,5 @@
 package tv.nomercy.app.shared.components.nMComponents
 
-import HomeItem
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,20 +39,22 @@ import tv.nomercy.app.R
 import tv.nomercy.app.shared.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.utils.AspectRatio
+import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
 
 @Composable
 fun <T: ComponentData> NMHomeCard(
-    component: Component<T>,
+    component: Component<out T>,
     modifier: Modifier,
     navController: NavController,
     aspectRatio: AspectRatio? = null,
 ) {
     val data = component.props.data ?: return
 
-    if (data !is HomeItem) {
+    if (data !is NMCardProps) {
         println("NMCard received unexpected data type: ${data::class.simpleName}")
         return
     }
@@ -61,31 +62,26 @@ fun <T: ComponentData> NMHomeCard(
     val posterPalette = data.colorPalette?.backdrop
     val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
 
+
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(2 / 3f),
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .aspectFromType(aspectRatio),
         border = BorderStroke(2.dp, focusColor.copy(alpha = 0.5f)),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        shape = RoundedCornerShape(6.dp),
         onClick = {
-            // navController.navigate(data.link)
+//            data.link.let { navController.navigate(it) }
         }
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .paletteBackground(posterPalette)
-        ) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .paletteBackground(data.colorPalette?.poster)) {
             TMDBImage(
-                path = data.backdrop,
-                title = data.title ?: data.name,
-                aspectRatio = AspectRatio.Backdrop,
-                size = 180,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(2.dp, focusColor, RoundedCornerShape(12.dp))
+                path = data.poster,
+                title = data.title,
+                aspectRatio = AspectRatio.Poster,
+                size = 500,
             )
 
             // Gradient overlay
@@ -109,7 +105,7 @@ fun <T: ComponentData> NMHomeCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = data.title ?: data.name ?: "Unknown Title",
+                        text = data.title ?: "Unknown Title",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
@@ -117,13 +113,13 @@ fun <T: ComponentData> NMHomeCard(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (data.tags?.isNotEmpty() ?: false) {
-                        Text(
-                            text = data.tags.take(4).joinToString(", ") { it.replaceFirstChar(Char::uppercaseChar) },
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+//                    if (data.tags?.isNotEmpty() ?: false) {
+//                        Text(
+//                            text = data.tags.take(4).joinToString(", ") { it.replaceFirstChar(Char::uppercaseChar) },
+//                            style = MaterialTheme.typography.bodySmall,
+//                            textAlign = TextAlign.Center
+//                        )
+//                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 

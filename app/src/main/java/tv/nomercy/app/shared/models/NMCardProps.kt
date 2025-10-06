@@ -13,11 +13,9 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.int
 
 
-/**
- * Media item model for library contents
- */
 @Serializable
-data class MediaItem(
+@SerialName("NMCard")
+data class NMCardProps(
     val id: FlexibleId,
     val title: String,
     val titleSort: String,

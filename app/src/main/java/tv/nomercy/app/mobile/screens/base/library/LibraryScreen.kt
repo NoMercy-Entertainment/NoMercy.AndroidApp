@@ -33,7 +33,7 @@ import tv.nomercy.app.shared.components.LibraryTabScroller
 import tv.nomercy.app.shared.components.nMComponents.NMComponent
 
 @Composable
-fun LibraryScreen(navController: NavController) {
+fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = null) {
     val viewModel: LibrariesViewModel = viewModel(
         factory = LibrariesViewModelFactory(
             libraryStore = GlobalStores.getLibraryStore(LocalContext.current),
@@ -43,13 +43,12 @@ fun LibraryScreen(navController: NavController) {
     val libraries by viewModel.libraries.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val currentLibraryId by viewModel.currentLibraryId.collectAsState()
     val currentLibrary by viewModel.currentLibrary.collectAsState()
     val selectedIndex by viewModel.selectedIndex.collectAsState()
     val isEmptyStable by viewModel.isEmptyStable.collectAsState()
 
     LaunchedEffect(libraries) {
-        if (libraries.isNotEmpty() && currentLibraryId == null) {
+        if (libraries.isNotEmpty() && libraryId == null) {
             viewModel.selectLibrary(libraries.first().link)
         }
     }
@@ -64,10 +63,9 @@ fun LibraryScreen(navController: NavController) {
         val gridItems = currentLibrary.firstOrNull { it.component == "NMGrid" }?.props?.items
         val item = gridItems?.getOrNull(firstVisibleItemIndex)
         val titleSort = item?.props?.data?.titleSort.orEmpty()
-        val char = titleSort.firstOrNull()?.uppercaseChar() ?: '#'
+        val char = titleSort.firstOrNull()?.uppercaseChar() ?: letter
         if (char in 'A'..'Z') char else '#'
     }
-
 
     LaunchedEffect(visibleChar) {
         val index = viewModel.indexerCharacters.indexOf(visibleChar)
@@ -118,7 +116,7 @@ fun LibraryScreen(navController: NavController) {
         }
 
         LibraryTabScroller(viewModel) { tab ->
-            if (tab != null && tab.link != currentLibraryId) {
+            if (tab != null && tab.link != libraryId) {
                 viewModel.selectLibrary(tab.link)
             }
         }

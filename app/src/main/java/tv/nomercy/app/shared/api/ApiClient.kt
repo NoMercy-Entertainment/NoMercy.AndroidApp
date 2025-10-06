@@ -5,6 +5,8 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -12,6 +14,12 @@ import okhttp3.Request
 import okhttp3.Response
 import retrofit2.Retrofit
 import tv.nomercy.app.shared.api.services.AuthService
+import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMHomeCardProps
+import tv.nomercy.app.shared.models.NMCarouselProps
+import tv.nomercy.app.shared.models.NMContainerProps
+import tv.nomercy.app.shared.models.NMGridProps
 import tv.nomercy.app.shared.stores.AuthStore
 import java.util.concurrent.TimeUnit
 
@@ -26,11 +34,20 @@ open class BaseApiClient(
     private val timeout: Long = 30L
 ) {
 
-    object JsonConfig {
-        val instance = Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-            coerceInputValues = true
+    val jsonConfig = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        coerceInputValues = true
+        classDiscriminator = "component"
+        serializersModule = SerializersModule {
+            polymorphic(ComponentData::class) {
+                subclass(NMGridProps::class, NMGridProps.serializer())
+                subclass(NMCarouselProps::class, NMCarouselProps.serializer())
+                subclass(NMCardProps::class, NMCardProps.serializer())
+                subclass(NMHomeCardProps::class, NMHomeCardProps.serializer())
+                subclass(NMContainerProps::class, NMContainerProps.serializer())
+            }
+            NMCardProps.serializer()
         }
     }
 
@@ -107,7 +124,7 @@ open class BaseApiClient(
     val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(baseUrl)
         .client(okHttpClient)
-        .addConverterFactory(JsonConfig.instance.asConverterFactory("application/json".toMediaType()))
+        .addConverterFactory(jsonConfig.asConverterFactory("application/json".toMediaType()))
         .build()
 
     inline fun <reified T> createService(): T {

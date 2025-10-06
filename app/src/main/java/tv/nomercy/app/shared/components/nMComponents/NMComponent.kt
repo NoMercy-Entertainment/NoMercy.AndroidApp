@@ -9,21 +9,24 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.utils.AspectRatio
 
 @Composable
 fun <T: ComponentData> NMComponent(
-    components: List<Component<T>>,
+    components: List<Component<out T>>,
     navController: NavController,
     modifier: Modifier = Modifier,
     lazyGridState: LazyGridState? = null,
+    aspectRatio: AspectRatio? = null,
 ) {
     components.forEach { component ->
         when (component.component) {
             "NMGrid" -> NMGrid(component, modifier, navController, lazyGridState)
             "NMCarousel" -> NMCarousel(component, modifier, navController)
             "NMGenreCard" -> NMGenreCard(component, modifier, navController)
-            "NMHomeCard" -> NMHomeCard(component, modifier, navController)
-            "NMCard" -> NMCard(component, modifier, navController)
+            "NMHomeCard" -> NMHomeCard(component, modifier, navController, aspectRatio)
+            "NMCard" -> NMCard(component, modifier, navController, aspectRatio)
+            "NMContainer" -> NMContainer(component, modifier, navController)
             else -> Text(
                 text = "${component.component} is not supported",
                 modifier = Modifier.padding(16.dp)

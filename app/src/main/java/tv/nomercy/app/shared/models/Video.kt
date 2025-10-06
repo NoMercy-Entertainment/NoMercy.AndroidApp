@@ -1,8 +1,10 @@
 package tv.nomercy.app.shared.models
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-open class Video(
+@Serializable
+class Video(
     @SerialName("iso_639_1") val iso6391: String? = null,
     @SerialName("iso_3166_1") val iso31661: String? = null,
     val name: String? = null,

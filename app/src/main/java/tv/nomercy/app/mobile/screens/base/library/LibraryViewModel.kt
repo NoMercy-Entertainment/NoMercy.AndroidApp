@@ -57,7 +57,7 @@ class LibrariesViewModel(
         viewModelScope.launch {
             currentLibrary.collect { components ->
 
-                val routeIncludesLetter = _currentLibraryId.value?.contains("/letter/") == true
+                val routeIncludesLetter = (_currentLibraryId.value as String?)?.contains("/letter/") == true
 
                 val hasIndexableContent = components.any {
                     it.component == "NMGrid" &&
@@ -108,11 +108,11 @@ class LibrariesViewModel(
         selections: Map<String, Char>
     ): String? {
         val library = libs.find { it.link == id } ?: return id
-        return if (library.type == "movie") {
+        return (if (library.type == "movie") {
             selections[library.id]?.let { "libraries/${library.id}/letter/$it" } ?: library.link
         } else {
             library.link
-        }
+        }) as String?
     }
 
     private fun loadCurrentLibrary(forceRefresh: Boolean = false) {
@@ -145,12 +145,12 @@ class LibrariesViewModel(
         _scrollRequest.value = null
     }
 
-    fun selectLibrary(libraryId: String?) {
+    fun selectLibrary(libraryId: String) {
         if (_currentLibraryId.value == libraryId) return
 
-        val baseLibraryId = libraryId?.substringBefore("/letter/")
-        val letterSegment = libraryId?.substringAfter("/letter/", "")
-        val letterFromRoute = letterSegment?.firstOrNull()?.uppercaseChar()
+        val baseLibraryId = libraryId.substringBefore("/letter/")
+        val letterSegment = libraryId.substringAfter("/letter/", "")
+        val letterFromRoute = letterSegment.firstOrNull()?.uppercaseChar()
             ?.takeIf { it in indexerCharacters }
 
         val library = libraries.value.find { it.link == baseLibraryId }
@@ -166,7 +166,7 @@ class LibrariesViewModel(
             _selectedIndex.value = indexerCharacters.indexOf(selectedLetter)
 
             // Now update the route
-            _currentLibraryId.value = "libraries/${library.id}/letter/$selectedLetter"
+            "libraries/${library.id}/letter/$selectedLetter".also { _currentLibraryId.value = it as String  }
         } else {
             _currentLibraryId.value = libraryId
         }

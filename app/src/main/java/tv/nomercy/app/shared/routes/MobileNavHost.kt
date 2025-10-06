@@ -1,18 +1,34 @@
 package tv.nomercy.app.shared.routes
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import tv.nomercy.app.shared.routes.AppNavItem
-import tv.nomercy.app.mobile.screens.base.MobileHomeScreen
 import tv.nomercy.app.mobile.screens.base.SearchScreen
+import tv.nomercy.app.mobile.screens.base.collections.CollectionScreen
+import tv.nomercy.app.mobile.screens.base.home.MobileHomeScreen
+import tv.nomercy.app.mobile.screens.base.info.InfoScreen
+import tv.nomercy.app.mobile.screens.base.libraries.LibrariesScreen
 import tv.nomercy.app.mobile.screens.base.library.LibraryScreen
+import tv.nomercy.app.mobile.screens.base.paginatedLibrary.PaginatedLibraryScreen
+import tv.nomercy.app.mobile.screens.base.person.PersonScreen
+import tv.nomercy.app.mobile.screens.base.watch.WatchScreen
 import tv.nomercy.app.mobile.screens.dashboard.profile.AboutScreen
 import tv.nomercy.app.mobile.screens.dashboard.profile.ProfileScreen
 import tv.nomercy.app.mobile.screens.dashboard.profile.ServerInfoScreen
-import tv.nomercy.app.mobile.screens.music.MusicScreen
+import tv.nomercy.app.mobile.screens.music.artist.ArtistScreen
+import tv.nomercy.app.mobile.screens.music.cards.CardsScreen
+import tv.nomercy.app.mobile.screens.music.genres.MusicGenreScreen
+import tv.nomercy.app.mobile.screens.music.list.ListScreen
+import tv.nomercy.app.mobile.screens.music.start.MusicStartScreen
 import tv.nomercy.app.mobile.screens.selectServer.ServerSelectionScreen
 
 @Composable
@@ -20,26 +36,246 @@ fun MobileNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    NavHost(navController = navController, startDestination = AppNavItem.Home.route, modifier = modifier) {
-        composable(AppNavItem.Home.route) { MobileHomeScreen() }
-        composable(AppNavItem.Libraries.route) { LibraryScreen(navController) }
-        composable(AppNavItem.Search.route) { SearchScreen() }
-        composable(AppNavItem.Music.route) { MusicScreen() }
-        composable(AppNavItem.Profile.route) {
+    NavHost(navController = navController, startDestination = "/home", modifier = modifier) {
+
+        // 🏠 Core
+        composable("/home") { MobileHomeScreen(navController) }
+        composable("/search") { SearchScreen(navController) }
+
+        // 📁 Libraries
+        composable("/libraries") { LibrariesScreen(navController) }
+        composable("/libraries/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")
+            LibraryScreen(navController, id)
+        }
+        composable("/libraries/{id}/letter/{letter}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")
+            val letter = backStackEntry.arguments?.getChar("letter")
+            LibraryScreen(navController, id, letter)
+        }
+
+        // 🎯 Shared paginated library views
+        composable("/specials") { LibraryScreen(navController, "specials") }
+        composable("/genre") { LibraryScreen(navController, "genre") }
+        composable("/collection") { LibraryScreen(navController, "collection") }
+        composable("/person") { PaginatedLibraryScreen("person") }
+
+        // 🎬 Detail views
+        composable("/specials/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            CollectionScreen("specials", id)
+        }
+        composable("/genre/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            LibraryScreen(navController, "genre", id)
+        }
+        composable("/collection/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            CollectionScreen("collection", id)
+        }
+        composable("/person/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            PersonScreen(id)
+        }
+
+        // 🎥 Media Info
+        composable("/movie/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            InfoScreen("movie", id)
+        }
+        composable("/tv/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            InfoScreen("tv", id)
+        }
+
+        // ▶️ Watch
+        composable("/{type}/{id}/watch") { backStackEntry ->
+            val type = backStackEntry.arguments?.getString("type")
+            val id = backStackEntry.arguments?.getString("id")
+            if (id == null || type == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            WatchScreen(type, id)
+        }
+
+        // 🎵 Music
+        composable("/music/start") { MusicStartScreen(navController) }
+        composable("/music/artists/{letter}") { backStackEntry ->
+            val letter = backStackEntry.arguments?.getString("letter")
+            if (letter == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            CardsScreen("artists", letter)
+        }
+        composable("/music/artist/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            ArtistScreen(id)
+        }
+        composable("/music/albums/{letter}") { backStackEntry ->
+            val letter = backStackEntry.arguments?.getString("letter")
+            if (letter == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            CardsScreen("albums", letter)
+        }
+        composable("/music/album/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            ListScreen("album", id)
+        }
+        composable("/music/genres") { CardsScreen("genres") }
+        composable("/music/genres/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            MusicGenreScreen("genres", id)
+        }
+        composable("/music/playlists") { CardsScreen("playlists") }
+        composable("/music/playlists/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")
+            if (id == null) {
+                NotFoundScreen(message = "Playlist not found", status = 404)
+                return@composable
+            }
+            ListScreen("playlist", id)
+        }
+        composable("/music/tracks") { ListScreen("tracks") }
+
+        // 👤 Profile & Info
+        composable("/profile") {
             ProfileScreen(
-                onNavigateToServerSelection = { navController.navigate(AppNavItem.ServerSelection.route) },
-                onNavigateToServerInfo = { navController.navigate(AppNavItem.ServerInfo.route) },
-                onNavigateToAbout = { navController.navigate(AppNavItem.About.route) }
+                onNavigateToServerSelection = { navController.navigate("serverSelection") },
+                onNavigateToServerInfo = { navController.navigate("serverInfo") },
+                onNavigateToAbout = { navController.navigate("about") }
             )
         }
-        composable(AppNavItem.ServerSelection.route) {
-            ServerSelectionScreen(onNavigateBack = { navController.popBackStack() })
-        }
-        composable(AppNavItem.ServerInfo.route) {
-            ServerInfoScreen(onNavigateBack = { navController.popBackStack() })
-        }
-        composable(AppNavItem.About.route) {
-            AboutScreen(onNavigateBack = { navController.popBackStack() })
+        composable("/serverSelection") { ServerSelectionScreen { navController.popBackStack() } }
+        composable("/serverInfo") { ServerInfoScreen { navController.popBackStack() } }
+        composable("/about") { AboutScreen { navController.popBackStack() } }
+
+//                // 🛠 Setup
+//                composable("/setup/select-servers") { SetupSelectServerScreen(navController) }
+//                composable("/setup/no-servers") { SetupNoServerScreen(navController) }
+//                composable("/setup/server-offline") { SetupServerOfflineScreen(navController) }
+//                composable("/setup/post-install") { SetupPostInstallScreen(navController) }
+//
+//                // ⚙️ Preferences
+//                composable("/preferences/display") { PreferencesDisplayScreen(navController) }
+//                composable("/preferences/profile") { PreferencesProfileScreen(navController) }
+//                composable("/preferences/controls") { PreferencesControlsScreen(navController) }
+//                composable("/preferences/subtitles") { PreferencesSubtitlesScreen(navController) }
+//
+//                // 🧭 Dashboard (shared edit/detail screens)
+//                composable("/dashboard/system") { DashboardSystemScreen(navController) }
+//                composable("/dashboard/general") { DashboardGeneralScreen(navController) }
+//                composable("/dashboard/users") { DashboardUsersScreen(navController) }
+//                composable("/dashboard/users/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id")
+//                    EditUserScreen(id)
+//                }
+//                composable("/dashboard/libraries") { DashboardLibrariesScreen(navController) }
+//                composable("/dashboard/libraries/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id")
+//                    EditLibraryScreen(id)
+//                }
+//                composable("/dashboard/specials") { DashboardSpecialsScreen(navController) }
+//                composable("/dashboard/specials/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id")
+//                    EditSpecialScreen(id)
+//                }
+//                composable("/dashboard/devices") { DashboardDevicesScreen(navController) }
+//                composable("/dashboard/devices/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id")
+//                    DeviceScreen(id)
+//                }
+//                composable("/dashboard/ripper") { DashboardRipperScreen(navController) }
+//                composable("/dashboard/encoderprofiles") { DashboardEncoderProfilesScreen(navController) }
+//                composable("/dashboard/encoderprofiles/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id")
+//                    EditEncoderProfileScreen(id)
+//                }
+//                composable("/dashboard/notifications") { DashboardNotificationsScreen(navController) }
+//                composable("/dashboard/notifications/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id")
+//                    NotificationScreen(id)
+//                }
+//                composable("/dashboard/metadata") { DashboardMetadataScreen(navController) }
+//                composable("/dashboard/activity") { DashboardActivityScreen(navController) }
+//                composable("/dashboard/dlna") { DashboardDlnaScreen(navController) }
+//                composable("/dashboard/logs") { DashboardLogsScreen(navController) }
+//                composable("/dashboard/plugins") { DashboardPluginsScreen(navController) }
+//                composable("/dashboard/plugins/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id")
+//                    PluginScreen(id)
+//                }
+//                composable("/dashboard/schedule") { DashboardScheduleScreen(navController) }
+//                composable("/dashboard/schedule/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id")
+//                    ScheduledTaskScreen(id)
+//                }
+
+        // 🚫 Fallback
+        composable("/notfound") { NotFoundScreen(message = "Page not found", status = 404) }
+    }
+}
+
+@Composable
+fun NotFoundScreen(message: String, status: Int) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "$status",
+                style = MaterialTheme.typography.displayLarge
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }
