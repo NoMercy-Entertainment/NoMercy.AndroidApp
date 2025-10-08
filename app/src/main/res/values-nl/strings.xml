@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NoMercyTv</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <string name="title_search">Search</string>
+    <string name="title_libraries">Libraries</string>
+    <string name="title_music">Music</string>
+    <string name="title_profile">Profile</string>
+    <string name="switch_server">Switch server</string>
+
+    <plurals name="hours">
+        <item quantity="one">uur</item>
+        <item quantity="other">uur</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">minuut</item>
+        <item quantity="other">minuten</item>
+    </plurals>
+    <plurals name="seconds">
+        <item quantity="one">seconde</item>
+        <item quantity="other">seconden</item>
+    </plurals>
+
+    <plurals name="hrs">
+        <item quantity="one">uur</item>
+        <item quantity="other">uur</item>
+    </plurals>
+    <plurals name="min">
+        <item quantity="one">min</item>
+        <item quantity="other">min</item>
+    </plurals>
+    <plurals name="sec">
+        <item quantity="one">sec</item>
+        <item quantity="other">sec</item>
+    </plurals>
+</resources>

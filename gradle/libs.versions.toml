@@ -4,8 +4,17 @@ agp = "8.13.0"
 appauth = "0.11.1"
 browser = "1.9.0"
 coilCompose = "2.7.0"
+coilComposeVersion = "2.2.2"
+coilKtCoilCompose = "3.0.0"
+coilKtCoilComposeVersion = "3.3.0"
+coilKtCoilSvg = "3.3.0"
+coilNetworkKtor3 = "3.3.0"
+coilNetworkOkhttp = "3.3.0"
+coilSvg = "2.7.0"
+coilSvgVersion = "3.0.0"
 composeBom = "2025.09.01"
 composeBomVersion = "2025.09.01"
+composemeshgradient = "0.3.0"
 converterGson = "3.0.0"
 core = "3.5.3"
 coreSplashscreen = "1.0.1"
@@ -45,6 +54,10 @@ uiToolingPreview = "1.9.2"
 uiTooling = "1.9.2"
 roomKtx = "2.8.1"
 foundationLayout = "1.9.2"
+datastoreCore = "1.1.7"
+material3 = "1.4.0"
+uiGraphics = "1.9.2"
+runtime = "1.9.2"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -68,6 +81,15 @@ androidx-paging-compose = { module = "androidx.paging:paging-compose", version.r
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+coil-compose-v222 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
+coil-compose-v300 = { module = "io.coil-kt:coil-compose", version.ref = "coilKtCoilCompose" }
+coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coilNetworkKtor3" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
+coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coilSvg" }
+coil-svg-v300 = { module = "io.coil-kt:coil-svg", version.ref = "coilSvgVersion" }
+coil3-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilKtCoilComposeVersion" }
+coil3-coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coilKtCoilSvg" }
+composemeshgradient = { module = "io.github.om252345:composemeshgradient", version.ref = "composemeshgradient" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core = { module = "com.google.zxing:core", version.ref = "core" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -99,6 +121,10 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", vers
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 retrofit2-kotlinx-serialization-converter = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "retrofit2KotlinxSerializationConverter" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

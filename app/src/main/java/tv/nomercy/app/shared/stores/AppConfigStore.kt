@@ -1,6 +1,7 @@
 package tv.nomercy.app.shared.stores
 
 import android.content.Context
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import tv.nomercy.app.shared.api.services.DomainApiService
@@ -9,10 +10,12 @@ import tv.nomercy.app.shared.models.Message
 import tv.nomercy.app.shared.models.Notification
 import tv.nomercy.app.shared.models.Server
 import tv.nomercy.app.shared.models.UserProfile
+import tv.nomercy.app.shared.ui.ThemeName
 
 class AppConfigStore(
     private val context: Context,
     private val authStore: AuthStore,
+    private val themeDataStore: ThemeDataStore
 ) {
     private val domainApiClient = GlobalStores.getDomainApiClient(context)
     private val domainApiService = domainApiClient.createService<DomainApiService>()
@@ -47,6 +50,12 @@ class AppConfigStore(
 
     private var _isInitialized = false
     val isInitialized: Boolean get() = _isInitialized
+
+    fun getTheme(): Flow<ThemeName> = themeDataStore.getTheme
+
+    suspend fun setTheme(themeName: ThemeName) {
+        themeDataStore.setTheme(themeName)
+    }
 
     suspend fun fetchAppConfig(): Result<AppConfig> {
         if (_isInitialized) return Result.success(createAppConfigFromState())

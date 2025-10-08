@@ -11,20 +11,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,7 +40,7 @@ fun <T : ComponentData> NMCarousel(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(max = 270.dp)
+            .heightIn(max = 280.dp)
     ) {
         // Header row
         Row(
@@ -57,7 +53,7 @@ fun <T : ComponentData> NMCarousel(
         ) {
             Text(
                 text = component.props.title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start,
                 modifier = Modifier.weight(4f)
             )
@@ -69,7 +65,7 @@ fun <T : ComponentData> NMCarousel(
                             navController.navigate(it)
                         }
                         .background(
-                            Color.White.copy(alpha = 0.25f),
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                             shape = RoundedCornerShape(4.dp)
                         )
                         .clip(RoundedCornerShape(4.dp))
@@ -77,7 +73,7 @@ fun <T : ComponentData> NMCarousel(
                 ) {
                     Text(
                         text = component.props.moreLinkText ?: "See all",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center
                     )
@@ -86,7 +82,7 @@ fun <T : ComponentData> NMCarousel(
         }
 
         val items = component.props.items
-        val spacing = 16.dp
+        val spacing = 8.dp
 
         LazyRow(
             modifier = Modifier

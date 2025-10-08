@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.api.repository
+package tv.nomercy.app.shared.repositories
 
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
@@ -7,7 +7,6 @@ import tv.nomercy.app.shared.api.ServerApiClient
 import tv.nomercy.app.shared.api.services.AuthService
 import tv.nomercy.app.shared.api.services.ServerApiService
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.stores.AuthStore
 
@@ -25,7 +24,7 @@ class HomeRepository(
         }
     }
 
-    fun getHomeData(
+    fun fetch(
         serverUrl: String,
     ): Flow<Result<List<Component<NMCardProps>>>> = flow {
         try {

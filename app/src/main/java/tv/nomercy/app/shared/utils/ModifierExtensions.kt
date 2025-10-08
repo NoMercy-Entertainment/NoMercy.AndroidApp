@@ -1,7 +1,5 @@
 package tv.nomercy.app.shared.utils
 
-import android.R.attr.background
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.material3.MaterialTheme
@@ -13,13 +11,27 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.models.PaletteColors
 
 enum class AspectRatio {
     Poster,
-    Backdrop
+    Backdrop,
+    Logo,
+    Profile,
+    Square,
+}
+
+fun AspectRatio.ratio(): Float = when (this) {
+    AspectRatio.Poster -> 2f / 3f
+    AspectRatio.Backdrop -> 16f / 9f
+    AspectRatio.Logo -> 4f / 1f
+    AspectRatio.Profile -> 1f
+    AspectRatio.Square -> 1f
 }
 
 fun Modifier.aspectFromType(aspectRatio: AspectRatio?): Modifier {
@@ -82,18 +94,18 @@ private fun DrawScope.drawRadialCornerGradient(color: Color, center: Offset, rad
 @Composable
 fun gradientButtonBackground(active: Boolean = false): Modifier {
 
-    val top = colorResource(id = R.color.theme_9)
-    val bottom = colorResource(id = R.color.theme_8)
+    val top = MaterialTheme.colorScheme.primary
+    val bottom = MaterialTheme.colorScheme.primary
 
     return Modifier.drawWithCache {
         val radial1 = Brush.radialGradient(
-            colors = listOf(top.copy(alpha = 0.2f), bottom.copy(alpha = 0f)),
+            colors = listOf(top.copy(alpha = 0.8f), bottom.copy(alpha = 0.4f)),
             center = Offset(size.width * 0.63f, size.height * -0.0315f),
             radius = size.minDimension * 0.8f
         )
 
         val radial2 = Brush.radialGradient(
-            colors = listOf(top.copy(alpha = 0.2f), bottom.copy(alpha = 0f)),
+            colors = listOf(top.copy(alpha = 0.6f), bottom.copy(alpha = 0.2f)),
             center = Offset(size.width * 1.015f, size.height * -0.0298f),
             radius = size.minDimension * 0.7f
         )
@@ -107,5 +119,16 @@ fun gradientButtonBackground(active: Boolean = false): Modifier {
             drawRect(radial2)
             drawRect(linear)
         }
+    }
+}
+
+fun Modifier.assertBoundedWidth(): Modifier = layout { measurable, constraints ->
+    val isBounded = constraints.maxWidth != Constraints.Infinity
+    require(isBounded) {
+        "NMGrid must be wrapped in a width-constrained parent (e.g., Modifier.fillMaxWidth())"
+    }
+    val placeable = measurable.measure(constraints)
+    layout(placeable.width, placeable.height) {
+        placeable.place(0, 0)
     }
 }

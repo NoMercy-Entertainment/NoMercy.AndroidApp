@@ -23,7 +23,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import tv.nomercy.app.shared.components.TMDBImage
+import tv.nomercy.app.shared.models.ColorPalettes
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.NMCardProps
@@ -74,7 +77,13 @@ fun <T: ComponentData> NMCard(
             )
 
             CompletionOverlay(
-                data = data,
+                data = {
+                    OverlayProps(
+                        numberOfItems = data.numberOfItems,
+                        haveItems = data.haveItems,
+                        type = data.type
+                    )
+                }(),
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(start = 0.dp, top = 16.dp)
@@ -83,7 +92,7 @@ fun <T: ComponentData> NMCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.75f))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f))
                     .align(Alignment.BottomStart)
                 ) {
                 Text(
@@ -101,11 +110,19 @@ fun <T: ComponentData> NMCard(
     }
 }
 
+@Serializable
+data class OverlayProps(
+    @SerialName("number_of_items")
+    val numberOfItems: Int? = 0,
+    @SerialName("have_items")
+    val haveItems: Int? = 0,
+    val type: String = ""
+)
 
 
 @Composable
 fun CompletionOverlay(
-    data: NMCardProps,
+    data: OverlayProps,
     modifier: Modifier = Modifier
 ) {
 
@@ -130,7 +147,7 @@ fun CompletionOverlay(
                 )
                 .border(
                     width = 1.dp,
-                    color = Color.Black.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     shape = RoundedCornerShape(
                         topEnd = 6.dp,
                         bottomEnd = 6.dp
@@ -150,7 +167,7 @@ fun CompletionOverlay(
                     text = value,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = if(percent > 30 && percent < 80) Color.Black else  Color.White,
+                    color = if(percent > 30 && percent < 80) MaterialTheme.colorScheme.onSurface else  MaterialTheme.colorScheme.surface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -164,7 +181,7 @@ fun calculateCompletionPercent(haveItems: Int?, numberOfItems: Int?): Int {
     return ((haveItems.toFloat() / numberOfItems) * 100).toInt().coerceIn(0, 100)
 }
 
-fun shouldCollapsePill(data: NMCardProps): Boolean {
+fun shouldCollapsePill(data: OverlayProps): Boolean {
     return data.type == "movie" &&
             data.numberOfItems == 1 &&
             (data.haveItems == 0 || data.haveItems == 1)

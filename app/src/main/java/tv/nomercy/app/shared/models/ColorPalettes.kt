@@ -8,7 +8,9 @@ data class ColorPalettes(
     val backdrop: PaletteColors? = null,
     val logo: PaletteColors? = null,
     val image: PaletteColors? = null,
-    val cover: PaletteColors? = null
+    val cover: PaletteColors? = null,
+    val still: PaletteColors? = null,
+    val profile: PaletteColors? = null,
 )
 
 @Serializable

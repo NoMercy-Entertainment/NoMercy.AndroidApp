@@ -1,3 +1,5 @@
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -8,13 +10,12 @@ import tv.nomercy.app.mobile.layout.BottomNavigationBar
 import tv.nomercy.app.shared.routes.MobileNavHost
 
 @Composable
-fun MobileMainScaffold(
-) {
+fun MobileMainScaffold() {
     val navController = rememberNavController()
     val navItems = listOf(
         AppNavItem("/home", "Home", R.drawable.home1, "Main dashboard"),
-        AppNavItem("/libraries", "Libraries", R.drawable.folder, "Libraries"),
         AppNavItem("/search", "Search", R.drawable.searchmagnifyingglass, "Global search"),
+        AppNavItem("/libraries", "Libraries", R.drawable.folder, "Libraries"),
         AppNavItem("/music/start", "Music", R.drawable.noteeighthpair, "Music playback"),
         AppNavItem("/profile", "Profile", R.drawable.user, "User settings"),
     )
@@ -27,10 +28,12 @@ fun MobileMainScaffold(
             )
         }
     ) { innerPadding ->
-        MobileNavHost(
-            navController = navController,
-            modifier = Modifier.padding(innerPadding)
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            MobileNavHost(
+                navController = navController,
+                modifier = Modifier.padding(innerPadding)
+            )
+        }
     }
 }
 

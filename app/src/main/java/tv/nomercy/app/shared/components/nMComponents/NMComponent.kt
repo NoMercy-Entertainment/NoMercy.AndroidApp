@@ -1,5 +1,7 @@
 package tv.nomercy.app.shared.components.nMComponents
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.Text
@@ -20,17 +22,19 @@ fun <T: ComponentData> NMComponent(
     aspectRatio: AspectRatio? = null,
 ) {
     components.forEach { component ->
-        when (component.component) {
-            "NMGrid" -> NMGrid(component, modifier, navController, lazyGridState)
-            "NMCarousel" -> NMCarousel(component, modifier, navController)
-            "NMGenreCard" -> NMGenreCard(component, modifier, navController)
-            "NMHomeCard" -> NMHomeCard(component, modifier, navController, aspectRatio)
-            "NMCard" -> NMCard(component, modifier, navController, aspectRatio)
-            "NMContainer" -> NMContainer(component, modifier, navController)
-            else -> Text(
-                text = "${component.component} is not supported",
-                modifier = Modifier.padding(16.dp)
-            )
+        Box(modifier = modifier.fillMaxWidth()) {
+            when (component.component) {
+                "NMGrid" -> NMGrid(component, Modifier, navController, lazyGridState)
+                "NMCarousel" -> NMCarousel(component, Modifier, navController)
+                "NMGenreCard" -> NMGenreCard(component, Modifier, navController)
+                "NMHomeCard" -> NMHomeCard(component, Modifier, navController, aspectRatio)
+                "NMCard" -> NMCard(component, Modifier, navController, aspectRatio)
+                "NMContainer" -> NMContainer(component, Modifier, navController)
+                else -> Text(
+                    text = "${component.component} is not supported",
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
 }

@@ -53,6 +53,10 @@ fun getPerceivedBrightness(color: String): Int {
     return ((r * 299) + (g * 587) + (b * 114)) / 1000
 }
 
+fun getPerceivedBrightness(color: Color): Int {
+    return (((color.red * 255 * 299) + (color.green * 255 * 587) + (color.blue * 255 * 114)) / 1000).toInt()
+}
+
 fun isColorDark(color: String, minBrightness: Int = 50): Boolean {
     return getPerceivedBrightness(color) < minBrightness
 }
@@ -94,4 +98,9 @@ fun getColorFromPercent(pct: Int, scheme: List<PercentColor> = redToGreen): Colo
     val b = (lower.color.blue * pctLower + upper.color.blue * pctUpper)
 
     return Color(r, g, b)
+}
+
+fun isColorLight(color: Color): Boolean {
+    val lightness  = getPerceivedBrightness(color)
+    return lightness >= 130
 }

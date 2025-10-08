@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import tv.nomercy.app.shared.api.repository.LibraryRepository
+import tv.nomercy.app.shared.repositories.LibraryRepository
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.Library
 import tv.nomercy.app.shared.models.NMCardProps
@@ -43,7 +43,7 @@ class LibraryStore(
             _isLoading.value = true
             _error.value = null
 
-            repository.getLibraries(serverUrl).collect { result ->
+            repository.fetch(serverUrl).collect { result ->
                 result.fold(
                     onSuccess = { _libraries.value = it },
                     onFailure = { _error.value = it.message ?: "Failed to fetch libraries" }

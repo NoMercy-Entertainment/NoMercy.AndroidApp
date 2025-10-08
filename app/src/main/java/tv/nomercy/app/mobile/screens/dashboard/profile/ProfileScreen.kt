@@ -19,8 +19,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import tv.nomercy.app.R
 import tv.nomercy.app.mobile.screens.auth.AuthViewModel
 import tv.nomercy.app.mobile.screens.auth.AuthViewModelFactory
@@ -35,7 +36,8 @@ import tv.nomercy.app.shared.stores.ServerConfigStore
 fun ProfileScreen(
     onNavigateToServerSelection: () -> Unit = {},
     onNavigateToServerInfo: () -> Unit = {},
-    onNavigateToAbout: () -> Unit = {}
+    onNavigateToAbout: () -> Unit = {},
+    onNavigateToTheme: () -> Unit = {}
 ) {
     val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(LocalContext.current))
@@ -84,6 +86,7 @@ fun ProfileScreen(
                     when (item.title) {
                         "Sign Out" -> authViewModel.logout()
                         "About" -> onNavigateToAbout()
+                        "App Settings" -> onNavigateToTheme()
                         // Handle other settings items
                     }
                 }

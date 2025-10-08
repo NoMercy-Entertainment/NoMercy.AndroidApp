@@ -5,9 +5,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import tv.nomercy.app.shared.api.repository.HomeRepository
+import tv.nomercy.app.shared.repositories.LibrariesRepository
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.NMCardProps
 
 class LibrariesStore(
@@ -16,7 +15,7 @@ class LibrariesStore(
     private val serverConfigStore: ServerConfigStore,
 ) {
     private val authService = GlobalStores.getAuthService(context)
-    private val repository = HomeRepository(context, authStore, authService)
+    private val repository = LibrariesRepository(context, authStore, authService)
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private val _librariesData = MutableStateFlow<List<Component<NMCardProps>>>(emptyList())
@@ -30,10 +29,6 @@ class LibrariesStore(
 
     private fun getServerUrl(): String? = serverConfigStore.currentServer.value?.serverApiUrl
 
-    init {
-        fetch()
-    }
-
     fun fetch(force: Boolean = false) {
         val serverUrl = getServerUrl() ?: run {
             _error.value = "No server selected"
@@ -46,7 +41,7 @@ class LibrariesStore(
             _isLoading.value = true
             _error.value = null
 
-            repository.getHomeData(serverUrl).collect { result ->
+            repository.getLibraries(serverUrl).collect { result ->
                 result.fold(
                     onSuccess = { items -> _librariesData.value = items },
                     onFailure = { _error.value = it.message ?: "Failed to fetch libraries data" }

@@ -2,6 +2,7 @@ package tv.nomercy.app.shared.components.nMComponents
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -13,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.utils.assertBoundedWidth
 
 @Composable
 fun <T: ComponentData> NMGrid(
@@ -27,7 +29,9 @@ fun <T: ComponentData> NMGrid(
     LazyVerticalGrid(
         state = lazyGridState ?: rememberLazyGridState(),
         columns = GridCells.Fixed(columns),
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .assertBoundedWidth(),
         contentPadding = PaddingValues(
             top =  spacing / 2,
             end =  spacing / 2,

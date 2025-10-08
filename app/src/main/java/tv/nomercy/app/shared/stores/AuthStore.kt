@@ -28,6 +28,9 @@ class AuthStore(private val context: Context) {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isReady = MutableStateFlow(false)
+    val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+
     /**
      * Set authentication tokens
      */
@@ -194,5 +197,9 @@ class AuthStore(private val context: Context) {
                 apply()
             }
         }
+    }
+
+    fun markReady() {
+        _isReady.value = true
     }
 }

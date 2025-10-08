@@ -32,8 +32,9 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import tv.nomercy.app.R
 import tv.nomercy.app.mobile.screens.auth.AuthViewModel
 import tv.nomercy.app.mobile.screens.auth.AuthViewModelFactory
@@ -68,7 +69,7 @@ fun BottomNavigationBarButton(
                 }
             }
             .fillMaxSize()
-            .padding(top = 6.dp, start = 6.dp, bottom = 4.dp, end = 6.dp)
+            .padding(top = 4.dp, start = 4.dp, bottom = 0.dp, end = 4.dp)
     ) {
         if (item.route == "/profile") {
             // Get user info for fallback avatar
@@ -89,11 +90,11 @@ fun BottomNavigationBarButton(
                     .build(),
                 contentDescription = item.description,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(28.dp)
                     .clip(CircleShape)
                     .border(
                         width = if (isSelected) 2.dp else 0.dp,
-                        color = if (isSelected) Color(0xFF3D5AFE) else Color.Transparent,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                         shape = CircleShape
                     )
                     .then(
@@ -103,27 +104,25 @@ fun BottomNavigationBarButton(
                 fallback = painterResource(R.drawable.user),
                 error = painterResource(R.drawable.user)
             )
-        } else {
+        }
+        else {
             // Regular icon with background for other tabs
             Box(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(28.dp)
                     .clip(CircleShape)
                     .then(if (isSelected) gradientButtonBackground() else Modifier),
-//                                .background(
-//                                    if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
-//                                ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(item.icon),
                     contentDescription = item.description,
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(24.dp)
                         .then(
                             if (isSelected) Modifier.rotate(12f) else Modifier
                         ),
-                    tint = if (isSelected) Color.White else Color(0xFF9E9E9E)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -134,7 +133,7 @@ fun BottomNavigationBarButton(
             text = item.title,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) Color.White else Color(0xFF9E9E9E),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             maxLines = 1
         )

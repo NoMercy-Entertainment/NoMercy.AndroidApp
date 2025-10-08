@@ -85,9 +85,6 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
-    // Image loading - Coil
-    implementation(libs.coil.compose)
-
     // Networking - Retrofit & OkHttp
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
@@ -116,6 +113,10 @@ dependencies {
     implementation(libs.androidx.paging.compose)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.compose.runtime)
 
     // Debug tools
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -128,4 +129,12 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom.v20231001))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
+
+
+    implementation(libs.composemeshgradient)
+
+    implementation(libs.coil3.coil.compose)
+    implementation(libs.coil.network.ktor3)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil3.coil.svg)
 }

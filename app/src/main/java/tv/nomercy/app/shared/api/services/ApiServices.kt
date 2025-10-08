@@ -8,6 +8,7 @@ import tv.nomercy.app.shared.models.ApiResponse
 import tv.nomercy.app.shared.models.AppConfig
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.models.InfoResponse
 import tv.nomercy.app.shared.models.Library
 import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.models.PermissionsResponse
@@ -65,6 +66,9 @@ interface ServerApiService {
     @GET("libraries")
     suspend fun getLibraries(): Response<ApiResponse<List<Library>>>
 
+    @GET("libraries/mobile")
+    suspend fun getLibraryList(): Response<ApiResponse<List<Component<NMCardProps>>>>
+
     /**
      * Get media items from a specific library
      */
@@ -74,6 +78,16 @@ interface ServerApiService {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): Response<ApiResponse<List<Component<NMCardProps>>>>
+
+
+    /**
+     * Get media items from a specific library
+     */
+    @GET("{type}/{id}")
+    suspend fun getInfo(
+        @Path(value = "type", encoded = true) type: String,
+        @Path("id", encoded = true) id: String,
+    ): Response<ApiResponse<InfoResponse>>
 
      @GET("{path}")
      suspend fun getComponentResponse(

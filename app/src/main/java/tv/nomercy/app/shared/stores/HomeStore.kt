@@ -5,9 +5,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import tv.nomercy.app.shared.api.repository.HomeRepository
+import tv.nomercy.app.shared.repositories.HomeRepository
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.NMCardProps
 
 class HomeStore(
@@ -30,10 +29,6 @@ class HomeStore(
 
     private fun getServerUrl(): String? = serverConfigStore.currentServer.value?.serverApiUrl
 
-    init {
-        fetch()
-    }
-
     fun fetch(force: Boolean = false) {
         val serverUrl = getServerUrl() ?: run {
             _error.value = "No server selected"
@@ -46,7 +41,7 @@ class HomeStore(
             _isLoading.value = true
             _error.value = null
 
-            repository.getHomeData(serverUrl).collect { result ->
+            repository.fetch(serverUrl).collect { result ->
                 result.fold(
                     onSuccess = { items -> _homeData.value = items },
                     onFailure = { _error.value = it.message ?: "Failed to fetch home data" }

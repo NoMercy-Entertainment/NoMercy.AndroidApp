@@ -3,9 +3,10 @@ package tv.nomercy.app.mobile.layout
 import AppNavItem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,14 +22,16 @@ fun BottomNavigationBar(
 ) {
 
     Surface(
-        color = Color(0xFF1B1B1B),
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 12.dp,
         modifier = Modifier
-            .height(60.dp)
             .fillMaxWidth()
+            .navigationBarsPadding()
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
