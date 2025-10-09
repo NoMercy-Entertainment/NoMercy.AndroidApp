@@ -147,7 +147,7 @@ fun CompletionOverlay(
                 )
                 .border(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    color = Color.Black.copy(alpha = 0.5f),
                     shape = RoundedCornerShape(
                         topEnd = 6.dp,
                         bottomEnd = 6.dp
@@ -167,7 +167,7 @@ fun CompletionOverlay(
                     text = value,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = if(percent > 30 && percent < 80) MaterialTheme.colorScheme.onSurface else  MaterialTheme.colorScheme.surface,
+                    color = if(percent > 30 && percent < 80) Color.Black else Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
