@@ -83,6 +83,7 @@ fun InfoBlock(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+
                 else -> ShimmerBox(
                     modifier = Modifier
                         .fillMaxWidth()

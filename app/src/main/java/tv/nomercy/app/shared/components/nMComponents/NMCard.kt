@@ -182,7 +182,6 @@ fun calculateCompletionPercent(haveItems: Int?, numberOfItems: Int?): Int {
 }
 
 fun shouldCollapsePill(data: OverlayProps): Boolean {
-    return data.type == "movie" &&
-            data.numberOfItems == 1 &&
+    return data.numberOfItems == 1 &&
             (data.haveItems == 0 || data.haveItems == 1)
 }

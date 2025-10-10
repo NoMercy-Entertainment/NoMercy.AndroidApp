@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,8 +37,14 @@ class LibrariesViewModel(
         path?.let { itemsMap[it] } ?: emptyList()
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    private val _showIndexer = MutableStateFlow(false)
-    val showIndexer = _showIndexer.asStateFlow()
+    private val _currentLibraryType = MutableStateFlow<String?>(null)
+
+    private val _hasIndexableContent = MutableStateFlow(false)
+
+    // Derive showIndexer from library type OR indexable content - stable during loading
+    val showIndexer = combine(_currentLibraryType, _hasIndexableContent) { type, hasContent ->
+        type == "movie" || hasContent
+    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     private val _activeIndexerLetters = MutableStateFlow<Set<Char>>(emptySet())
     val activeIndexerLetters = _activeIndexerLetters.asStateFlow()
@@ -55,19 +62,24 @@ class LibrariesViewModel(
 
     init {
         viewModelScope.launch {
-            currentLibrary.collect { components ->
+            combine(currentLibrary, isLoading) { components, loading ->
+                components to loading
+            }.collect { (components, loading) ->
 
-                val routeIncludesLetter = (_currentLibraryId.value as String?)?.contains("/letter/") == true
+                // Update isEmptyStable only when not loading
+                if (!loading) {
+                    _isEmptyStable.value = components.isEmpty()
 
-                val hasIndexableContent = components.any {
-                    it.component == "NMGrid" &&
-                            it.props.items.any { item ->
-                                item.component == "NMCard" &&
-                                        item.props.data?.type in setOf("movie", "tv")
-                            }
+                    // Check if content has indexable items (for non-paginated libraries)
+                    val hasIndexableContent = components.any {
+                        it.component == "NMGrid" &&
+                                it.props.items.any { item ->
+                                    item.component == "NMCard" &&
+                                            item.props.data?.type in setOf("movie", "tv")
+                                }
+                    }
+                    _hasIndexableContent.value = hasIndexableContent
                 }
-
-                _showIndexer.value = hasIndexableContent || routeIncludesLetter
 
                 val containsMovie = components.any {
                     it.component == "NMGrid" &&
@@ -76,7 +88,7 @@ class LibrariesViewModel(
                             }
                 }
 
-                val activeLetters = if (containsMovie || routeIncludesLetter) {
+                val activeLetters = if (containsMovie || _currentLibraryType.value == "movie") {
                     indexerCharacters.toSet()
                 } else {
                     components
@@ -107,12 +119,22 @@ class LibrariesViewModel(
         libs: List<Library>,
         selections: Map<String, Char>
     ): String? {
-        val library = libs.find { it.link == id } ?: return id
-        return (if (library.type == "movie") {
+        if (id == null) return null
+
+        // Extract base library ID (before /letter/ if present)
+        val baseLibraryId = id.substringBefore("/letter/")
+
+        // Extract just the UUID part
+        val libraryIdOnly = baseLibraryId.substringAfterLast("/")
+
+        // Find library by UUID (id field)
+        val library = libs.find { it.id == libraryIdOnly } ?: return id
+
+        return if (library.type == "movie") {
             selections[library.id]?.let { "libraries/${library.id}/letter/$it" } ?: library.link
         } else {
             library.link
-        }) as String?
+        }
     }
 
     private fun loadCurrentLibrary(forceRefresh: Boolean = false) {
@@ -126,11 +148,18 @@ class LibrariesViewModel(
         _selectedIndex.value = index
 
         val id = currentLibraryId.value ?: return
-        val library = libraries.value.find { it.link == id }
 
-        if (library?.type == "movie") {
-            _libraryLetterSelections.update { it + (library.id to char) }
+        // If route contains /letter/, use letter pagination, otherwise scroll
+        if (id.contains("/letter/")) {
+            val baseLibraryId = id.substringBefore("/letter/")
+            val libraryIdOnly = baseLibraryId.substringAfterLast("/")
+            val library = libraries.value.find { it.id == libraryIdOnly }
+
+            if (library != null) {
+                _libraryLetterSelections.update { it + (library.id to char) }
+            }
         } else {
+            // Scroll-based navigation for non-paginated libraries
             viewModelScope.launch {
                 val gridItems = currentLibrary.value.firstOrNull { it.component == "NMGrid" }?.props?.items
                 val itemIndex = gridItems?.indexOfFirst {
@@ -154,19 +183,19 @@ class LibrariesViewModel(
             ?.takeIf { it in indexerCharacters }
 
         val library = libraries.value.find { it.link == baseLibraryId }
-        val isMovie = library?.type == "movie"
+            ?: libraries.value.find { it.id == baseLibraryId }
 
-        if (isMovie) {
+        // Store library type - this drives indexer visibility
+        _currentLibraryType.value = library?.type
+
+        if (library?.type == "movie") {
             val selectedLetter = letterFromRoute
                 ?: _libraryLetterSelections.value[library.id]
                 ?: 'A'
 
-            // Update selection BEFORE changing route
             _libraryLetterSelections.update { it + (library.id to selectedLetter) }
             _selectedIndex.value = indexerCharacters.indexOf(selectedLetter)
-
-            // Now update the route
-            "libraries/${library.id}/letter/$selectedLetter".also { _currentLibraryId.value = it as String  }
+            _currentLibraryId.value = "libraries/${library.id}/letter/$selectedLetter"
         } else {
             _currentLibraryId.value = libraryId
         }

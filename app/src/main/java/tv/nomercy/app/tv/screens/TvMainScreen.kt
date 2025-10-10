@@ -10,7 +10,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import tv.nomercy.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,7 +21,7 @@ fun TvMainScreen() {
         topBar = {
             // TV apps often have a different style for the top bar or a side navigation.
             // For now, a simple TopAppBar.
-            TopAppBar(title = { Text("NoMercy TV") })
+            TopAppBar(title = { Text(stringResource(R.string.app_name)) })
         }
         // Unlike mobile, bottom navigation is not common on TV.
         // Navigation is usually handled by a side panel or within the content area.

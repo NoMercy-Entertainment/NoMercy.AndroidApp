@@ -58,7 +58,7 @@ fun <T : ComponentData> NMCarousel(
                 modifier = Modifier.weight(4f)
             )
 
-            component.props.moreLink?.let {
+            component.props.moreLink?.let { 
                 Box(
                     modifier = Modifier
                         .clickable {
@@ -87,7 +87,7 @@ fun <T : ComponentData> NMCarousel(
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = spacing),
+            contentPadding = PaddingValues(start = spacing * 2, end = spacing),
             horizontalArrangement = Arrangement.spacedBy(spacing),
         ) {
             if (items.isEmpty()) {

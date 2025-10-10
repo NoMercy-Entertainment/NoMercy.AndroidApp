@@ -42,7 +42,7 @@ class InfoStore(
             return
         }
 
-        if (!force && _infoData.value?.id == id.toIntOrNull() && _infoData.value?.type == type) return
+        if (!force && _infoData.value?.id == id && _infoData.value?.type == type) return
 
         scope.launch {
             _isLoading.value = true

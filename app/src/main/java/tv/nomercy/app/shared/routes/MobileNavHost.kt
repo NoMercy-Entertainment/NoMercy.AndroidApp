@@ -31,6 +31,7 @@ import tv.nomercy.app.mobile.screens.music.genres.MusicGenreScreen
 import tv.nomercy.app.mobile.screens.music.list.ListScreen
 import tv.nomercy.app.mobile.screens.music.start.MusicStartScreen
 import tv.nomercy.app.mobile.screens.selectServer.ServerSelectionScreen
+import tv.nomercy.app.shared.models.FlexibleId
 
 @Composable
 fun MobileNavHost(
@@ -58,22 +59,6 @@ fun MobileNavHost(
         composable("/collection") { LibraryScreen(navController, "collection") }
         composable("/person") { PaginatedLibraryScreen("person") }
 
-        composable("/collection/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")
-            if (id == null) {
-                NotFoundScreen(message = "Playlist not found", status = 404)
-                return@composable
-            }
-            CollectionScreen("collection", id)
-        }
-        composable("/specials/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")
-            if (id == null) {
-                NotFoundScreen(message = "Playlist not found", status = 404)
-                return@composable
-            }
-            CollectionScreen("specials", id)
-        }
         composable("/genre/{id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getInt("id")
             if (id == null) {
@@ -108,7 +93,7 @@ fun MobileNavHost(
                 NotFoundScreen(message = "Playlist not found", status = 404)
                 return@composable
             }
-            WatchScreen(type, id)
+            WatchScreen(type, id, navController)
         }
 
         composable("/music/start") { MusicStartScreen(navController) }

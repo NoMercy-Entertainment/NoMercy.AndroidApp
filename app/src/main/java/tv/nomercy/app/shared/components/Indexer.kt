@@ -20,25 +20,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import tv.nomercy.app.mobile.screens.base.library.LibrariesViewModel
-import tv.nomercy.app.mobile.screens.base.library.LibrariesViewModelFactory
-import tv.nomercy.app.shared.stores.GlobalStores
 
 @Composable
 fun Indexer(
-    modifier: Modifier
+    modifier: Modifier,
+    viewModel: LibrariesViewModel? = null
 ) {
-    val libraryStore = GlobalStores.getLibraryStore(LocalContext.current)
-
-    val viewModel: LibrariesViewModel = viewModel(
-        factory = LibrariesViewModelFactory(
-            libraryStore = libraryStore,
-        )
-    )
+    // Only show indexer if viewModel is provided
+    if (viewModel == null) return
 
     val showIndexer by viewModel.showIndexer.collectAsState()
     val selectedIndex = viewModel.selectedIndex.collectAsState()

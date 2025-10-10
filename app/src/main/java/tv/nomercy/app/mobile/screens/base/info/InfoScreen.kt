@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,6 +57,7 @@ import tv.nomercy.app.shared.utils.formatDuration
 import tv.nomercy.app.shared.utils.pickPaletteColor
 import tv.nomercy.app.shared.utils.sortByFilteredAlphabetized
 import java.util.UUID
+import tv.nomercy.app.R
 
 @Composable
 fun InfoScreen(type: String, id: String, navController: NavHostController) {
@@ -75,7 +77,7 @@ fun InfoScreen(type: String, id: String, navController: NavHostController) {
         viewModel.setInfoParams(type, id)
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(bottom = 8.dp)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         errorMessage?.let {
             Card(
                 modifier = Modifier
@@ -101,13 +103,13 @@ fun InfoScreen(type: String, id: String, navController: NavHostController) {
                         viewModel.clearError()
                         viewModel.refresh()
                     }) {
-                        Text("Retry")
+                        Text(stringResource(R.string.try_again))
                     }
                 }
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().padding(bottom = 16.dp)) {
             InfoColumn(infoData, navController)
         }
     }
@@ -180,7 +182,7 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
 
                     infoData?.writer?.let { writer ->
                         InfoWrapBlock(
-                            title = "Writer",
+                            title = stringResource(R.string.writer),
                             data = writer.name,
                             modifier = Modifier.clickable {
                                 writer.link.let { link ->
@@ -192,7 +194,7 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
 
                     infoData?.director?.let { director ->
                         InfoWrapBlock(
-                            title = "Director",
+                            title = stringResource(R.string.director),
                             data = director.name,
                             modifier = Modifier.clickable {
                                 director.link.let { link ->
@@ -204,7 +206,7 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
 
                     infoData?.keywords?.let { keywords ->
                         InfoWrapBlock(
-                            title = "Keywords",
+                            title = stringResource(R.string.keywords),
                         ) {
                             keywords.forEach { keyword ->
                                 val index = keywords.indexOf(keyword)
@@ -230,7 +232,14 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
                 )
 
                 GenericCarousel(
-                    title = "Cast",
+                    title = stringResource(R.string.collections),
+                    items = infoData?.collection?.map { it.toCarouselItem() } ?: emptyList(),
+                    navController = navController,
+                    visibleCards = 2
+                )
+
+                GenericCarousel(
+                    title = stringResource(R.string.cast),
                     items = infoData?.cast?.map { it.toCarouselItem() } ?: emptyList(),
                     navController = navController,
                 )
@@ -243,32 +252,32 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
                 ) ?: emptyList()
 
                 GenericCarousel(
-                    title = "Crew",
+                    title = stringResource(R.string.crew),
                     items = sorted.map { it.toCarouselItem() },
                     navController = navController,
                 )
 
                 GenericCarousel(
-                    title = "Posters",
+                    title = stringResource(R.string.posters),
                     items = infoData?.posters?.map { it.toCarouselItem() } ?: emptyList(),
                     navController = navController,
                 )
 
                 GenericCarousel(
-                    title = "Backdrops",
+                    title = stringResource(R.string.backdrops),
                     items = infoData?.backdrops?.map { it.toCarouselItem() } ?: emptyList(),
                     navController = navController,
                     visibleCards = 2
                 )
 
                 GenericCarousel(
-                    title = "Recommendations",
+                    title = stringResource(R.string.recommendations),
                     items = infoData?.recommendations?.map { it.toCarouselItem() } ?: emptyList(),
                     navController = navController,
                 )
 
                 GenericCarousel(
-                    title = "Similar",
+                    title = stringResource(R.string.similar),
                     items = infoData?.similar?.map { it.toCarouselItem() } ?: emptyList(),
                     navController = navController,
                 )
@@ -294,11 +303,22 @@ fun InfoRow(infoData: InfoResponse?) {
         modifier = Modifier.padding(vertical = 4.dp)
     ) {
 
-        InfoBlock(
-            data = infoData?.year?.let {
-                infoData.year.toString()
-            },
+        ContentRatingBadge(
+            ratings = infoData?.contentRatings ?: emptyList(),
+            modifier = Modifier.padding(vertical = 2.dp),
+            size = 4.dp
         )
+
+        if (infoData?.collection?.isNotEmpty() == true) {
+            InfoBlock(
+                data = "${infoData.collection.minOf { it.year ?: 0 }} - ${infoData.collection.maxOf { it.year ?: 0 }}"
+            )
+        }
+        else if (infoData?.year != null && infoData.year > 0) {
+            InfoBlock(
+                data = infoData.year.toString()
+            )
+        }
 
         InfoBlock(
             data = infoData?.numberOfItems?.let {
@@ -306,31 +326,23 @@ fun InfoRow(infoData: InfoResponse?) {
             },
         )
 
-        if(infoData?.duration != null && infoData.duration > 0) {
+        if (infoData?.duration != null && infoData.duration > 0) {
             InfoBlock(
-                bodyContent = {
-                    Text(
-                        text = formatDuration(infoData.duration),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                }
+                data = formatDuration(infoData.duration),
+            )
+        } else if (infoData?.totalDuration != null && infoData.totalDuration > 0) {
+            InfoBlock(
+                data = formatDuration(infoData.totalDuration),
             )
         }
 
-        InfoBlock(
-            bodyContent = {
-                RatingBadge(rating = infoData?.voteAverage)
-            }
-        )
-
-        ContentRatingBadge(
-            ratings = infoData?.contentRatings ?: emptyList(),
-            modifier = Modifier.padding(vertical = 2.dp),
-            size = 4.dp
-        )
+        infoData?.voteAverage?.let {
+            InfoBlock(
+                bodyContent = {
+                    RatingBadge(rating = infoData.voteAverage)
+                }
+            )
+        }
     }
 }
 
@@ -373,7 +385,7 @@ fun GenreRow(
     navController: NavHostController
 ) {
     InfoWrapBlock(
-        title = "Genres",
+        title = stringResource(R.string.genres),
         bodyContent = {
             val genres = infoData?.genres
 

@@ -37,12 +37,15 @@ data class AppConfig(
 data class Server(
     val id: String,
     val name: String,
-    @SerialName("server_api_url") val serverApiUrl: String,
+    val serverApiUrl: String,
+    val serverBaseUrl: String,
     val description: String? = null,
     val version: String? = null,
     val status: String? = null,
-    @SerialName("is_owner") val isOwner: Boolean? = null,
-    @SerialName("is_manager") val isManager: Boolean? = null
+    @SerialName("is_owner")
+    val isOwner: Boolean? = null,
+    @SerialName("is_manager")
+    val isManager: Boolean? = null
 )
 
 /**
@@ -52,11 +55,14 @@ data class Server(
 data class Message(
     val id: Int,
     val title: String? = null,
-    @SerialName("body") val content: String,
+    @SerialName("body")
+    val content: String,
     val type: String,
     val read: Boolean = false,
-    @SerialName("created_at") val createdAt: String? = null,
-    @SerialName("updated_at") val updatedAt: String? = null,
+    @SerialName("created_at")
+    val createdAt: String? = null,
+    @SerialName("updated_at")
+    val updatedAt: String? = null,
     val from: Sender? = null
 )
 

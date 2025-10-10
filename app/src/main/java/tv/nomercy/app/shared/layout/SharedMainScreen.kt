@@ -37,6 +37,7 @@ fun SharedMainScreen(
     platform: Platform,
     authViewModel: AuthViewModel,
     appConfigStore: AppConfigStore,
+    isImmersiveState: Boolean,
 ) {
     val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
     val authState by authViewModel.authState.collectAsState()
@@ -80,7 +81,7 @@ fun SharedMainScreen(
                 )
             } else {
                 when (platform) {
-                    Platform.Mobile -> MobileMainScaffold()
+                    Platform.Mobile -> MobileMainScaffold(isImmersive = isImmersiveState)
                     Platform.TV -> TVMainScaffold()
                 }
             }

@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,20 +56,20 @@ fun MobileLoginContent(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.home),
-                    contentDescription = "NoMercy TV",
+                    contentDescription = stringResource(R.string.app_name),
                     modifier = Modifier.size(80.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
 
                 Text(
-                    text = "NoMercy TV",
+                    text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
-                    text = "Welcome back! Please sign in to continue.",
+                    text =  stringResource(R.string.wb_sign_in),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -87,7 +88,7 @@ fun MobileLoginContent(
                                 textAlign = TextAlign.Center
                             )
                             Button(onClick = { authViewModel.clearError() }) {
-                                Text("Try Again")
+                                Text(stringResource(R.string.try_again))
                             }
                         }
                     }
@@ -99,18 +100,11 @@ fun MobileLoginContent(
                         ) {
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Icon(painter = painterResource(R.drawable.user), contentDescription = null)
-                                Text("Sign in with Keycloak")
+                                Text(stringResource(R.string.sign_in_with_keycloak))
                             }
                         }
                     }
                 }
-
-                Text(
-                    text = "Secure authentication powered by Keycloak",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
             }
         }
     }

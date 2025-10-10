@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -56,20 +57,21 @@ fun <T: ComponentData> NMHomeCard(
     }
 
     val posterPalette = data.colorPalette?.backdrop
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, 40, 120) }
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
 
     Card(
         modifier = modifier
             .fillMaxSize()
             .padding(top = 16.dp, bottom = 0.dp, start = 18.dp, end = 18.dp)
+            .clip(RoundedCornerShape(12.dp))
             .aspectFromType(aspectRatio),
         border = BorderStroke(2.dp, focusColor.copy(alpha = 0.5f)),
         shape = RoundedCornerShape(6.dp),
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(12.dp))
-            .paletteBackground(data.colorPalette?.poster)) {
+            .paletteBackground(data.colorPalette?.poster)
+        ) {
             TMDBImage(
                 path = data.poster,
                 title = data.title,
@@ -79,9 +81,11 @@ fun <T: ComponentData> NMHomeCard(
 
             GradientBlurOverlay(
                 baseColor = focusColor,
+                maxHeight = 170.dp,
                 modifier = Modifier
-                    .height(300.dp)
-                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .zIndex(1f)
             )
 
             // Gradient overlay
@@ -106,21 +110,12 @@ fun <T: ComponentData> NMHomeCard(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-//                    if (data.tags?.isNotEmpty() ?: false) {
-//                        Text(
-//                            text = data.tags.take(4).joinToString(", ") { it.replaceFirstChar(Char::uppercaseChar) },
-//                            style = MaterialTheme.typography.bodySmall,
-//                            textAlign = TextAlign.Center
-//                        )
-//                    }
-
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
                     ) {
-
 
                         Button(
                             onClick = { navController.navigate("${data.link}/watch") },
@@ -139,7 +134,11 @@ fun <T: ComponentData> NMHomeCard(
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(Modifier.width(4.dp))
-                            Text("Play", color = Color.DarkGray)
+                            Text(
+                                text = stringResource(R.string.watch),
+                                textAlign = TextAlign.Center,
+                                color = Color.DarkGray
+                            )
                         }
 
 
@@ -161,7 +160,11 @@ fun <T: ComponentData> NMHomeCard(
                                 colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.White),
                             )
                             Spacer(Modifier.width(4.dp))
-                            Text("Info", textAlign = TextAlign.Center, color = Color.White)
+                            Text(
+                                text = stringResource(R.string.details),
+                                textAlign = TextAlign.Center,
+                                color = Color.White
+                            )
                         }
                     }
                 }

@@ -47,9 +47,13 @@ fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = 
     val selectedIndex by viewModel.selectedIndex.collectAsState()
     val isEmptyStable by viewModel.isEmptyStable.collectAsState()
 
-    LaunchedEffect(libraries) {
-        if (libraries.isNotEmpty() && libraryId == null) {
-            viewModel.selectLibrary(libraries.first().link)
+    LaunchedEffect(libraries, libraryId) {
+        if (libraries.isNotEmpty()) {
+            if (libraryId == null) {
+                viewModel.selectLibrary(libraries.first().link)
+            } else {
+                viewModel.selectLibrary(libraryId.toString())
+            }
         }
     }
 
@@ -115,11 +119,7 @@ fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = 
             }
         }
 
-        LibraryTabScroller(viewModel) { tab ->
-            if (tab != null && tab.link != libraryId) {
-                viewModel.selectLibrary(tab.link)
-            }
-        }
+        LibraryTabScroller(viewModel, currentLink = libraryId?.toString(), navController = navController)
 
         Box(
             modifier = Modifier
@@ -153,6 +153,7 @@ fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = 
 
                 Indexer(
                     modifier = Modifier,
+                    viewModel = viewModel
                 )
             }
         }

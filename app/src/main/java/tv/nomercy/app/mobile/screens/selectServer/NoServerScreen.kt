@@ -15,9 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import tv.nomercy.app.R
 
 @Composable
 fun NoServersScreen(
@@ -31,7 +33,7 @@ fun NoServersScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Welcome to NoMercy",
+            text = stringResource(R.string.welcome),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
@@ -40,7 +42,7 @@ fun NoServersScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "No Servers Found",
+            text = stringResource(R.string.no_servers),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -50,7 +52,7 @@ fun NoServersScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "You don't have access to any NoMercy servers yet. Please:",
+            text = stringResource(R.string.no_servers_yet),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -69,15 +71,7 @@ fun NoServersScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "• Set up your own NoMercy server",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "• Ask your administrator for access",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "• Check your account permissions",
+                    text = stringResource(R.string.setup_your_own_server),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -89,7 +83,7 @@ fun NoServersScreen(
             onClick = onRetry,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Check Again")
+            Text(stringResource(R.string.check_again))
         }
     }
 }

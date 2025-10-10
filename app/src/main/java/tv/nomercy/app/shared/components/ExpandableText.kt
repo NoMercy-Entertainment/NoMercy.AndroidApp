@@ -11,10 +11,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import tv.nomercy.app.R
 
 @Composable
 fun ExpandableText(
@@ -47,7 +49,7 @@ fun ExpandableText(
 
         if (isOverflowing || isExpanded) {
             Text(
-                text = if (isExpanded) "Read less" else "Read more",
+                text = if (isExpanded) stringResource(R.string.read_less) else stringResource(R.string.read_more),
                 style = textStyle.copy(
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold

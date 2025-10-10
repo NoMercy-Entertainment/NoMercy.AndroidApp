@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -58,14 +59,12 @@ fun BottomNavigationBarButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .clickable {
-                if (!isSelected) {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
+                navController.navigate(item.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
                     }
+                    launchSingleTop = true
+                    restoreState = true
                 }
             }
             .fillMaxSize()
@@ -130,7 +129,7 @@ fun BottomNavigationBarButton(
         Spacer(modifier = Modifier.height(2.dp))
 
         Text(
-            text = item.title,
+            text = stringResource(item.title),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -5,8 +5,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class InfoResponse(
-    val id: Int,
+    val id: String,
     val duration: Int? = null,
+    @SerialName("total_duration")
+    val totalDuration: Int? = null,
     val poster: String? = null,
     val backdrop: String? = null,
     val logo: String? = null,
@@ -14,10 +16,11 @@ data class InfoResponse(
     val name: String? = null,
     val overview: String? = null,
     val titleSort: String,
+    @SerialName("vote_average")
     val voteAverage: Double? = null,
     @SerialName("content_ratings")
     val contentRatings: List<Rating> = emptyList(),
-    val year: Int,
+    val year: Int? = null,
     @SerialName("number_of_items")
     val numberOfItems: Int? = null,
     @SerialName("have_items")
@@ -37,7 +40,7 @@ data class InfoResponse(
     val favorite: Boolean,
     val watched: Boolean,
     @SerialName("external_ids")
-    val externalIds: ExternalIds,
+    val externalIds: ExternalIds? = null,
     val cast: List<Person> = emptyList(),
     val crew: List<Person> = emptyList(),
     val director: Person? = null,
@@ -53,7 +56,8 @@ data class InfoResponse(
     @SerialName("watch_providers")
     val watchProviders: List<WatchProvider> = emptyList(),
     val companies: List<Company> = emptyList(),
-    val networks: List<Network> = emptyList()
+    val networks: List<Network> = emptyList(),
+    val collection: List<Related> = emptyList(),
 )
 
 @Serializable
@@ -228,5 +232,7 @@ data class Related(
     val haveItems: Int? = null,
     val link: String,
     @SerialName("color_palette")
-    val colorPalette: ColorPalettes? = null
+    val colorPalette: ColorPalettes? = null,
+    val year: Int? = null,
+    val duration: Int? = null,
 )

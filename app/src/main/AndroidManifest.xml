@@ -14,11 +14,14 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:hardwareAccelerated="true"
         android:theme="@style/Theme.App.Starting">
 
         <activity
             android:name=".mobile.entrypoint.MainActivity"
             android:launchMode="singleInstance"
+            android:hardwareAccelerated="true"
+            android:configChanges="orientation|screenSize|screenLayout|uiMode"
             android:exported="true"
             android:noHistory="true">
 

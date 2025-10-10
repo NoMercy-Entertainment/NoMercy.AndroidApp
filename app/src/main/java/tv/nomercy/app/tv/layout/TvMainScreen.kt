@@ -21,11 +21,11 @@ fun TVMainScaffold() {
 
     val navController = rememberNavController()
     val navItems = listOf(
-        AppNavItem("/home", "Home", R.drawable.home1, "Main dashboard"),
-        AppNavItem("/libraries", "Libraries", R.drawable.folder, "Libraries"),
-        AppNavItem("/search", "Search", R.drawable.searchmagnifyingglass, "Global search"),
-        AppNavItem("/music/start", "Music", R.drawable.noteeighthpair, "Music playback"),
-        AppNavItem("/profile", "Profile", R.drawable.user, "User settings"),
+        AppNavItem("/home", R.string.title_home, R.drawable.home1, "Main dashboard"),
+        AppNavItem("/search", R.string.title_search, R.drawable.searchmagnifyingglass, "Global search"),
+        AppNavItem("/libraries", R.string.title_libraries, R.drawable.folder, "Libraries"),
+        AppNavItem("/music/start", R.string.title_music, R.drawable.noteeighthpair, "Music playback"),
+        AppNavItem("/profile", R.string.title_profile, R.drawable.user, "User settings"),
     )
 
     Scaffold(

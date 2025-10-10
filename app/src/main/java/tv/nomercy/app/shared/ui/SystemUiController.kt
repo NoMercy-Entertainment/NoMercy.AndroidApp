@@ -4,19 +4,11 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.view.WindowInsets
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import tv.nomercy.app.shared.stores.ColorScheme
-import tv.nomercy.app.shared.stores.GlobalStores
-import tv.nomercy.app.shared.utils.isColorLight
 
 object SystemUiController {
 

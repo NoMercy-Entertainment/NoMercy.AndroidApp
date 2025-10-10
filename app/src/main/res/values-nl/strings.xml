@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NoMercyTv</string>
+    <string name="app_name">NoMercy TV</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="title_notifications">Notificaties</string>
 
-    <string name="title_search">Search</string>
-    <string name="title_libraries">Libraries</string>
-    <string name="title_music">Music</string>
+    <string name="title_search">Zoeken</string>
+    <string name="title_libraries">Bibliotheken</string>
+    <string name="title_music">Muziek</string>
     <string name="title_profile">Profile</string>
-    <string name="switch_server">Switch server</string>
+    <string name="switch_server">Wissel  server</string>
 
+    <plurals name="days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
     <plurals name="hours">
         <item quantity="one">uur</item>
         <item quantity="other">uur</item>
@@ -36,4 +40,34 @@
         <item quantity="one">sec</item>
         <item quantity="other">sec</item>
     </plurals>
+    <string name="watch">Watch</string>
+    <string name="watch_trailer">Bekijk trailer</string>
+    <string name="collection">Collectie</string>
+    <string name="genres">Genres</string>
+    <string name="cast">Cast</string>
+    <string name="crew">Crew</string>
+    <string name="posters">Posters</string>
+    <string name="backdrops">Backdrops</string>
+    <string name="continue_watching">Doorgaan met kijken</string>
+    <string name="latest_in">Laastste in %!</string>
+    <string name="view_all">Alles bekijken</string>
+    <string name="keywords">Sleutelwoorden</string>
+    <string name="read_more">"Lees meer "</string>
+    <string name="writer">Schrijver</string>
+    <string name="director">Regiseur</string>
+    <string name="season">Seizoen</string>
+    <string name="episode">Episode</string>
+    <string name="recommendations">Aanbevelingen</string>
+    <string name="similar">Vergelijkbaar</string>
+    <string name="collections">Collecties</string>
+    <string name="read_less">Lees minder</string>
+    <string name="try_again">Probeer opnieuw</string>
+    <string name="wb_sign_in">Welkom terug! Login met Keycloak om door te gaan.</string>
+    <string name="sign_in_with_keycloak">Login met Keycloak</string>
+    <string name="welcome">Welcome to NoMercy</string>
+    <string name="no_servers">No Servers Found</string>
+    <string name="no_servers_yet">You don\'t have access to any NoMercy servers yet. Please:</string>
+    <string name="setup_your_own_server">Installeer je eigen NoMercy server</string>
+    <string name="check_again">Check Again</string>
+    <string name="details">Details</string>
 </resources>

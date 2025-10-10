@@ -91,43 +91,7 @@ fun <T : ComponentData> NMGenreCard(
                     color = Color.Black.copy(alpha = 0.08f),
                 )
                 .clickable {
-                    // navController.navigate(data.link)
-                }
-                .drawWithCache {
-//                    val radial = Brush.radialGradient(
-//                        colors = listOf(
-//                            Color.Black.copy(alpha = 0.15f),
-//                            Color.Transparent
-//                        ),
-//                        center = Offset(-size.width * 0.1f, -size.height * 0.1f),
-//                        radius = size.minDimension * 1.4f
-//                    )
-//
-//                    val linear = Brush.verticalGradient(
-//                        colors = listOf(
-//                            Color.Transparent,
-//                            Color.Black.copy(alpha = 0.12f)
-//                        )
-//                    )
-//
-//                    val bottomFade = Brush.verticalGradient(
-//                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.1f)),
-//                        startY = size.height * 0.7f,
-//                        endY = size.height
-//                    )
-//
-                    onDrawBehind {
-//                        drawRect(Color.Black.copy(alpha = 0.4f)) // base dark overlay
-//                        drawRect(radial) // radial highlight
-//                        drawRect(linear) // vertical glow
-//                        drawRect(bottomFade)
-//                        drawLine(
-//                            color = Color.White.copy(alpha = 0.24f),
-//                            start = Offset(0f, 0f),
-//                            end = Offset(size.width, 0f),
-//                            strokeWidth = 1f
-//                        ) // top inset stroke
-                    }
+                     navController.navigate(data.link)
                 },
         ) {
 
