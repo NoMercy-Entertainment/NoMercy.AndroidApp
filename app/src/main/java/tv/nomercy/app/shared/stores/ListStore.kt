@@ -42,14 +42,18 @@ class ListStore(
             _isLoading.value = true
             _error.value = null
 
-            repository.fetchList(serverUrl, type, id).collect { result ->
-                result.fold(
-                    onSuccess = { items ->
-                        _listItems.update { it + (key to items) }
-                    },
-                    onFailure = { _error.value = it.message ?: "Failed to fetch items for $type" }
-                )
-                _isLoading.value = false
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.fetchList(serverUrl, type, id).collect { result ->
+                    result.fold(
+                        onSuccess = { items ->
+                            _listItems.update { it + (key to items) }
+                        },
+                        onFailure = {
+                            _error.value = it.message ?: "Failed to fetch items for $type"
+                        }
+                    )
+                    _isLoading.value = false
+                }
             }
         }
     }

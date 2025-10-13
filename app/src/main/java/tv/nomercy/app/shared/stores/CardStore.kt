@@ -41,15 +41,18 @@ class CardsStore(
         scope.launch {
             _isLoading.value = true
             _error.value = null
-
-            repository.getCardItems(serverUrl, link).collect { result ->
-                result.fold(
-                    onSuccess = { items ->
-                        _cardItems.update { it + (link to items) }
-                    },
-                    onFailure = { _error.value = it.message ?: "Failed to fetch items for $link" }
-                )
-                _isLoading.value = false
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.getCardItems(serverUrl, link).collect { result ->
+                    result.fold(
+                        onSuccess = { items ->
+                            _cardItems.update { it + (link to items) }
+                        },
+                        onFailure = {
+                            _error.value = it.message ?: "Failed to fetch items for $link"
+                        }
+                    )
+                    _isLoading.value = false
+                }
             }
         }
     }

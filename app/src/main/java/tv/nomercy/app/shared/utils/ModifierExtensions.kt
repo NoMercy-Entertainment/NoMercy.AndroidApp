@@ -38,6 +38,7 @@ fun Modifier.aspectFromType(aspectRatio: AspectRatio?): Modifier {
     return when (aspectRatio) {
         AspectRatio.Poster -> this.aspectRatio(2f / 3f)
         AspectRatio.Backdrop -> this.aspectRatio(16f / 9f)
+        AspectRatio.Cover -> this.aspectRatio(1f)
         else -> this // no aspect applied
     }
 }

@@ -185,8 +185,9 @@ fun HeaderSection(
             cover = listData?.cover,
             name = listData?.name,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .aspectFromType(AspectRatio.Cover)
+                // make the  image square
                 .padding(start = 52.dp, end = 52.dp, top = 52.dp, bottom = 40.dp)
                 .clip(RoundedCornerShape(12.dp)),
             currentServer = currentServer

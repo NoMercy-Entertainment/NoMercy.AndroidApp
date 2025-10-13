@@ -43,12 +43,15 @@ class LibraryStore(
             _isLoading.value = true
             _error.value = null
 
-            repository.fetch(serverUrl).collect { result ->
-                result.fold(
-                    onSuccess = { _libraries.value = it },
-                    onFailure = { _error.value = it.message ?: "Failed to fetch libraries" }
-                )
-                _isLoading.value = false
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.fetch(serverUrl).collect { result ->
+                    result.fold(
+                        onSuccess = { _libraries.value = it },
+                        onFailure = { _error.value = it.message ?: "Failed to fetch libraries" }
+                    )
+                    _isLoading.value = false
+
+                }
             }
         }
     }
@@ -65,14 +68,18 @@ class LibraryStore(
             _isLoading.value = true
             _error.value = null
 
-            repository.getLibraryItems(serverUrl, link, page, limit).collect { result ->
-                result.fold(
-                    onSuccess = { items ->
-                        _libraryItems.update { it + (link to items) }
-                    },
-                    onFailure = { _error.value = it.message ?: "Failed to fetch items for $link" }
-                )
-                _isLoading.value = false
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.getLibraryItems(serverUrl, link, page, limit).collect { result ->
+                    result.fold(
+                        onSuccess = { items ->
+                            _libraryItems.update { it + (link to items) }
+                        },
+                        onFailure = {
+                            _error.value = it.message ?: "Failed to fetch items for $link"
+                        }
+                    )
+                    _isLoading.value = false
+                }
             }
         }
     }

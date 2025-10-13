@@ -117,37 +117,19 @@ fun MobileHomeScreen(
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                when {
-                    isLoading -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 48.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
+            when {
+                homeData.isNotEmpty() -> {
+                    // Always show content if we have data
+                    val filteredData = homeData.filter { component -> hasContent(component) }
+                    android.util.Log.d("HomeScreen", "Filtered data size: ${filteredData.size}")
 
-                    isEmptyStable -> {
-                        item {
-                            EmptyGrid(
-                                modifier = Modifier.fillMaxSize(),
-                                text = "No content available in this library."
-                            )
-                        }
-                    }
-
-                    else -> {
-                        items(homeData.filter { component -> hasContent(component) }, key = { it.id }) { component ->
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(filteredData, key = { it.id }) { component ->
                             key(component.id) {
                                 NMComponent(
                                     components = listOf(component),
@@ -156,18 +138,24 @@ fun MobileHomeScreen(
                                 )
                             }
                         }
-                        authStore.markReady()
+                    }
+                    authStore.markReady()
+                }
+                isLoading -> {
+                    // Only show loading if we don't have data
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
-            }
-
-            if (isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                isEmptyStable -> {
+                    EmptyGrid(
+                        modifier = Modifier.fillMaxSize(),
+                        text = "No content available in this library."
+                    )
                 }
             }
 

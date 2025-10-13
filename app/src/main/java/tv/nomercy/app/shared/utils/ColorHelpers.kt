@@ -39,7 +39,7 @@ fun String.toColor(): Color {
         else -> "#FF0000" // fallback to red
     }
     return try {
-        Color(android.graphics.Color.parseColor(argb))
+        Color(argb.toColorInt())
     } catch (e: IllegalArgumentException) {
         Color.Red
     }
