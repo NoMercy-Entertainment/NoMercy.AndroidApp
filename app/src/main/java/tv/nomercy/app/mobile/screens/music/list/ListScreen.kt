@@ -54,6 +54,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.components.nMComponents.CoverImage
+import tv.nomercy.app.shared.components.ShimmerBox
 import tv.nomercy.app.shared.models.Album
 import tv.nomercy.app.shared.models.Artist
 import tv.nomercy.app.shared.models.MusicList
@@ -93,7 +94,7 @@ fun ListScreen(
     }
 
     val scrollState = rememberLazyListState()
-    val palette = listData?.colorPalette?.cover
+    val palette = listData?.colorPalette?.cover ?: listData?.colorPalette?.image
     val backgroundColor = remember(palette) { pickPaletteColor(palette) }
     val key = remember { UUID.randomUUID() }
 
@@ -134,25 +135,38 @@ fun ListScreen(
                 SortHeader(listData)
             }
 
-            items(listData?.tracks ?: emptyList()) { track ->
-                TrackRow(
-                    track, listData?.tracks?.indexOf(track) ?: 0,
-                    isPlaying = false, // Replace with actual playing state
-                    currentSongId = null, // Replace with actual current song ID
-                    onClick = {
-                        // Handle track click
-                    },
-                    onContextMenu = { offset ->
-                        // Handle context menu
-                    },
-                    currentServer = currentServer,
-                    navController = navController,
-                    modifier = Modifier
-                        .testTag("track-${listData?.id}"),
-                    isAlbumRoute = listData?.type == "albums",
-                    isArtistRoute = listData?.type == "artists",
-                    backgroundColor = backgroundColor
-                )
+            if (listData == null) {
+                // Show shimmer loading states for tracks
+                items(8) {
+                    ShimmerTrackRow(
+                        modifier = Modifier.testTag("shimmer-track-$it")
+                    )
+                }
+            } else {
+                val currentList = listData!!
+                val tracks = currentList.tracks
+                val listType = currentList.type
+                val listId = currentList.id
+                items(tracks) { track ->
+                    TrackRow(
+                        track, tracks.indexOf(track),
+                        isPlaying = false, // Replace with actual playing state
+                        currentSongId = null, // Replace with actual current song ID
+                        onClick = {
+                            // Handle track click
+                        },
+                        onContextMenu = { offset ->
+                            // Handle context menu
+                        },
+                        currentServer = currentServer,
+                        navController = navController,
+                        modifier = Modifier
+                            .testTag("track-$listId"),
+                        isAlbumRoute = listType == "albums",
+                        isArtistRoute = listType == "artists",
+                        backgroundColor = backgroundColor
+                    )
+                }
             }
         }
 
@@ -181,17 +195,26 @@ fun HeaderSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        CoverImage(
-            cover = listData?.cover,
-            name = listData?.name,
-            modifier = Modifier
-                .fillMaxSize()
-                .aspectFromType(AspectRatio.Cover)
-                // make the  image square
-                .padding(start = 52.dp, end = 52.dp, top = 52.dp, bottom = 40.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            currentServer = currentServer
-        )
+        if (listData != null) {
+            CoverImage(
+                cover = listData.cover,
+                name = listData.name,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .aspectFromType(AspectRatio.Cover)
+                    .padding(start = 52.dp, end = 52.dp, top = 52.dp, bottom = 40.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                currentServer = currentServer
+            )
+        } else {
+            ShimmerBox(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .aspectFromType(AspectRatio.Cover)
+                    .padding(start = 52.dp, end = 52.dp, top = 52.dp, bottom = 40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -199,14 +222,21 @@ fun HeaderSection(
                 .padding(start = 32.dp, end = 32.dp, bottom = 32.dp),
             verticalArrangement= Arrangement.SpaceBetween
         ) {
-            listData?.let {
+            if (listData != null) {
                 Text(
-                    text = it.name,
+                    text = listData.name,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                )
+            } else {
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(36.dp)
+                        .clip(RoundedCornerShape(4.dp))
                 )
             }
 
@@ -516,4 +546,57 @@ fun MarqueeText(content: @Composable RowScope.() -> Unit) {
             .horizontalScroll(rememberScrollState()),
         content = content
     )
+}
+
+@Composable
+fun ShimmerTrackRow(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Index
+        Box(
+            modifier = Modifier.width(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            ShimmerBox(
+                modifier = Modifier
+                    .width(20.dp)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(2.dp))
+            )
+        }
+
+        // Cover + Title + Artist/Album links
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .height(12.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            }
+        }
+    }
 }

@@ -42,14 +42,12 @@ class HomeStore(
             _isLoading.value = true
             _error.value = null
 
-            CoroutineScope(Dispatchers.IO).launch {
-                repository.fetch(serverUrl).collect { result ->
-                    result.fold(
-                        onSuccess = { items -> _homeData.value = items },
-                        onFailure = { _error.value = it.message ?: "Failed to fetch home data" }
-                    )
-                    _isLoading.value = false
-                }
+            repository.fetch(serverUrl).collect { result ->
+                result.fold(
+                    onSuccess = { items -> _homeData.value = items },
+                    onFailure = { _error.value = it.message ?: "Failed to fetch home data" }
+                )
+                _isLoading.value = false
             }
         }
     }

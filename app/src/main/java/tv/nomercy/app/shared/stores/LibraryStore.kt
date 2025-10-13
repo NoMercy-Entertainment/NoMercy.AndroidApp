@@ -43,15 +43,13 @@ class LibraryStore(
             _isLoading.value = true
             _error.value = null
 
-            CoroutineScope(Dispatchers.IO).launch {
-                repository.fetch(serverUrl).collect { result ->
-                    result.fold(
-                        onSuccess = { _libraries.value = it },
-                        onFailure = { _error.value = it.message ?: "Failed to fetch libraries" }
-                    )
-                    _isLoading.value = false
+            repository.fetch(serverUrl).collect { result ->
+                result.fold(
+                    onSuccess = { _libraries.value = it },
+                    onFailure = { _error.value = it.message ?: "Failed to fetch libraries" }
+                )
+                _isLoading.value = false
 
-                }
             }
         }
     }

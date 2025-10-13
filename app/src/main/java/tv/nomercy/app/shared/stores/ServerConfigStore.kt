@@ -18,6 +18,9 @@ class ServerConfigStore(
     private val authStore: AuthStore,
     private val appConfigStore: AppConfigStore
 ) {
+
+    private val scope = CoroutineScope(Dispatchers.IO)
+
     private val _servers = MutableStateFlow<List<Server>>(emptyList())
     val servers = _servers.asStateFlow()
 
@@ -31,7 +34,7 @@ class ServerConfigStore(
     }
 
     private fun observeUserServers() {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             appConfigStore.servers.collect { newServers ->
                 if (newServers.isNotEmpty()) {
                     _servers.value = newServers

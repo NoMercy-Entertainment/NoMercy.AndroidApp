@@ -22,6 +22,7 @@
             android:launchMode="singleTask"
             android:hardwareAccelerated="true"
             android:configChanges="orientation|screenSize|screenLayout|uiMode"
+            android:screenOrientation="sensorPortrait"
             android:exported="true">
 
             <intent-filter>

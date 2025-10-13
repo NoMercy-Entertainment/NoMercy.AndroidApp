@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.stores.ListStore
 
 
@@ -30,23 +29,9 @@ class ListViewModel(
         if (type == null || id == null) null else map["music/$type/$id"]
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    init {
-        viewModelScope.launch {
-            combine(currentType, currentId) { t, c -> t to c }
-                .collect { (type, id) ->
-                    if (type != null && id != null) {
-                        _currentType.value = type
-                        listStore.fetchListItems(type, id)
-                    }
-                }
-        }
-    }
-
     fun selectList(type: String, id: String) {
-        if (_currentType.value == type && _currentId.value == id) return
         _currentType.value = type
         _currentId.value = id
-        listStore.clearData()
         listStore.fetchListItems(type, id)
     }
 

@@ -36,24 +36,22 @@ class ListStore(
 
         val key = "music/$type/$id"
 
-        if (!force && _listItems.value.containsKey(key)) return
+        if (!force && _listItems.value.containsKey(key) && _listItems.value[key] != null) return
 
         scope.launch {
             _isLoading.value = true
             _error.value = null
 
-            CoroutineScope(Dispatchers.IO).launch {
-                repository.fetchList(serverUrl, type, id).collect { result ->
-                    result.fold(
-                        onSuccess = { items ->
-                            _listItems.update { it + (key to items) }
-                        },
-                        onFailure = {
-                            _error.value = it.message ?: "Failed to fetch items for $type"
-                        }
-                    )
-                    _isLoading.value = false
-                }
+            repository.fetchList(serverUrl, type, id).collect { result ->
+                result.fold(
+                    onSuccess = { items ->
+                        _listItems.update { it + (key to items) }
+                    },
+                    onFailure = {
+                        _error.value = it.message ?: "Failed to fetch items for $type"
+                    }
+                )
+                _isLoading.value = false
             }
         }
     }
