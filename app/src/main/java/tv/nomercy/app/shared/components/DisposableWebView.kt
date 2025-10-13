@@ -13,6 +13,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +30,8 @@ fun DisposableWebView(
 ) {
     val context = LocalContext.current
     val webView = remember { WebView(context) }
+
+    val hasHandledBackEvent = remember { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
         // Setup WebView
@@ -70,7 +73,10 @@ fun DisposableWebView(
                 @JavascriptInterface
                 fun onHistoryBack() {
                     Handler(Looper.getMainLooper()).post {
-                        onBackEvent()
+                        if (!hasHandledBackEvent.value) {
+                            hasHandledBackEvent.value = true
+                            onBackEvent()
+                        }
                     }
                 }
             }, "Android")
