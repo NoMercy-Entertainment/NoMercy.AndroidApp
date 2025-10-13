@@ -1,8 +1,11 @@
 package tv.nomercy.app.shared.repositories
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import tv.nomercy.app.shared.api.ServerApiClient
 import tv.nomercy.app.shared.api.services.AuthService
 import tv.nomercy.app.shared.api.services.ServerApiService
@@ -32,13 +35,17 @@ class InfoRepository(
     ): Flow<Result<InfoResponse?>> = flow {
         try {
             val service = createServerApiService(serverUrl)
-            val response = service.getInfo(type, id)
 
-            val parsed = response.body()?.data
+            val parsed = withContext(Dispatchers.Default) {
+                val response = service.getInfo(type, id)
+                response.body()?.data
+            }
+
             emit(Result.success(parsed))
         } catch (e: Exception) {
             println(e.message)
             emit(Result.failure(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
+
 }

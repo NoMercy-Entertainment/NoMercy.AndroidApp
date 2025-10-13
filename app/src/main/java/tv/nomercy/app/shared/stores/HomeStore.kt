@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import tv.nomercy.app.shared.repositories.HomeRepository
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCardProps
@@ -18,8 +19,8 @@ class HomeStore(
     private val repository = HomeRepository(context, authStore, authService)
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private val _homeData = MutableStateFlow<List<Component<NMCardProps>>>(emptyList())
-    val homeData: StateFlow<List<Component<NMCardProps>>> = _homeData.asStateFlow()
+    private val _homeData = MutableStateFlow<List<Component>>(emptyList())
+    val homeData: StateFlow<List<Component>> = _homeData.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -42,7 +43,7 @@ class HomeStore(
             _error.value = null
 
             repository.fetch(serverUrl).collect { result ->
-                result.fold(
+                 result.fold(
                     onSuccess = { items -> _homeData.value = items },
                     onFailure = { _error.value = it.message ?: "Failed to fetch home data" }
                 )

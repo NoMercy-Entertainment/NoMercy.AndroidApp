@@ -32,8 +32,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.components.EmptyGrid
-import tv.nomercy.app.shared.components.Indexer
 import tv.nomercy.app.shared.components.nMComponents.NMComponent
+import tv.nomercy.app.shared.models.Component
+import tv.nomercy.app.shared.models.NMCardWrapper
+import tv.nomercy.app.shared.models.NMCarouselProps
+import tv.nomercy.app.shared.models.NMContainerProps
+import tv.nomercy.app.shared.models.NMGridProps
+import tv.nomercy.app.shared.models.NMHomeCardWrapper
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
 import tv.nomercy.app.shared.utils.pickPaletteColor
@@ -61,7 +66,13 @@ fun MobileHomeScreen(
     val listState = rememberLazyListState()
 
     val themeOverrideManager = LocalThemeOverrideManager.current
-    val posterPalette = homeData.firstOrNull()?.props?.data?.colorPalette?.poster
+
+    val posterPalette = homeData.firstOrNull()?.props.let {
+        when (it) {
+            is NMHomeCardWrapper -> it.data?.colorPalette?.poster
+            else -> null
+        }
+    }
     val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
     val key = remember { UUID.randomUUID() }
 
@@ -114,6 +125,16 @@ fun MobileHomeScreen(
             ) {
                 when {
                     isLoading -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 48.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
 
                     isEmptyStable -> {
@@ -126,7 +147,7 @@ fun MobileHomeScreen(
                     }
 
                     else -> {
-                        items(homeData.filter { it.props.data != null || it.props.items.isNotEmpty() }, key = { it.id }) { component ->
+                        items(homeData.filter { component -> hasContent(component) }, key = { it.id }) { component ->
                             key(component.id) {
                                 NMComponent(
                                     components = listOf(component),
@@ -150,7 +171,17 @@ fun MobileHomeScreen(
                 }
             }
 
-            Indexer(modifier = Modifier.align(Alignment.CenterEnd))
         }
+    }
+}
+
+private fun hasContent(component: Component): Boolean {
+    return when (val props = component.props ) {
+        is NMCarouselProps -> props.items.isNotEmpty()
+        is NMGridProps -> props.items.isNotEmpty()
+        is NMContainerProps -> props.items.isNotEmpty()
+        is NMHomeCardWrapper -> props.data != null
+        is NMCardWrapper -> true
+        else -> true
     }
 }

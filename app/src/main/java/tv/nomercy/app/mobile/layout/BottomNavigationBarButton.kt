@@ -58,17 +58,17 @@ fun BottomNavigationBarButton(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .clickable {
-                navController.navigate(item.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            }
             .fillMaxSize()
             .padding(top = 4.dp, start = 4.dp, bottom = 0.dp, end = 4.dp)
+            .clickable {
+                navController.navigate(item.route) {
+//                    popUpTo(navController.graph.findStartDestination().id) {
+//                        saveState = true
+//                    }
+//                    launchSingleTop = true
+//                    restoreState = true
+                }
+            }
     ) {
         if (item.route == "/profile") {
             // Get user info for fallback avatar

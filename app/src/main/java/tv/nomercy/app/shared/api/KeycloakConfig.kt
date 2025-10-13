@@ -12,7 +12,7 @@ import net.openid.appauth.browser.VersionedBrowserMatcher
 
 object KeycloakConfig {
 
-    private fun getSuffix(): String {
+    fun getSuffix(): String {
         // For Android, we'll determine dev environment based on build type or other criteria
         // For now, using production environment. Can be made dynamic later.
         return "-dev" // or "-dev" for development
@@ -38,7 +38,7 @@ object KeycloakConfig {
             createAuthServiceConfig(),
             "nomercy-ui", // clientId
             ResponseTypeValues.CODE,
-            "tv.nomercy.app://oauth".toUri() // redirectUri
+            "tv.nomercy.app2://oauth".toUri() // redirectUri
         ).setScope("openid profile email")
             .build()
     }

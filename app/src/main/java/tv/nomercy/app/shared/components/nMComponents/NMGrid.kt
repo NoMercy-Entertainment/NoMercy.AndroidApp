@@ -1,5 +1,3 @@
-package tv.nomercy.app.shared.components.nMComponents
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,17 +10,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import tv.nomercy.app.shared.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.models.NMGridProps
 import tv.nomercy.app.shared.utils.assertBoundedWidth
 
 @Composable
-fun <T: ComponentData> NMGrid(
-    component: Component<out T>,
+fun NMGrid(
+    component: Component,
     modifier: Modifier,
     navController: NavController,
     lazyGridState: LazyGridState?
 ) {
+    val props = component.props as? NMGridProps ?: return
+
     val columns = 2
     val spacing = 16.dp
 
@@ -41,7 +42,7 @@ fun <T: ComponentData> NMGrid(
         verticalArrangement = Arrangement.spacedBy(spacing),
         horizontalArrangement = Arrangement.spacedBy(spacing),
     ) {
-        itemsIndexed(component.props.items, key = { _, item -> item.id }) { index, item ->
+        itemsIndexed(props.items, key = { _, item -> item.id }) { index, item ->
             NMComponent(
                 components = listOf(item),
                 navController = navController,

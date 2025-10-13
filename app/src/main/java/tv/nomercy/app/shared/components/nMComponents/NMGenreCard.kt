@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -33,24 +32,21 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 
 
 @Composable
-fun <T : ComponentData> NMGenreCard(
-    component: Component<out T>,
+fun NMGenreCard(
+    component: Component,
     modifier: Modifier,
     navController: NavController,
     index: Int = 0
 ) {
-    val data = component.props.data ?: return
-    if (data !is NMCardProps) {
-        println("NMCard received unexpected data type: ${data::class.simpleName}")
-        return
-    }
+    val wrapper = component.props as? NMCardWrapper ?: return
+    val data = wrapper.data ?: return
 
     val style = genreStyle(data.title)
 
@@ -91,7 +87,7 @@ fun <T : ComponentData> NMGenreCard(
                     color = Color.Black.copy(alpha = 0.08f),
                 )
                 .clickable {
-                     navController.navigate(data.link)
+                    navController.navigate(data.link)
                 },
         ) {
 
@@ -147,7 +143,7 @@ fun <T : ComponentData> NMGenreCard(
             Column(
                 horizontalAlignment = Alignment.Start,
                 modifier = Modifier.
-                    fillMaxWidth()
+                fillMaxWidth()
                     .padding(
                         start = 12.dp,
                         end = 12.dp,

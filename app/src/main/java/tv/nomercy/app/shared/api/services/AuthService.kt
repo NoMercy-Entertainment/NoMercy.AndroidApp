@@ -26,7 +26,6 @@ class AuthService(
     private val context: Context,
     private val authStore: AuthStore
 ) {
-    private var authService: AuthorizationService? = null
     private var authState: AuthState? = null
     private val deviceAuthClient = DeviceAuthClient(
         authUrl = "https://auth-dev.nomercy.tv", // Replace with your auth URL
@@ -34,10 +33,12 @@ class AuthService(
     )
 
     private fun getAuthService(): AuthorizationService {
-        if (authService == null) {
-            authService = KeycloakConfig.createAuthService(context)
-        }
-        return authService!!
+        return Companion.getOrCreateAuthService(context)
+    }
+
+    fun dispose() {
+        // This is called from AuthViewModel.onCleared()
+        Companion.disposeInstance()
     }
 
     private suspend fun loginTv(): AuthResult {
@@ -146,8 +147,6 @@ class AuthService(
 
     suspend fun logout(): Boolean {
         return try {
-            authService?.dispose()
-            authService = null
             authState = null
             clearTokens()
             true
@@ -275,6 +274,25 @@ class AuthService(
 
     fun getUserInfo(): Flow<UserInfo?> {
         return authStore.userInfo
+    }
+    
+    companion object {
+        @Volatile
+        private var authServiceInstance: AuthorizationService? = null
+
+        // Using applicationContext to avoid leaking Activity context
+        private fun getOrCreateAuthService(context: Context): AuthorizationService {
+            return authServiceInstance ?: synchronized(this) {
+                authServiceInstance ?: KeycloakConfig.createAuthService(context.applicationContext).also {
+                    authServiceInstance = it
+                }
+            }
+        }
+
+        private fun disposeInstance() {
+            authServiceInstance?.dispose()
+            authServiceInstance = null
+        }
     }
 }
 

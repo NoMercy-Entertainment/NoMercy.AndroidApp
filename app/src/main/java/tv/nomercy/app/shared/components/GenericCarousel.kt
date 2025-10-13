@@ -8,16 +8,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -50,7 +47,6 @@ import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
-import tv.nomercy.app.shared.utils.ratio
 
 interface CarouselItem {
     val id: Long
@@ -59,7 +55,7 @@ interface CarouselItem {
     val link: String?
     val aspectRatio: AspectRatio
     val colorPalette: ColorPalettes?
-    val mediaType: String
+    val mediaType: String?
     val numberOfItems: Int? get() = null
     val haveItems: Int? get() = null
     val progress: Int? get() = null
@@ -72,7 +68,7 @@ data class CarouselData(
     override val link: String?,
     override val aspectRatio: AspectRatio,
     override val colorPalette: ColorPalettes? = null,
-    override val mediaType: String,
+    override val mediaType: String? = null,
     override val numberOfItems: Int? = null,
     override val haveItems: Int? = null,
     override val progress: Int? = null,

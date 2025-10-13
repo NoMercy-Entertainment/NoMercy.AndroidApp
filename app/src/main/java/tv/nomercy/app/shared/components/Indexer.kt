@@ -23,31 +23,37 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import tv.nomercy.app.mobile.screens.base.library.LibrariesViewModel
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun Indexer(
     modifier: Modifier,
-    viewModel: LibrariesViewModel? = null
+    viewModel: LibrariesViewModel? = null,
+    // explicit flows (preferred for non-library usages)
+    showIndexerState: StateFlow<Boolean>? = null,
+    selectedIndexState: StateFlow<Int>? = null,
+    activeLettersState: StateFlow<Set<Char>>? = null,
+    onIndexSelectedCallback: ((Char) -> Unit)? = null
 ) {
-    // Only show indexer if viewModel is provided
-    if (viewModel == null) return
+    // If we don't have any source, nothing to show
+    if (showIndexerState == null || selectedIndexState == null || activeLettersState == null) return
 
-    val showIndexer by viewModel.showIndexer.collectAsState()
-    val selectedIndex = viewModel.selectedIndex.collectAsState()
-    val activeLetters by viewModel.activeIndexerLetters.collectAsState()
+    val showIndexer by showIndexerState.collectAsState()
+    val selectedIndex by selectedIndexState.collectAsState()
+    val activeLetters by activeLettersState.collectAsState()
 
     val characters = listOf('#') + ('A'..'Z').toList()
 
     Column(
         modifier = modifier
             .fillMaxHeight()
-            .padding(end = 4.dp)
+            .padding(end = 4.dp, top = 16.dp, bottom = 16.dp)
             .width(if (!showIndexer) 0.dp else 32.dp)
             .alpha(if (showIndexer) 1f else 0.4f),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         characters.forEachIndexed { index, char ->
-            val isSelected = selectedIndex.value == index
+            val isSelected = selectedIndex == index
             val isActive = activeLetters.contains(char)
             val backgroundColor = if (isSelected) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color.Transparent
             val textColor = if (isActive) MaterialTheme.colorScheme.onSurface else Color.Gray
@@ -58,7 +64,10 @@ fun Indexer(
                     .aspectRatio(1f)
                     .clip(CircleShape.copy(CornerSize(5.dp)))
                     .background(backgroundColor)
-                    .clickable(enabled = showIndexer && isActive) { viewModel.onIndexSelected(char) }
+                    .clickable(enabled = showIndexer && isActive) {
+                        // prefer explicit callback, otherwise call through viewModel
+                        onIndexSelectedCallback?.invoke(char) ?: viewModel?.onIndexSelected(char)
+                    }
                     .alpha(if (isActive) 1f else 0.3f),
                 contentAlignment = Alignment.Center
             ) {

@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +32,8 @@ import tv.nomercy.app.shared.components.EmptyGrid
 import tv.nomercy.app.shared.components.Indexer
 import tv.nomercy.app.shared.components.LibraryTabScroller
 import tv.nomercy.app.shared.components.nMComponents.NMComponent
+import tv.nomercy.app.shared.models.NMCardWrapper
+import tv.nomercy.app.shared.models.NMGridProps
 
 @Composable
 fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = null) {
@@ -59,23 +62,34 @@ fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = 
 
     val lazyGridState = rememberLazyGridState()
 
-    val firstVisibleItemIndex by remember {
-        derivedStateOf { lazyGridState.firstVisibleItemIndex }
-    }
+    // Observe grid scroll and update selected index based on the first visible card's titleSort
+    LaunchedEffect(lazyGridState, currentLibrary) {
+        snapshotFlow { lazyGridState.layoutInfo.visibleItemsInfo.firstOrNull()?.index }
+            .collectLatest { visibleIndex ->
+                val gridComponent = currentLibrary.firstOrNull { it.component == "NMGrid" }
+                val gridProps = gridComponent?.props as? NMGridProps
 
-    val visibleChar = remember(firstVisibleItemIndex, currentLibrary) {
-        val gridItems = currentLibrary.firstOrNull { it.component == "NMGrid" }?.props?.items
-        val item = gridItems?.getOrNull(firstVisibleItemIndex)
-        val titleSort = item?.props?.data?.titleSort.orEmpty()
-        val char = titleSort.firstOrNull()?.uppercaseChar() ?: letter
-        if (char in 'A'..'Z') char else '#'
-    }
+                // look forward from the visible index to find the first NMCard with a usable title
+                var chosenChar: Char? = null
+                val start = (visibleIndex ?: 0).coerceAtLeast(0)
+                val end = start + 10 // scan up to 10 items ahead
+                val items = gridProps?.items ?: emptyList()
+                for (i in start until end) {
+                    val it = items.getOrNull(i) ?: break
+                    if (it.component != "NMCard") continue
+                    val cw = it.props as? NMCardWrapper
+                    val titleSort = cw?.data?.titleSort ?: cw?.title
+                    val candidate = titleSort?.trim()?.firstOrNull { ch -> ch.isLetterOrDigit() }
+                    if (candidate != null) {
+                        chosenChar = if (candidate.isLetter()) candidate.uppercaseChar() else '#'
+                        break
+                    }
+                }
 
-    LaunchedEffect(visibleChar) {
-        val index = viewModel.indexerCharacters.indexOf(visibleChar)
-        if (index != -1 && index != selectedIndex) {
-            viewModel.setSelectedIndexFromScroll(index)
-        }
+                val char = chosenChar ?: (letter as? Char?) ?: '#'
+                val index = viewModel.indexerCharacters.indexOf(char)
+                if (index != -1) viewModel.setSelectedIndexFromScroll(index)
+            }
     }
 
     LaunchedEffect(viewModel, currentLibrary) {
@@ -153,7 +167,11 @@ fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = 
 
                 Indexer(
                     modifier = Modifier,
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    showIndexerState = viewModel.showIndexer,
+                    selectedIndexState = viewModel.selectedIndex,
+                    activeLettersState = viewModel.activeIndexerLetters,
+                    onIndexSelectedCallback = { c -> viewModel.onIndexSelected(c) }
                 )
             }
         }

@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class HomeResponse(
     val id: String,
-    val data: List<Component<ComponentData>>
+    val data: List<Component>
 )

@@ -531,7 +531,8 @@ fun NoMercyTheme(
             onSurfaceVariant = neutralColors.color2,
             outline = neutralColors.color7
         )
-    } else {
+    }
+    else {
         lightColorScheme(
             primary = overrideColor ?: colors.color9,
             onPrimary = colors.color1,

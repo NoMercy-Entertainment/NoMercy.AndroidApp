@@ -26,10 +26,9 @@ import androidx.navigation.NavController
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import tv.nomercy.app.shared.components.TMDBImage
-import tv.nomercy.app.shared.models.ColorPalettes
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.getColorFromPercent
@@ -37,18 +36,14 @@ import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
 
 @Composable
-fun <T: ComponentData> NMCard(
-    component: Component<out T>,
+fun NMCard(
+    component: Component,
     modifier: Modifier,
     navController: NavController,
     aspectRatio: AspectRatio? = null,
 ) {
-    val data = component.props.data ?: return
-
-    if (data !is NMCardProps) {
-        println("NMCard received unexpected data type: ${data::class.simpleName}")
-        return
-    }
+    val wrapper = component.props as? NMCardWrapper ?: return
+    val data = wrapper.data ?: return
 
     val focusColor: Color = remember(data.colorPalette) {
         val palette = data.colorPalette?.poster
@@ -94,7 +89,7 @@ fun <T: ComponentData> NMCard(
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f))
                     .align(Alignment.BottomStart)
-                ) {
+            ) {
                 Text(
                     text = data.title,
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.dp.value.sp),
@@ -104,7 +99,7 @@ fun <T: ComponentData> NMCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
 
-                )
+                    )
             }
         }
     }

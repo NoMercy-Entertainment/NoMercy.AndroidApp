@@ -18,8 +18,8 @@ class LibrariesStore(
     private val repository = LibrariesRepository(context, authStore, authService)
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private val _librariesData = MutableStateFlow<List<Component<NMCardProps>>>(emptyList())
-    val librariesData: StateFlow<List<Component<NMCardProps>>> = _librariesData.asStateFlow()
+    private val _librariesData = MutableStateFlow<List<Component>>(emptyList())
+    val librariesData: StateFlow<List<Component>> = _librariesData.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

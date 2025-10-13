@@ -88,6 +88,12 @@ data class Image (
     val colorPalette: ColorPalettes,
 )
 
+@Serializable
+data class Genre (
+    val id: Int,
+    val name: String,
+    val link: String
+)
 
 @Serializable
 data class Company(

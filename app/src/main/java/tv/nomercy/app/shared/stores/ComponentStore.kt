@@ -17,7 +17,7 @@ class ComponentStore(
 ) {
     private val authService = GlobalStores.getAuthService(context)
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val _componentMap = MutableStateFlow<Map<String, List<Component<*>>>>(emptyMap())
+    private val _componentMap = MutableStateFlow<Map<String, List<Component>>>(emptyMap())
     val componentMap = _componentMap.asStateFlow()
 
     private val apiServiceCache = mutableMapOf<String, ServerApiService>()
@@ -45,7 +45,7 @@ class ComponentStore(
         }
     }
 
-    fun getComponents(path: String): List<Component<*>> {
+    fun getComponents(path: String): List<Component> {
         return componentMap.value[path] ?: emptyList()
     }
 

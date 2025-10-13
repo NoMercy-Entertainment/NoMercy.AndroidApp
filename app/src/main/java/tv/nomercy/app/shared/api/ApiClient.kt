@@ -2,9 +2,16 @@ package tv.nomercy.app.shared.api
 
 import android.content.Context
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import okhttp3.Interceptor
@@ -14,6 +21,7 @@ import okhttp3.Request
 import okhttp3.Response
 import retrofit2.Retrofit
 import tv.nomercy.app.shared.api.services.AuthService
+import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
 import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.models.NMHomeCardProps
@@ -38,17 +46,6 @@ open class BaseApiClient(
         ignoreUnknownKeys = true
         isLenient = true
         coerceInputValues = true
-        classDiscriminator = "component"
-        serializersModule = SerializersModule {
-            polymorphic(ComponentData::class) {
-                subclass(NMGridProps::class, NMGridProps.serializer())
-                subclass(NMCarouselProps::class, NMCarouselProps.serializer())
-                subclass(NMCardProps::class, NMCardProps.serializer())
-                subclass(NMHomeCardProps::class, NMHomeCardProps.serializer())
-                subclass(NMContainerProps::class, NMContainerProps.serializer())
-            }
-            NMCardProps.serializer()
-        }
     }
 
     fun buildRequestWithHeaders(original: Request, token: String?): Request {
@@ -196,3 +193,22 @@ class GenericApiClient(
     authStore = authStore, // Use shared AuthStore
     timeout = timeout
 )
+
+
+suspend fun parseComponentsParallel(jsonString: String): List<Component> = coroutineScope {
+    val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        coerceInputValues = true
+    }
+
+    val root = json.parseToJsonElement(jsonString).jsonObject
+    val dataArray = root["data"]?.jsonArray ?: JsonArray(emptyList())
+
+    // Decode each component in parallel
+    dataArray.map { element ->
+        async(Dispatchers.Default) {
+            json.decodeFromJsonElement(Component.serializer(), element)
+        }
+    }.awaitAll()
+}

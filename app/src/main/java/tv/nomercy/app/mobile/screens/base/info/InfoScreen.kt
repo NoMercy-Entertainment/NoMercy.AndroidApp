@@ -379,6 +379,7 @@ fun BackdropImage(infoData: InfoResponse?) {
     }
 }
 
+
 @Composable
 fun GenreRow(
     infoData: InfoResponse?,
@@ -387,9 +388,9 @@ fun GenreRow(
     InfoWrapBlock(
         title = stringResource(R.string.genres),
         bodyContent = {
-            val genres = infoData?.genres
+            val genres = infoData?.genres ?: emptyList()
 
-            if (genres.isNullOrEmpty()) {
+            if (genres.isEmpty()) {
                 repeat(4) {
                     ShimmerPill(modifier = Modifier)
                 }

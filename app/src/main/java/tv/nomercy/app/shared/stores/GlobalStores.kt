@@ -1,22 +1,31 @@
 package tv.nomercy.app.shared.stores
 
+import android.annotation.SuppressLint
 import android.content.Context
 import tv.nomercy.app.shared.api.DomainApiClient
 import tv.nomercy.app.shared.api.services.AuthService
 
 object GlobalStores {
 
+    @SuppressLint("StaticFieldLeak")
     @Volatile private var authStoreInstance: AuthStore? = null
+    @SuppressLint("StaticFieldLeak")
     @Volatile private var authServiceInstance: AuthService? = null
+    @SuppressLint("StaticFieldLeak")
     @Volatile private var domainApiClientInstance: DomainApiClient? = null
+    @SuppressLint("StaticFieldLeak")
     @Volatile private var serverConfigStoreInstance: ServerConfigStore? = null
     @Volatile private var librariesStoreInstance: LibrariesStore? = null
     @Volatile private var libraryStoreInstance: LibraryStore? = null
     @Volatile private var homeStoreInstance: HomeStore? = null
+    @Volatile private var musicStartStoreInstance: MusicStartStore? = null
     @Volatile private var infoStoreInstance: InfoStore? = null
+    @SuppressLint("StaticFieldLeak")
     @Volatile private var appConfigStoreInstance: AppConfigStore? = null
     @Volatile private var themeDataStoreInstance: ThemeDataStore? = null
     @Volatile private var appSettingsStoreInstance: AppSettingsStore? = null
+    @Volatile private var cardStoreInstance: CardsStore? = null
+    @Volatile private var listStoreInstance: ListStore? = null
 
     fun getAppSettingsStore(context: Context): AppSettingsStore {
         return appSettingsStoreInstance ?: synchronized(this) {
@@ -109,7 +118,6 @@ object GlobalStores {
             }
         }
     }
-
     fun getInfoStore(context: Context): InfoStore {
         val authStore = getAuthStore(context)
         val serverConfigStore = getServerConfigStore(context)
@@ -154,6 +162,53 @@ object GlobalStores {
     }
 
 
+    fun getMusicStartStore(context: Context): MusicStartStore {
+        val authStore = getAuthStore(context)
+        val serverConfigStore = getServerConfigStore(context)
+
+        return musicStartStoreInstance ?: synchronized(this) {
+            musicStartStoreInstance ?: MusicStartStore(
+                context.applicationContext,
+                authStore,
+                serverConfigStore
+            ).also {
+                musicStartStoreInstance = it
+            }
+        }
+    }
+
+    fun getCardStore(context: Context): CardsStore {
+        val authStore = getAuthStore(context)
+        val serverConfigStore = getServerConfigStore(context)
+
+        return cardStoreInstance ?: synchronized(this) {
+            cardStoreInstance ?: CardsStore(
+                context.applicationContext,
+                authStore,
+                serverConfigStore
+            ).also {
+                cardStoreInstance = it
+            }
+        }
+    }
+
+    fun getListStore(context: Context): ListStore {
+        val authStore = getAuthStore(context)
+        val serverConfigStore = getServerConfigStore(context)
+
+        return listStoreInstance ?: synchronized(this) {
+            listStoreInstance ?: ListStore(
+                context.applicationContext,
+                authStore,
+                serverConfigStore
+            ).also {
+                listStoreInstance = it
+            }
+        }
+    }
+
+
+
     fun clearAll() {
         synchronized(this) {
             authStoreInstance?.clearData()
@@ -161,6 +216,11 @@ object GlobalStores {
             serverConfigStoreInstance?.clearData()
             libraryStoreInstance?.clearData()
             homeStoreInstance?.clearData()
+            musicStartStoreInstance?.clearData()
+            infoStoreInstance?.clearData()
+            librariesStoreInstance?.clearData()
+            cardStoreInstance?.clearData()
+            listStoreInstance?.clearData()
 
             authStoreInstance = null
             authServiceInstance = null
@@ -170,6 +230,12 @@ object GlobalStores {
             libraryStoreInstance = null
             homeStoreInstance = null
             appSettingsStoreInstance = null
+            musicStartStoreInstance = null
+            infoStoreInstance = null
+            librariesStoreInstance = null
+            themeDataStoreInstance = null
+            cardStoreInstance = null
+            listStoreInstance = null
         }
     }
 }

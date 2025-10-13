@@ -23,7 +23,7 @@ enum class AspectRatio {
     Backdrop,
     Logo,
     Profile,
-    Square,
+    Cover,
 }
 
 fun AspectRatio.ratio(): Float = when (this) {
@@ -31,7 +31,7 @@ fun AspectRatio.ratio(): Float = when (this) {
     AspectRatio.Backdrop -> 16f / 9f
     AspectRatio.Logo -> 4f / 1f
     AspectRatio.Profile -> 1f
-    AspectRatio.Square -> 1f
+    AspectRatio.Cover -> 1f
 }
 
 fun Modifier.aspectFromType(aspectRatio: AspectRatio?): Modifier {

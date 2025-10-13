@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,49 +38,63 @@ fun InfoCard(
 ) {
     Box(
         modifier = modifier
-            .padding(top = 48.dp, start = 64.dp, end = 64.dp, bottom = 24.dp)
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(top = 48.dp, bottom = 24.dp),
         contentAlignment = Alignment.BottomCenter,
     ) {
-        if (infoData == null) {
-            ShimmerBox(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(380.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .aspectFromType(AspectRatio.Poster)
-            )
-        } else {
-            ImageBackdrop(
-                infoData = infoData,
-                focusColor = focusColor,
-            )
+        Box(
+            modifier = Modifier
+                .widthIn(max = 260.dp)
+                .fillMaxWidth()
+                .aspectFromType(AspectRatio.Poster)
+                .clip(RoundedCornerShape(12.dp))
+                .align(Alignment.BottomCenter)
+        ) {
+            if (infoData == null) {
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            } else {
+                Card(
+                    infoData = infoData,
+                    focusColor = focusColor,
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
 
-            TopRow(
-                infoData = infoData,
-                navController = navController,
-                modifier = Modifier.matchParentSize()
-            )
+                TopRow(
+                    infoData = infoData,
+                    navController = navController,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(horizontal = 16.dp)
+                )
 
-            BottomRow(
-                infoData = infoData,
-                navController = navController,
-                modifier = Modifier.matchParentSize()
-            )
+                BottomRow(
+                    infoData = infoData,
+                    navController = navController,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 16.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-fun ImageBackdrop(
+fun Card(
     infoData: InfoResponse?,
     focusColor: Color,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier
-            .height(380.dp)
             .clip(RoundedCornerShape(12.dp))
+            .fillMaxWidth()
+            .wrapContentHeight()
             .aspectFromType(AspectRatio.Poster),
     ) {
         if (infoData?.poster != null) {
@@ -96,7 +112,6 @@ fun ImageBackdrop(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectFromType(AspectRatio.Poster)
-                    .clip(RoundedCornerShape(12.dp))
             )
         }
 
@@ -167,16 +182,15 @@ fun BottomRow(
 ) {
     Row(
         modifier = modifier
+            .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement
-            .spacedBy(8.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.Bottom
     ) {
 
         Button(
             onClick = { navController.navigate("${infoData.link}/watch") },
             modifier = Modifier
-                .fillMaxWidth()
                 .height(32.dp)
                 .weight(1f),
             colors = ButtonDefaults.buttonColors(
@@ -202,7 +216,6 @@ fun BottomRow(
         Button(
             onClick = { /* do something */ },
             modifier = Modifier
-                .fillMaxWidth()
                 .height(32.dp)
                 .weight(1f),
             colors = ButtonDefaults.buttonColors(

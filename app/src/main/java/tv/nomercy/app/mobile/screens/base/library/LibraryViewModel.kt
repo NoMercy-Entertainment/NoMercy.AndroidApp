@@ -7,11 +7,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.models.Library
+import tv.nomercy.app.shared.models.NMCardWrapper
+import tv.nomercy.app.shared.models.NMGridProps
 import tv.nomercy.app.shared.stores.LibraryStore
 
 class LibrariesViewModel(
@@ -66,36 +67,50 @@ class LibrariesViewModel(
                 components to loading
             }.collect { (components, loading) ->
 
+                // Compute whether there is indexable content directly from components (use for fallback)
+                val detectedIndexableContent = components.any { component ->
+                    val gridProps = component.props as? NMGridProps
+                    component.component == "NMGrid" &&
+                            gridProps != null &&
+                            gridProps.items.any { item ->
+                                val cardWrapper = item.props as? NMCardWrapper
+                                item.component == "NMCard" &&
+                                        cardWrapper != null &&
+                                        (cardWrapper.data?.type in setOf("movie", "tv"))
+                            }
+                }
+
                 // Update isEmptyStable only when not loading
                 if (!loading) {
                     _isEmptyStable.value = components.isEmpty()
 
-                    // Check if content has indexable items (for non-paginated libraries)
-                    val hasIndexableContent = components.any {
-                        it.component == "NMGrid" &&
-                                it.props.items.any { item ->
-                                    item.component == "NMCard" &&
-                                            item.props.data?.type in setOf("movie", "tv")
-                                }
-                    }
-                    _hasIndexableContent.value = hasIndexableContent
+                    // Update stored flag as before
+                    _hasIndexableContent.value = detectedIndexableContent
                 }
 
-                val containsMovie = components.any {
-                    it.component == "NMGrid" &&
-                            it.props.items.any { item ->
-                                item.component == "NMCard" && item.props.data?.type == "movie"
+                val containsMovie = components.any { component ->
+                    val gridProps = component.props as? NMGridProps
+                    component.component == "NMGrid" &&
+                            gridProps != null &&
+                            gridProps.items.any { item ->
+                                val cardWrapper = item.props as? NMCardWrapper
+                                item.component == "NMCard" &&
+                                        cardWrapper != null &&
+                                        (cardWrapper.data?.type == "movie")
                             }
                 }
 
-                val activeLetters = if (containsMovie || _currentLibraryType.value == "movie") {
+                // If the route ends with /letter/<char> we want to show the full alphabet as well
+                val routeRequestsFullAlphabet = _currentLibraryId.value?.matches(Regex(".*/letter/\\w$")) == true
+
+                val activeLetters = if (containsMovie || _currentLibraryType.value == "movie" || routeRequestsFullAlphabet) {
                     indexerCharacters.toSet()
                 } else {
                     components
                         .filter { it.component == "NMGrid" }
-                        .flatMap { it.props.items }
+                        .flatMap { (it.props as? NMGridProps)?.items ?: emptyList() }
                         .filter { it.component == "NMCard" }
-                        .mapNotNull { it.props.data?.titleSort }
+                        .mapNotNull { (it.props as? NMCardWrapper)?.data?.titleSort ?: (it.props as? NMCardWrapper)?.title }
                         .mapNotNull { sortTitle ->
                             val trimmed = sortTitle.trim()
                             val firstChar = trimmed.firstOrNull { it.isLetterOrDigit() }
@@ -104,7 +119,13 @@ class LibrariesViewModel(
                         .toSet()
                 }
 
-                _activeIndexerLetters.value = activeLetters
+                // If we detected indexable content but couldn't derive letters (e.g., transient state),
+                // fall back to the full alphabet so the indexer is interactive.
+                val effectiveActiveLetters = if (activeLetters.isEmpty() && (_hasIndexableContent.value || detectedIndexableContent || routeRequestsFullAlphabet)) {
+                    indexerCharacters.toSet()
+                } else activeLetters
+
+                _activeIndexerLetters.value = effectiveActiveLetters
             }
         }
 
@@ -161,9 +182,12 @@ class LibrariesViewModel(
         } else {
             // Scroll-based navigation for non-paginated libraries
             viewModelScope.launch {
-                val gridItems = currentLibrary.value.firstOrNull { it.component == "NMGrid" }?.props?.items
+                val gridComponent = currentLibrary.value.firstOrNull { it.component == "NMGrid" }
+                val gridProps = gridComponent?.props as? NMGridProps
+                val gridItems = gridProps?.items
                 val itemIndex = gridItems?.indexOfFirst {
-                    it.props.data?.title?.startsWith(char, ignoreCase = true) == true
+                    val cardWrapper = it.props as? NMCardWrapper
+                    (cardWrapper?.data?.title?.startsWith(char, ignoreCase = true) == true) || (cardWrapper?.title?.startsWith(char, ignoreCase = true) == true)
                 } ?: -1
                 if (itemIndex != -1) _scrollRequest.value = itemIndex
             }

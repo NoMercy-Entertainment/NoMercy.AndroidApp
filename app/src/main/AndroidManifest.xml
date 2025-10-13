@@ -19,11 +19,10 @@
 
         <activity
             android:name=".mobile.entrypoint.MainActivity"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTask"
             android:hardwareAccelerated="true"
             android:configChanges="orientation|screenSize|screenLayout|uiMode"
-            android:exported="true"
-            android:noHistory="true">
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,7 +39,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="tv.nomercy.app" />
+                <data android:scheme="tv.nomercy.app2" />
             </intent-filter>
         </activity>
 

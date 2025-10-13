@@ -13,7 +13,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import tv.nomercy.app.mobile.screens.base.SearchScreen
-import tv.nomercy.app.mobile.screens.base.collections.CollectionScreen
 import tv.nomercy.app.mobile.screens.base.home.MobileHomeScreen
 import tv.nomercy.app.mobile.screens.base.info.InfoScreen
 import tv.nomercy.app.mobile.screens.base.libraries.LibrariesScreen
@@ -25,13 +24,11 @@ import tv.nomercy.app.mobile.screens.dashboard.profile.AboutScreen
 import tv.nomercy.app.mobile.screens.dashboard.profile.AppSettingsScreen
 import tv.nomercy.app.mobile.screens.dashboard.profile.ProfileScreen
 import tv.nomercy.app.mobile.screens.dashboard.profile.ServerInfoScreen
-import tv.nomercy.app.mobile.screens.music.artist.ArtistScreen
 import tv.nomercy.app.mobile.screens.music.cards.CardsScreen
 import tv.nomercy.app.mobile.screens.music.genres.MusicGenreScreen
 import tv.nomercy.app.mobile.screens.music.list.ListScreen
 import tv.nomercy.app.mobile.screens.music.start.MusicStartScreen
 import tv.nomercy.app.mobile.screens.selectServer.ServerSelectionScreen
-import tv.nomercy.app.shared.models.FlexibleId
 
 @Composable
 fun MobileNavHost(
@@ -50,7 +47,7 @@ fun MobileNavHost(
         }
         composable("/libraries/{id}/letter/{letter}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id")
-            val letter = backStackEntry.arguments?.getChar("letter")
+            val letter = backStackEntry.arguments?.getString("letter")?.firstOrNull()
             LibraryScreen(navController, id, letter)
         }
 
@@ -98,15 +95,11 @@ fun MobileNavHost(
 
         composable("/music/start") { MusicStartScreen(navController) }
         composable("/music/artists/{letter}") { backStackEntry ->
-            val letter = backStackEntry.arguments?.getString("letter")
-            if (letter == null) {
-                NotFoundScreen(message = "Playlist not found", status = 404)
-                return@composable
-            }
-            CardsScreen("artists", letter)
+            val letter = backStackEntry.arguments?.getString("letter")?.firstOrNull()
+            CardsScreen("artists", letter, navController)
         }
 
-        composable("/music/genres") { CardsScreen("genres") }
+        composable("/music/genres") { CardsScreen("genres", null, navController) }
         composable("/music/genres/{id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getInt("id")
             if (id == null) {
@@ -119,7 +112,9 @@ fun MobileNavHost(
         composable("/music/{type}") { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type")
             if (type == null) {
-                CardsScreen("playlists")
+                CardsScreen("playlists", null, navController)
+            } else {
+                CardsScreen(type, null, navController)
             }
         }
         composable("/music/{type}/{id}") { backStackEntry ->
@@ -129,7 +124,7 @@ fun MobileNavHost(
                 NotFoundScreen(message = "Playlist not found", status = 404)
                 return@composable
             }
-            ListScreen(type, id)
+            ListScreen(type, id, navController)
         }
 
         // 👤 Profile & Info

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,27 +23,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import tv.nomercy.app.shared.components.EmptyGrid
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
+import tv.nomercy.app.shared.models.NMCarouselProps
 import tv.nomercy.app.shared.utils.AspectRatio
-
+import tv.nomercy.app.shared.utils.aspectFromType
 
 @Composable
-fun <T : ComponentData> NMCarousel(
-    component: Component<out T>,
-    modifier: Modifier,
+fun NMCarousel(
+    component: Component,
+    modifier: Modifier = Modifier,
     navController: NavController,
+    visibleCards: Int = 3,
+    peekFraction: Float = 0.4f, // tweak for peek effect
 ) {
+    val props = component.props as? NMCarouselProps ?: return
+
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(max = 280.dp)
+            .wrapContentHeight(), // 👈 let content define height
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         // Header row
         Row(
@@ -52,27 +59,25 @@ fun <T : ComponentData> NMCarousel(
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
         ) {
             Text(
-                text = component.props.title,
+                text = props.title.orEmpty(),
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start,
                 modifier = Modifier.weight(4f)
             )
 
-            component.props.moreLink?.let { 
+            props.moreLink?.let {
                 Box(
                     modifier = Modifier
-                        .clickable {
-                            navController.navigate(it)
-                        }
+                        .clickable { navController.navigate(it) }
                         .background(
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                             shape = RoundedCornerShape(4.dp)
                         )
                         .clip(RoundedCornerShape(4.dp))
-                        .padding(horizontal = 6.dp, vertical = 0.dp)
+                        .padding(horizontal = 6.dp)
                 ) {
                     Text(
-                        text = component.props.moreLinkText ?: "See all",
+                        text = props.moreLinkText ?: "See all",
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center
@@ -81,30 +86,42 @@ fun <T : ComponentData> NMCarousel(
             }
         }
 
-        val items = component.props.items
-        val spacing = 8.dp
-
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(start = spacing * 2, end = spacing),
-            horizontalArrangement = Arrangement.spacedBy(spacing),
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            if (items.isEmpty()) {
-                item {
-                    EmptyGrid(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        text = "No items available"
-                    )
-                }
-            } else
-                items(items, key = { it.id }) { item ->
+            val spacing = 8.dp
+            val totalSpacing = spacing * (visibleCards - 1)
+            val peekFraction = 0.25f
+            val cardWidth = (maxWidth - totalSpacing) / (visibleCards + peekFraction)
+
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                contentPadding = PaddingValues(start = spacing * 2, end = spacing),
+                horizontalArrangement = Arrangement.spacedBy(spacing),
+            ) {
+                items(props.items, key = { it.id }) { item ->
+                    val aspectRatio = aspectFromComponent(item.component)
+
                     NMComponent(
                         components = listOf(item),
                         navController = navController,
-                        aspectRatio = AspectRatio.Poster
+                        aspectRatio = aspectRatio,
+                        modifier = Modifier
+                            .width(cardWidth)
+                            .aspectFromType(aspectRatio)
                     )
                 }
+            }
         }
+    }
+}
+
+fun aspectFromComponent(componentName: String?): AspectRatio {
+    return when (componentName) {
+        "NMCard" -> AspectRatio.Poster
+        "NMMusicCard" -> AspectRatio.Cover
+        else -> AspectRatio.Poster
     }
 }

@@ -35,28 +35,23 @@ import tv.nomercy.app.R
 import tv.nomercy.app.shared.components.GradientBlurOverlay
 import tv.nomercy.app.shared.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
-import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMHomeCardWrapper
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
 
 @Composable
-fun <T: ComponentData> NMHomeCard(
-    component: Component<out T>,
+fun NMHomeCard(
+    component: Component,
     modifier: Modifier,
     navController: NavController,
     aspectRatio: AspectRatio? = null,
 ) {
-    val data = component.props.data ?: return
+    val wrapper = component.props as? NMHomeCardWrapper ?: return
+    val data = wrapper.data ?: return
 
-    if (data !is NMCardProps) {
-        println("NMCard received unexpected data type: ${data::class.simpleName}")
-        return
-    }
-
-    val posterPalette = data.colorPalette?.backdrop
+    val posterPalette = data.colorPalette?.poster
     val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
 
     Card(
@@ -66,7 +61,7 @@ fun <T: ComponentData> NMHomeCard(
             .clip(RoundedCornerShape(12.dp))
             .aspectFromType(aspectRatio),
         border = BorderStroke(2.dp, focusColor.copy(alpha = 0.5f)),
-        shape = RoundedCornerShape(6.dp),
+        shape = RoundedCornerShape(12.dp),
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -81,7 +76,7 @@ fun <T: ComponentData> NMHomeCard(
 
             GradientBlurOverlay(
                 baseColor = focusColor,
-                maxHeight = 170.dp,
+                maxHeight = 140.dp,
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)

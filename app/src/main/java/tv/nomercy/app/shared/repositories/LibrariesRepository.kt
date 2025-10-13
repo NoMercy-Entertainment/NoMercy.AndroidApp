@@ -1,8 +1,11 @@
 package tv.nomercy.app.shared.repositories
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import tv.nomercy.app.shared.api.ServerApiClient
 import tv.nomercy.app.shared.api.services.AuthService
 import tv.nomercy.app.shared.api.services.ServerApiService
@@ -24,18 +27,20 @@ class LibrariesRepository(
         }
     }
 
-    fun getLibraries(
-        serverUrl: String,
-    ): Flow<Result<List<Component<NMCardProps>>>> = flow {
+    fun getLibraries(serverUrl: String): Flow<Result<List<Component>>> = flow {
         try {
             val service = createServerApiService(serverUrl)
-            val response = service.getLibraryList()
 
-            val parsed = response.body()?.data ?: emptyList()
+            val parsed = withContext(Dispatchers.Default) {
+                val response = service.getLibraryList()
+                response.body()?.data ?: emptyList()
+            }
+
             emit(Result.success(parsed))
         } catch (e: Exception) {
             println(e.message)
             emit(Result.failure(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
+
 }

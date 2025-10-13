@@ -37,6 +37,11 @@ class AuthViewModel(
         observeUserInfo()
     }
 
+    override fun onCleared() {
+        authService.dispose()
+        super.onCleared()
+    }
+
     private fun checkAuthStatus() {
         viewModelScope.launch {
             try {

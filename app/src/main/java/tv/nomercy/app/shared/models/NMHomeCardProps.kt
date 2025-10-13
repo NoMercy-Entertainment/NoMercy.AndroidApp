@@ -9,13 +9,13 @@ data class NMHomeCardProps(
 
     val id: FlexibleId,
     val title: String,
-    val titleSort: String,
+//    val titleSort: String,
     val overview: String? = null,
     val link: String,
     val rating: String? = null,
     val year: Int? = null,
     val duration: Int? = null,
-    val type: String,
+//    val type: String,
     val backdrop: String? = null,
     val poster: String? = null,
     val logo: String? = null,
@@ -37,10 +37,4 @@ data class NMHomeCardProps(
 
     val videos: List<ExtendedVideo> = emptyList(),
     val videoID: String? = null,
-
-    val watched: Boolean,
-    val name: String?,
-    val favorite: Boolean?,
-
-    val tags: List<String>,
 ): ComponentData

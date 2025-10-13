@@ -22,8 +22,8 @@ class LibraryStore(
     private val _libraries = MutableStateFlow<List<Library>>(emptyList())
     val libraries: StateFlow<List<Library>> = _libraries.asStateFlow()
 
-    private val _libraryItems = MutableStateFlow<Map<String, List<Component<NMCardProps>>>>(emptyMap())
-    val libraryItems: StateFlow<Map<String, List<Component<NMCardProps>>>> = _libraryItems.asStateFlow()
+    private val _libraryItems = MutableStateFlow<Map<String, List<Component>>>(emptyMap())
+    val libraryItems: StateFlow<Map<String, List<Component>>> = _libraryItems.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

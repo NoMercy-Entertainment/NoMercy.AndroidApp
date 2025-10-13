@@ -1,8 +1,11 @@
 package tv.nomercy.app.shared.repositories
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import tv.nomercy.app.shared.api.ServerApiClient
 import tv.nomercy.app.shared.api.services.AuthService
 import tv.nomercy.app.shared.api.services.ServerApiService
@@ -28,34 +31,38 @@ class LibraryRepository(
     fun fetch(serverUrl: String): Flow<Result<List<Library>>> = flow {
         try {
             val service = createServerApiService(serverUrl)
-            val response = service.getLibraries()
 
-            val data = response.body()?.data
-            if (response.isSuccessful && data != null) {
-                emit(Result.success(data))
-            } else {
-                emit(Result.failure(Exception("Failed to fetch libraries: ${response.message()}")))
+            val parsed = withContext(Dispatchers.Default) {
+                val response = service.getLibraries()
+                response.body()?.data ?: emptyList()
             }
+
+            emit(Result.success(parsed))
         } catch (e: Exception) {
+            println(e.message)
             emit(Result.failure(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     fun getLibraryItems(
         serverUrl: String,
         link: String,
         page: Int = 0,
         limit: Int = 20
-    ): Flow<Result<List<Component<NMCardProps>>>> = flow {
+    ): Flow<Result<List<Component>>> = flow {
         try {
             val service = createServerApiService(serverUrl)
-            val response = service.getLibraryItems(link.trimStart('/'), page, limit)
 
-            val parsed = response.body()?.data ?: emptyList()
+            // Run the slow part in the background thread
+            val parsed = withContext(Dispatchers.Default) {
+                val response = service.getLibraryItems(link.trimStart('/'), page, limit)
+                response.body()?.data ?: emptyList()
+            }
+
             emit(Result.success(parsed))
         } catch (e: Exception) {
             println(e.message)
             emit(Result.failure(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
 }
