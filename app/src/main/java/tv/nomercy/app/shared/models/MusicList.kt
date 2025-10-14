@@ -21,7 +21,7 @@ data class MusicList (
     val year: Int? = null,
     val artists: List<Artist>? = emptyList(),
     val albums: List<Album>? = emptyList(),
-    val tracks: List<Track>,
+    val tracks: List<PlaylistItem>,
     val type: String
 )
 
@@ -56,28 +56,28 @@ data class Album (
     val type: String,
 )
 
-@Serializable
-data class Track (
-    val id: String,
-    val name: String,
-    val cover: String? = null,
-    val path: String,
-    val link: String,
-    @SerialName("color_palette")
-    val colorPalette: ColorPalettes? = null,
-    val date: String? = null,
-    val disc: Int,
-    val duration: String,
-    val favorite: Boolean? = null,
-    val quality: Int,
-    val track: Int,
-    val lyrics: List<Lyric>? = null,
-    val type: String,
-    @SerialName("artist_track")
-    val artistTrack: List<Artist>,
-    @SerialName("album_track")
-    val albumTrack: List<Album>
-)
+//@Serializable
+//data class Track (
+//    val id: String,
+//    val name: String,
+//    val cover: String? = null,
+//    val path: String,
+//    val link: String,
+//    @SerialName("color_palette")
+//    val colorPalette: ColorPalettes? = null,
+//    val date: String? = null,
+//    val disc: Int,
+//    val duration: String,
+//    val favorite: Boolean? = null,
+//    val quality: Int,
+//    val track: Int,
+//    val lyrics: List<Lyric>? = null,
+//    val type: String,
+//    @SerialName("artist_track")
+//    val artistTrack: List<Artist>,
+//    @SerialName("album_track")
+//    val albumTrack: List<Album>
+//)
 
 @Serializable
 data class Lyric (

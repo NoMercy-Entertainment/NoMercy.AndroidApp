@@ -68,6 +68,9 @@
     <string name="no_servers">No Servers Found</string>
     <string name="no_servers_yet">You don\'t have access to any NoMercy servers yet. Please:</string>
     <string name="setup_your_own_server">Installeer je eigen NoMercy server</string>
-    <string name="check_again">Check Again</string>
+    <string name="check_again">Probeer opnieuw</string>
     <string name="details">Details</string>
+    <string name="lyrics">Lyrics</string>
+    <string name="collapse">Inklappen</string>
+    <string name="expand">Uitklappen</string>
 </resources>

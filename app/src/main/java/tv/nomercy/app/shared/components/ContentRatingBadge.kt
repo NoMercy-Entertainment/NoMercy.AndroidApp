@@ -24,7 +24,7 @@ fun ContentRatingBadge(
     ratings: List<Rating>,
     size: Dp = 10.dp,
 ) {
-    val isDark = isSystemInDarkTheme()
+    isSystemInDarkTheme()
     val localeCountry = Locale.getDefault().country
     val rating = remember(ratings, localeCountry) {
         ratings.find { it.iso31661 == localeCountry } ?: ratings.firstOrNull()

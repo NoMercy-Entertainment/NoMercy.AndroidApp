@@ -18,12 +18,13 @@ import androidx.navigation.NavHostController
 fun BottomNavigationBar(
     navController: NavHostController,
     navItems: List<AppNavItem>,
+    modifier: Modifier = Modifier,
 ) {
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceDim,
         tonalElevation = 30.dp,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
     ) {

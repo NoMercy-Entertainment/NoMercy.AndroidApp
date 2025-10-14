@@ -15,12 +15,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -37,7 +38,6 @@ import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMMusicCardProps
 import tv.nomercy.app.shared.models.NMMusicHomeCardProps
-import tv.nomercy.app.shared.models.Server
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
@@ -52,9 +52,6 @@ fun NMMusicCard(
 ) {
     val wrapper = component.props as? NMMusicHomeCardProps ?: return
     val data = wrapper.data ?: return
-
-    val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
-    val currentServer = serverConfigStore.currentServer.collectAsState()
 
     val footText = remember(data) { buildFootText(data) }
 
@@ -71,7 +68,6 @@ fun NMMusicCard(
         ) {
             MusicCardImage(
                 data = data,
-                currentServer = currentServer,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectFromType(aspectRatio)
@@ -102,11 +98,11 @@ fun NMMusicCard(
 }
 
 @Composable
-fun MusicCardImage(data: NMMusicCardProps, currentServer: State<Server?>, modifier: Modifier) {
+fun MusicCardImage(data: NMMusicCardProps, modifier: Modifier) {
     when (data.type) {
-        "artists", "albums", "release_groups" -> AlbumBackdrop(data, currentServer, modifier)
+        "artists", "albums", "release_groups" -> AlbumBackdrop(data, modifier)
 //        "artists" -> ArtistBackdrop(data, currentServer, modifier)
-        "playlists" -> PlaylistBackdrop(data, currentServer, modifier)
+        "playlists" -> PlaylistBackdrop(data, modifier)
         else -> DefaultBackdrop(data, modifier)
     }
 }
@@ -117,7 +113,7 @@ fun DefaultBackdrop(data: NMMusicCardProps, modifier: Modifier) {
 }
 
 @Composable
-fun AlbumBackdrop(data: NMMusicCardProps, currentServer: State<Server?>, modifier: Modifier) {
+fun AlbumBackdrop(data: NMMusicCardProps, modifier: Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -126,7 +122,6 @@ fun AlbumBackdrop(data: NMMusicCardProps, currentServer: State<Server?>, modifie
     ) {
         CoverImage(
             data = data,
-            currentServer = currentServer,
             modifier = modifier.width(180.dp).align(Alignment.TopCenter)
         )
         if (data.id == "favorite") FavoriteImage()
@@ -134,7 +129,7 @@ fun AlbumBackdrop(data: NMMusicCardProps, currentServer: State<Server?>, modifie
 }
 
 @Composable
-fun ArtistBackdrop(data: NMMusicCardProps, currentServer: State<Server?>, modifier: Modifier) {
+fun ArtistBackdrop(data: NMMusicCardProps, modifier: Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -144,7 +139,6 @@ fun ArtistBackdrop(data: NMMusicCardProps, currentServer: State<Server?>, modifi
     ) {
         CoverImage(
             data = data,
-            currentServer = currentServer,
             modifier = modifier.width(180.dp).align(Alignment.TopCenter)
         )
         if (data.id == "favorite") FavoriteImage()
@@ -152,7 +146,7 @@ fun ArtistBackdrop(data: NMMusicCardProps, currentServer: State<Server?>, modifi
 }
 
 @Composable
-fun PlaylistBackdrop(data: NMMusicCardProps, currentServer: State<Server?>, modifier: Modifier) {
+fun PlaylistBackdrop(data: NMMusicCardProps, modifier: Modifier) {
 
     Box(modifier = modifier.fillMaxSize()) {
         Box(
@@ -171,7 +165,6 @@ fun PlaylistBackdrop(data: NMMusicCardProps, currentServer: State<Server?>, modi
         )
         CoverImage(
             data = data,
-            currentServer = currentServer,
             modifier = modifier.width(180.dp).align(Alignment.TopCenter)
         )
 
@@ -197,9 +190,12 @@ fun buildFootText(data: NMMusicCardProps): String {
 }
 
 @Composable
-fun CoverImage(cover: String?, name: String?, currentServer: State<Server?>, modifier: Modifier) {
+fun CoverImage(cover: String?, name: String?, modifier: Modifier) {
 
-    val serverBaseUrl = currentServer.value?.let {
+    val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
+    val currentServer by serverConfigStore.currentServer.collectAsState()
+
+    val serverBaseUrl = currentServer?.let {
         if (it.serverBaseUrl.isNotBlank()) {
             it.serverBaseUrl.trimEnd('/')
         } else {
@@ -218,7 +214,9 @@ fun CoverImage(cover: String?, name: String?, currentServer: State<Server?>, mod
                 .crossfade(true)
                 .build(),
             contentDescription = "Cover image for ${name ?: ""}",
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier
+                .fillMaxSize()
+                .shadow(elevation = 4.dp, shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)),
             contentScale = ContentScale.Crop
         )
     } else {
@@ -227,11 +225,10 @@ fun CoverImage(cover: String?, name: String?, currentServer: State<Server?>, mod
 }
 
 @Composable
-fun CoverImage(data: NMMusicCardProps, currentServer: State<Server?>, modifier: Modifier) {
+fun CoverImage(data: NMMusicCardProps, modifier: Modifier) {
     CoverImage(
         cover = data.cover.orEmpty(),
         name = data.name.orEmpty(),
-        currentServer = currentServer,
         modifier = modifier
     )
 }
@@ -241,7 +238,7 @@ fun FavoriteImage() {
     Icon(
         painter = painterResource(id = R.drawable.heartfilled),
         contentDescription = "Favorite",
-        tint = Color.Red,
+        tint = MaterialTheme.colorScheme.primary,
         modifier = Modifier.size(24.dp)
     )
 }
@@ -251,14 +248,17 @@ fun AppLogoSquare(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
-            .padding(16.dp),
+            .aspectFromType(AspectRatio.Cover)
+            .shadow(elevation = 4.dp, shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_launcher_foreground),
             contentDescription = "App Logo",
-            tint = Color.White
+//            tint = color ?: MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .fillMaxSize()
         )
     }
 }

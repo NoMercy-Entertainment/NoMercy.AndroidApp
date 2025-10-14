@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import tv.nomercy.app.shared.api.DomainApiClient
 import tv.nomercy.app.shared.api.services.AuthService
+import tv.nomercy.app.shared.stores.musicPlayer.MusicPlayerConfig
+import tv.nomercy.app.shared.stores.musicPlayer.MusicPlayerStore
 
 object GlobalStores {
 
@@ -26,6 +28,8 @@ object GlobalStores {
     @Volatile private var appSettingsStoreInstance: AppSettingsStore? = null
     @Volatile private var cardStoreInstance: CardsStore? = null
     @Volatile private var listStoreInstance: ListStore? = null
+    @SuppressLint("StaticFieldLeak")
+    @Volatile private var musicPlayerStoreInstance: MusicPlayerStore? = null
 
     fun getAppSettingsStore(context: Context): AppSettingsStore {
         return appSettingsStoreInstance ?: synchronized(this) {
@@ -207,6 +211,28 @@ object GlobalStores {
         }
     }
 
+    fun getMusicPlayerStore(context: Context): MusicPlayerStore {
+
+        val authStore = getAuthStore(context)
+        val serverConfigStore = getServerConfigStore(context)
+
+        val accessToken = authStore.accessToken.value
+        val currentServer = serverConfigStore.currentServer
+        val baseUrl = currentServer.value?.serverBaseUrl ?: ""
+
+        return musicPlayerStoreInstance ?: synchronized(this) {
+            musicPlayerStoreInstance ?: MusicPlayerStore(
+                context.applicationContext,
+                MusicPlayerConfig(
+                    baseUrl = baseUrl,
+                    accessToken = accessToken,
+                    disableAutoPlayback = false
+                )
+            ).also {
+                musicPlayerStoreInstance = it
+            }
+        }
+    }
 
 
     fun clearAll() {

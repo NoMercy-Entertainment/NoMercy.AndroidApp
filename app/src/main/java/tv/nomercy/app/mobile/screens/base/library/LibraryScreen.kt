@@ -47,7 +47,6 @@ fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = 
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val currentLibrary by viewModel.currentLibrary.collectAsState()
-    val selectedIndex by viewModel.selectedIndex.collectAsState()
     val isEmptyStable by viewModel.isEmptyStable.collectAsState()
 
     LaunchedEffect(libraries, libraryId) {

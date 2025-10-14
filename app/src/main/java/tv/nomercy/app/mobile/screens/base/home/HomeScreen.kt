@@ -121,7 +121,6 @@ fun MobileHomeScreen(
                 homeData.isNotEmpty() -> {
                     // Always show content if we have data
                     val filteredData = homeData.filter { component -> hasContent(component) }
-                    android.util.Log.d("HomeScreen", "Filtered data size: ${filteredData.size}")
 
                     LazyColumn(
                         state = listState,

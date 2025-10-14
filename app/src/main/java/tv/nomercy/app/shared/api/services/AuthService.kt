@@ -33,12 +33,12 @@ class AuthService(
     )
 
     private fun getAuthService(): AuthorizationService {
-        return Companion.getOrCreateAuthService(context)
+        return getOrCreateAuthService(context)
     }
 
     fun dispose() {
         // This is called from AuthViewModel.onCleared()
-        Companion.disposeInstance()
+        disposeInstance()
     }
 
     private suspend fun loginTv(): AuthResult {

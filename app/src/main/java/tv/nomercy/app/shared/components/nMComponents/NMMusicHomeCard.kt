@@ -46,7 +46,7 @@ fun NMMusicHomeCard(
     val data = wrapper.data ?: return
 
     val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
-    val currentServer = serverConfigStore.currentServer.collectAsState()
+    serverConfigStore.currentServer.collectAsState()
 
     val ringColor = remember(data.colorPalette?.cover) {
         pickPaletteColor(data.colorPalette?.cover)
@@ -98,7 +98,6 @@ fun NMMusicHomeCard(
             ) {
                 MusicCardImage(
                     data = data,
-                    currentServer = currentServer,
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectFromType(AspectRatio.Cover))

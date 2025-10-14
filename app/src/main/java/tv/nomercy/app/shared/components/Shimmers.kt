@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,8 +18,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -44,6 +47,7 @@ fun ShimmerBox(modifier: Modifier = Modifier) {
 
     Box(
         modifier = modifier
+            .shadow(elevation = 4.dp)
             .background(
                 brush = Brush.linearGradient(
                     colors = shimmerColors,
@@ -104,6 +108,59 @@ fun ShimmerParagraph(
                     .height(14.dp)
                     .clip(RoundedCornerShape(2.dp))
             )
+        }
+    }
+}
+
+@Composable
+fun ShimmerTrackRow(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Index
+        Box(
+            modifier = Modifier.width(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            ShimmerBox(
+                modifier = Modifier
+                    .width(20.dp)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(2.dp))
+            )
+        }
+
+        // Cover + Title + Artist/Album links
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .height(12.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                )
+            }
         }
     }
 }
