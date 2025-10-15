@@ -131,7 +131,8 @@ fun FullPlayerScreen(
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
-    val coroutineScope = rememberCoroutineScope()
+    
+    rememberCoroutineScope()
 
     LaunchedEffect(currentSong, fullPlaylist) {
         if (currentSong != null && fullPlaylist.isNotEmpty()) {

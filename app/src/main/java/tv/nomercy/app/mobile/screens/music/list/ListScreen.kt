@@ -335,12 +335,6 @@ fun ScrollSync(
         }
     }
 
-    val showBigPlayButton by remember {
-        derivedStateOf {
-            scrollState.firstVisibleItemIndex > 0
-        }
-    }
-
     val showSortHeader by remember {
         derivedStateOf {
             scrollState.firstVisibleItemIndex > 1

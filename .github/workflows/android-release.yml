@@ -1,0 +1,103 @@
+name: Android Release & Download Page
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-release-and-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: NoMercy-Entertainment/NoMercy.AndroidApp
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Decode keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+
+      - name: Build Release APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean assembleRelease
+
+      - name: Sign APK
+        run: |
+          APK_PATH=app/build/outputs/apk/release/app-release.apk
+          OUT_PATH=app-release-signed.apk
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner sign \
+            --ks keystore.jks \
+            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+            --out $OUT_PATH \
+            $APK_PATH
+
+      - name: Get APK info
+        id: apkinfo
+        run: |
+          APK_FILE=app-release-signed.apk
+          echo "apk_size=$(du -h $APK_FILE | cut -f1)" >> $GITHUB_OUTPUT
+          echo "apk_sha256=$(sha256sum $APK_FILE | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app-release-signed.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest release info
+        id: get_release
+        run: |
+          LATEST_JSON=$(curl -s https://api.github.com/repos/NoMercy-Entertainment/NoMercy.AndroidApp/releases/latest)
+          APK_URL=$(echo "$LATEST_JSON" | jq -r '.assets[] | select(.name | endswith(".apk")) | .browser_download_url')
+          VERSION=$(echo "$LATEST_JSON" | jq -r '.tag_name')
+          RELEASE_DATE=$(echo "$LATEST_JSON" | jq -r '.published_at' | cut -d'T' -f1)
+          # Extract release body and convert to HTML list items for changelog
+          CHANGELOG=$(echo "$LATEST_JSON" | jq -r '.body' | awk 'NF' | sed 's/^/- /' | sed ':a;N;$!ba;s/\n/\n/g' | sed 's/^-/<li>/;s/$/<\/li>/')
+          # Set app icon URL (update this to your actual icon location if needed)
+          APP_ICON_URL="https://raw.githubusercontent.com/NoMercy-Entertainment/NoMercyMediaServer/master/src/NoMercy.Server/Assets/logo.png"
+          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "app_icon_url=$APP_ICON_URL" >> $GITHUB_OUTPUT
+
+      - name: Prepare download page
+        run: |
+          cp download.html download_publish.html
+          sed -i "s|{{APK_URL}}|${{ steps.get_release.outputs.apk_url }}|g" download_publish.html
+          sed -i "s|{{VERSION}}|${{ steps.get_release.outputs.version }}|g" download_publish.html
+          sed -i "s|{{RELEASE_DATE}}|${{ steps.get_release.outputs.release_date }}|g" download_publish.html
+          sed -i "s|{{APK_SIZE}}|${{ steps.apkinfo.outputs.apk_size }}|g" download_publish.html
+          sed -i "s|{{APK_SHA256}}|${{ steps.apkinfo.outputs.apk_sha256 }}|g" download_publish.html
+          sed -i "s|{{APP_ICON_URL}}|${{ steps.get_release.outputs.app_icon_url }}|g" download_publish.html
+          sed -i "s|{{CHANGELOG}}|${{ steps.get_release.outputs.changelog }}|g" download_publish.html
+          # Only keep the processed download_publish.html for deployment
+          find . -maxdepth 1 ! -name 'download_publish.html' ! -name '.' -exec rm -rf {} +
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          keep_files: false
+          cname: app.nomercy.tv
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          force_orphan: true
+          enable_jekyll: false
