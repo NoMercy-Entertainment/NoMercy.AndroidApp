@@ -27,44 +27,43 @@ jobs:
 
       - name: Build Android Release APK
         run: |
-          cd android
-          chmod +x gradlew
+          chmod +x ./gradlew
           ./gradlew clean
           ./gradlew assembleRelease --stacktrace
 
       - name: Decode keystore and create jks
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/keystore.jks
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
       - name: Sign APK with jarsigner
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore android/keystore.jks \
+            -keystore keystore.jks \
             -storepass "$KEYSTORE_PASSWORD" \
-            android/app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
+            app/build/outputs/apk/release/app-release.apk ${{ secrets.KEY_ALIAS }}
 
       - name: Verify Signed APK
         run: |
-          jarsigner -verify android/app/build/outputs/apk/release/app-release-unsigned.apk
+          jarsigner -verify app/build/outputs/apk/release/app-release.apk
 
       - name: Zipalign APK
         run: |
           sudo apt-get update && sudo apt-get install -y zipalign apksigner
           zipalign -v 4 \
-            android/app/build/outputs/apk/release/app-release-unsigned.apk \
-            android/app/build/outputs/apk/release/app-release-aligned.apk
+            app/build/outputs/apk/release/app-release.apk \
+            app/build/outputs/apk/release/app-release-aligned.apk
 
       - name: Final APK signing with apksigner
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          apksigner sign --ks android/keystore.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} android/app/build/outputs/apk/release/app-release-aligned.apk
+          apksigner sign --ks keystore.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} app/build/outputs/apk/release/app-release-aligned.apk
 
       - name: Get APK info
         id: apkinfo
         run: |
-          APK_FILE=android/app/build/outputs/apk/release/app-release-aligned.apk
+          APK_FILE=app/build/outputs/apk/release/app-release-aligned.apk
           echo "apk_size=$(du -h $APK_FILE | cut -f1)" >> $GITHUB_OUTPUT
           echo "apk_sha256=$(sha256sum $APK_FILE | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
@@ -72,7 +71,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: android/app/build/outputs/apk/release/app-release-aligned.apk
+          files: app/build/outputs/apk/release/app-release-aligned.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
