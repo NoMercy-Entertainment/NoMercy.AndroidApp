@@ -7,14 +7,18 @@ import okhttp3.Request
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+/**
+ * MediaDataSource that supports authenticated streaming with chunk caching.
+ * Used for streaming audio with authentication headers.
+ */
 class AuthenticatedMediaDataSource(
     private val url: String,
     private val authToken: String?
 ) : MediaDataSource() {
 
+    // region: Constants
     private companion object {
         const val TAG = "AuthMediaDataSource"
-
         const val INITIAL_CHUNK_SIZE = 256 * 1024
         const val MIN_CHUNK_SIZE = 64 * 1024
         const val MAX_CHUNK_SIZE = 512 * 1024
@@ -25,7 +29,9 @@ class AuthenticatedMediaDataSource(
         const val ASSUMED_SONG_DURATION_SEC = 180
         const val TIMEOUT_SECONDS = 30L
     }
+    // endregion
 
+    // region: State
     private val httpClient = OkHttpClient.Builder()
         .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -37,10 +43,8 @@ class AuthenticatedMediaDataSource(
 
     @Volatile
     private var contentLength: Long = -1
-
     @Volatile
     private var initialized = false
-
     private var readCount: Int = 0
 
     private data class CachedChunk(
@@ -52,7 +56,16 @@ class AuthenticatedMediaDataSource(
 
     private val cachedChunks = mutableListOf<CachedChunk>()
     private var estimatedBitrate: Int = DEFAULT_BITRATE
+    // endregion
 
+    /**
+     * Reads data from the media source at the specified position.
+     * @param position The position in the media from which to read.
+     * @param buffer The buffer into which the data is to be read.
+     * @param offset The offset at which to start storing data in the buffer.
+     * @param size The number of bytes to read.
+     * @return The number of bytes read, or -1 if the end of the media is reached.
+     */
     override fun readAt(position: Long, buffer: ByteArray, offset: Int, size: Int): Int {
         if (!initialized) {
             initializeContentInfo()
@@ -72,6 +85,10 @@ class AuthenticatedMediaDataSource(
         return fetchChunk(position, buffer, offset, size)
     }
 
+    /**
+     * Returns the total size of the media.
+     * @return The size of the media in bytes.
+     */
     override fun getSize(): Long {
         if (!initialized) {
             initializeContentInfo()
@@ -79,6 +96,9 @@ class AuthenticatedMediaDataSource(
         return contentLength
     }
 
+    /**
+     * Closes the data source and releases any resources.
+     */
     override fun close() {
         synchronized(cachedChunks) {
             cachedChunks.clear()
@@ -132,8 +152,7 @@ class AuthenticatedMediaDataSource(
             httpClient.newCall(request).execute().use { response ->
                 if (response.isSuccessful || response.code == 206) {
                     contentLength = extractContentLength(response.header("Content-Range"))
-                        ?: response.body?.contentLength()
-                        ?: -1
+                        ?: response.body.contentLength()
 
                     Log.d(TAG, "Initialized - Content-Length: ${contentLength / 1024}KB")
                 }
@@ -182,11 +201,10 @@ class AuthenticatedMediaDataSource(
     ): Int {
         updateContentLengthFromResponse(response)
 
-        val chunkData = response.body?.byteStream()?.readBytes()
-            ?: throw IOException("Empty response body")
+        val chunkData = response.body.byteStream().readBytes()
 
         val fetchDuration = System.currentTimeMillis() - fetchStartTime
-        updateBitrateEstimation(chunkData.size.toLong(), fetchDuration)
+        updateBitrateEstimation(fetchDuration)
 
         storeInCache(position, chunkData)
 
@@ -216,7 +234,7 @@ class AuthenticatedMediaDataSource(
         }
     }
 
-    private fun updateBitrateEstimation(fetchSize: Long, fetchDuration: Long) {
+    private fun updateBitrateEstimation(fetchDuration: Long) {
         if (fetchDuration <= 0 || contentLength <= 0 || readCount < PLAYBACK_THRESHOLD_READS) {
             return
         }

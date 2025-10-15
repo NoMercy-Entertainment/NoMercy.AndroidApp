@@ -1,6 +1,8 @@
 package tv.nomercy.app.shared.stores.musicPlayer
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -14,6 +16,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.io.IOException
 import tv.nomercy.app.shared.models.PlaylistItem
 
+/**
+ * Store for managing music playback, queue, audio focus, and crossfade logic.
+ */
 class MusicPlayerStore(
     private val context: Context,
     private val config: MusicPlayerConfig,
@@ -23,21 +28,18 @@ class MusicPlayerStore(
     MediaPlayer.OnBufferingUpdateListener,
     MediaPlayer.OnSeekCompleteListener {
 
+    // region: State & Properties
     private val queue = MusicPlayerQueue()
-
     private var mediaPlayer1: MediaPlayer? = null
     private var mediaPlayer2: MediaPlayer? = null
     private var currentPlayer: MediaPlayer? = null
     private var nextPlayer: MediaPlayer? = null
-
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
     private var hasAudioFocus = false
-
     private val handler = Handler(Looper.getMainLooper())
     private var timeUpdateRunnable: Runnable? = null
     private var fadeRunnable: Runnable? = null
-
     private var isFading = false
     private var hasNextQueued = false
     private var fadeInVolume = 0
@@ -78,10 +80,19 @@ class MusicPlayerStore(
     val backlog = queue.backlog
     val isShuffling = queue.isShuffling
     val repeatState = queue.repeatState
+    // endregion
 
     init {
         initializeMediaPlayers()
         loadVolumeFromPreferences()
+    }
+
+    // region: Initialization & Configuration
+    private fun ensureServiceRunning() {
+        val intent = Intent(context, MusicPlayerService::class.java).apply {
+            action = "tv.nomercy.app.action.PLAY"
+        }
+        context.startForegroundService(intent)
     }
 
     private fun initializeMediaPlayers() {
@@ -150,7 +161,9 @@ class MusicPlayerStore(
             nextPlayer?.setVolume(inLevel, inLevel)
         }
     }
+    // endregion
 
+    // region: Audio Focus
     private fun requestAudioFocus(): Boolean {
         if (hasAudioFocus) {
             Log.d("MusicPlayerStore", "Already have audio focus, skipping request")
@@ -203,7 +216,9 @@ class MusicPlayerStore(
             Log.d("MusicPlayerStore", "Audio focus abandoned")
         }
     }
+    // endregion
 
+    // region: Time Updates
     private fun startTimeUpdates() {
         stopTimeUpdates()
         timeUpdateRunnable = object : Runnable {
@@ -249,8 +264,6 @@ class MusicPlayerStore(
             if (player.isPlaying && _playerState.value != PlayerState.PLAYING) {
                 _playerState.value = PlayerState.PLAYING
             }
-
-            if (duration <= 0) return
 
             if (!hasNextQueued &&
                 queue.repeatState.value != RepeatState.ONE &&
@@ -355,7 +368,7 @@ class MusicPlayerStore(
         currentPlayer = nextPlayer
         nextPlayer = temp
 
-        val nextSong = queue.moveToNext()
+        queue.moveToNext()
 
         isFading = false
         hasNextQueued = false
@@ -365,7 +378,9 @@ class MusicPlayerStore(
         fadeRunnable?.let { handler.removeCallbacks(it) }
         fadeRunnable = null
     }
+    // endregion
 
+    // region: Playback Control
     private fun prepareSource(source: String) {
         hasNextQueued = false
 
@@ -431,6 +446,7 @@ class MusicPlayerStore(
 
         if (mp == currentPlayer) {
             Log.d("MusicPlayerStore", "Preparing to play current player")
+            _playerState.value = PlayerState.READY // Set state to READY so play() can start playback
             play()
         } else {
             Log.d("MusicPlayerStore", "Next player prepared for crossfade - not starting playback")
@@ -509,6 +525,16 @@ class MusicPlayerStore(
         try {
             val isPlaying = currentPlayer?.isPlaying ?: false
             Log.d("MusicPlayerStore", "Current player isPlaying before start: $isPlaying")
+
+            // Only start if not already playing and player is READY or PAUSED
+            if (isPlaying) {
+                Log.d("MusicPlayerStore", "Already playing, not starting again")
+                return
+            }
+            if (_playerState.value != PlayerState.READY && _playerState.value != PlayerState.PAUSED) {
+                Log.d("MusicPlayerStore", "Player is not ready or paused, cannot start playback")
+                return
+            }
 
             currentPlayer?.start()
 
@@ -622,6 +648,9 @@ class MusicPlayerStore(
     }
 
     fun playTrack(track: PlaylistItem, tracks: List<PlaylistItem>? = null, playlistId: String? = null) {
+        // Ensure the service is running so the widget/notification appears
+        ensureServiceRunning()
+
         Log.d("MusicPlayerStore", "========================================")
         Log.d("MusicPlayerStore", "playTrack called")
         Log.d("MusicPlayerStore", "track.path: ${track.path}")
@@ -633,6 +662,7 @@ class MusicPlayerStore(
 
         val isDifferentPlaylist = playlistId != null && _currentPlaylistId.value != playlistId
         if (isDifferentPlaylist) {
+
             Log.d("MusicPlayerStore", "Switching to new playlist - stopping current playback and clearing queue")
             try {
                 currentPlayer?.stop()
@@ -708,5 +738,16 @@ class MusicPlayerStore(
     fun seekBackward() {
         val newPosition = (getPosition() - 15000).coerceAtLeast(0)
         seekTo(newPosition)
+    }
+
+    object MusicPlayerStoreHolder {
+        @SuppressLint("StaticFieldLeak")
+        private var instance: MusicPlayerStore? = null
+        fun getInstance(context: Context, config: MusicPlayerConfig): MusicPlayerStore {
+            if (instance == null) {
+                instance = MusicPlayerStore(context.applicationContext, config)
+            }
+            return instance!!
+        }
     }
 }

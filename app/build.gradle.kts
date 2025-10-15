@@ -139,4 +139,6 @@ dependencies {
     implementation(libs.coil.network.ktor3)
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil3.coil.svg)
+
+    implementation(libs.androidx.media)
 }
