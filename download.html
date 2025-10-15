@@ -27,10 +27,9 @@
       text-align: center;
     }
     .logo {
-      width: 96px;
       height: 96px;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px #0008;
+      width: auto;
+      object-fit: contain;
       margin-bottom: 1em;
     }
     .card {
@@ -96,12 +95,12 @@
 </head>
 <body>
   <div class="header">
-    <img src="{{APP_ICON_URL}}" alt="NoMercy App Icon" class="logo" loading="lazy">
+    <img src="{{APP_ICON_URL}}" alt="NoMercy App Icon" class="logo" loading="lazy" style="height:96px;width:auto;object-fit:contain;">
     <h1>NoMercy Android App</h1>
     <p>Official download page for the latest NoMercy Android release.</p>
   </div>
   <div class="card">
-    <a class="download-btn" href="{{APK_URL}}">Download APK (v{{VERSION}})</a>
+    <a class="download-btn" href="{{APK_URL}}">Download APK ({{VERSION}})</a>
     <div class="meta">
       <p>Release date: <b>{{RELEASE_DATE}}</b></p>
       <p>File size: <b>{{APK_SIZE}}</b></p>
@@ -118,7 +117,7 @@
       <p>Need help? <a href="https://discord.gg/dHHvnvFsXR" style="color:#e50914;">Join our Discord</a></p>
     </div>
     <div class="changelog">
-      <b>What’s New in v{{VERSION}}:</b>
+      <b>What’s New in {{VERSION}}:</b>
       <ul>
         {{CHANGELOG}}
       </ul>

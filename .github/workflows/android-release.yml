@@ -46,19 +46,6 @@ jobs:
       - name: Decode keystore and create jks
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
-      - name: Sign APK with jarsigner
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        run: |
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore keystore.jks \
-            -storepass "$KEYSTORE_PASSWORD" \
-            app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
-
-      - name: Verify Signed APK
-        run: |
-          jarsigner -verify app/build/outputs/apk/release/app-release-unsigned.apk
-
       - name: Zipalign APK
         run: |
           sudo apt-get update && sudo apt-get install -y zipalign apksigner
@@ -66,11 +53,15 @@ jobs:
             app/build/outputs/apk/release/app-release-unsigned.apk \
             app/build/outputs/apk/release/app-release-aligned.apk
 
-      - name: Final APK signing with apksigner
+      - name: Sign APK with apksigner
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           apksigner sign --ks keystore.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} app/build/outputs/apk/release/app-release-aligned.apk
+
+      - name: Verify APK signature
+        run: |
+          apksigner verify app/build/outputs/apk/release/app-release-aligned.apk
 
       - name: Get APK info
         id: apkinfo
@@ -96,7 +87,8 @@ jobs:
         run: |
           LATEST_JSON=$(curl -s https://api.github.com/repos/NoMercy-Entertainment/NoMercy.AndroidApp/releases/latest)
           APK_URL=$(echo "$LATEST_JSON" | jq -r '.assets[] | select(.name | endswith(".apk")) | .browser_download_url')
-          VERSION=$(echo "$LATEST_JSON" | jq -r '.tag_name')
+          # Use the same version as in the workflow and HTML: v1.0.<run_number>
+          VERSION="v1.0.${{ github.run_number }}"
           RELEASE_DATE=$(echo "$LATEST_JSON" | jq -r '.published_at' | cut -d'T' -f1)
           # Extract release body and convert to HTML list items for changelog
           CHANGELOG=$(echo "$LATEST_JSON" | jq -r '.body' | awk 'NF' | sed 's/^/- /' | sed ':a;N;$!ba;s/\n/\n/g' | sed 's/^-/<li>/;s/$/<\/li>/')
