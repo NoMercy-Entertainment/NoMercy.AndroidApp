@@ -46,17 +46,17 @@ jobs:
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
             -keystore keystore.jks \
             -storepass "$KEYSTORE_PASSWORD" \
-            app/build/outputs/apk/release/app-release.apk ${{ secrets.KEY_ALIAS }}
+            app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
 
       - name: Verify Signed APK
         run: |
-          jarsigner -verify app/build/outputs/apk/release/app-release.apk
+          jarsigner -verify app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Zipalign APK
         run: |
           sudo apt-get update && sudo apt-get install -y zipalign apksigner
           zipalign -v 4 \
-            app/build/outputs/apk/release/app-release.apk \
+            app/build/outputs/apk/release/app-release-unsigned.apk \
             app/build/outputs/apk/release/app-release-aligned.apk
 
       - name: Final APK signing with apksigner
