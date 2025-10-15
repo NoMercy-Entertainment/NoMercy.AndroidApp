@@ -25,6 +25,13 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Set Android versionCode and versionName
+        run: |
+          VERSION_CODE=${{ github.run_number }}
+          VERSION_NAME="1.0.${{ github.run_number }}"
+          sed -i "s/versionCode = [0-9]\+/versionCode = $VERSION_CODE/" app/build.gradle.kts
+          sed -i "s/versionName = \".*\"/versionName = \"$VERSION_NAME\"/" app/build.gradle.kts
+
       - name: Build Android Release APK
         run: |
           chmod +x ./gradlew
@@ -77,6 +84,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: app/build/outputs/apk/release/app-release-aligned.apk
+          tag_name: v${{ github.run_number }}
+          name: "Release v${{ github.run_number }}"
+          body: |
+            Automated release for build ${{ github.run_number }}.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
