@@ -292,7 +292,12 @@ class MusicPlayerStore(
 
         try {
             nextPlayer?.reset()
-            val fullUrl = config.baseUrl.removeSuffix("/") + nextSong.path
+            val songPath = nextSong.path
+            val fullUrl = if (songPath.startsWith("http://") || songPath.startsWith("https://")) {
+                songPath
+            } else {
+                config.baseUrl.removeSuffix("/") + songPath
+            }
 
             Log.d("MusicPlayerStore", "Prefetching next track: ${nextSong.name}")
 
@@ -410,7 +415,12 @@ class MusicPlayerStore(
                 _isPlaying.value = false
             }
 
-            val fullUrl = config.baseUrl.removeSuffix("/") + source
+            val sourcePath = source
+            val fullUrl = if (sourcePath.startsWith("http://") || sourcePath.startsWith("https://")) {
+                sourcePath
+            } else {
+                config.baseUrl.removeSuffix("/") + sourcePath
+            }
 
             Log.d("MusicPlayerStore", "prepareSource called")
             Log.d("MusicPlayerStore", "baseUrl: ${config.baseUrl.removeSuffix("/")}")

@@ -49,14 +49,15 @@ fun MiniPlayer(
     onOpenFullPlayer: () -> Unit,
     onStopPlayback: () -> Unit,
     modifier: Modifier = Modifier,
-    navController: NavHostController
+    navController: NavHostController,
+    isOpen: Boolean
 ) {
     val context = LocalContext.current
     val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)
 
-    val song = musicPlayerStore.currentSong.collectAsState().value
+    val currentSong = musicPlayerStore.currentSong.collectAsState().value
 
-    if(song == null) {
+    if(currentSong == null) {
         // No song is playing, don't show the mini player
         return
     }
@@ -65,7 +66,7 @@ fun MiniPlayer(
 
     val useAutoThemeColors = true // TODO: from settings
 
-    val palette = song.colorPalette?.cover
+    val palette = currentSong.colorPalette?.cover
     val focusColor = remember(palette, useAutoThemeColors) {
         if (!useAutoThemeColors) Color(0xFF444444) // fallback
         else pickPaletteColor(palette, dark = 20, light = 160)
@@ -77,137 +78,139 @@ fun MiniPlayer(
 
     val swipeableState = rememberSwipeableState(initialValue = 0)
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable { onOpenFullPlayer() }
-            .onGloballyPositioned {
-                containerWidth.floatValue = it.size.width.toFloat()
-            }
-            .graphicsLayer {
-                translationX = offsetX.floatValue
-                alpha = opacity.floatValue
-            }
-    ) {
-        // Gradient overlay
+    if (isOpen) {
         Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            focusColor.copy(alpha = 0.4f),
-                            Color.Black.copy(alpha = 0.4f)
+            modifier = modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(MaterialTheme.colorScheme.surface)
+                .clickable { onOpenFullPlayer() }
+                .onGloballyPositioned {
+                    containerWidth.floatValue = it.size.width.toFloat()
+                }
+                .graphicsLayer {
+                    translationX = offsetX.floatValue
+                    alpha = opacity.floatValue
+                }
+        ) {
+            // Gradient overlay
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                focusColor.copy(alpha = 0.4f),
+                                Color.Black.copy(alpha = 0.4f)
+                            )
                         )
                     )
-                )
-        )
+            )
 
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 12.dp, end = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
             Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 12.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                CoverImage(
-                    cover = song.cover,
-                    name = song.name,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(4.dp))
-                )
-
-                Spacer(Modifier.width(12.dp))
-
-                Column(
+                Row(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Center
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = song.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                    CoverImage(
+                        cover = currentSong.cover,
+                        name = currentSong.name,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(4.dp))
                     )
 
-                    Marquee {
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            TrackLinksArtists(
-                                artists = song.artistTrack,
-                                navController = navController
-                            )
+                    Spacer(Modifier.width(12.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = currentSong.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Marquee {
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                TrackLinksArtists(
+                                    artists = currentSong.artistTrack,
+                                    navController = navController
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(0.dp)
-            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
 //                DeviceButton()
-                MediaLikeButton(favorite = song.favorite, color = focusColor)
+                    MediaLikeButton(favorite = currentSong.favorite, color = focusColor)
 
-                PlaybackButton()
+                    PlaybackButton()
+                }
+            }
+
+            // Progress bar
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color.Black.copy(alpha = 0.22f))
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth(fraction = percentage)
+                    .height(1.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color.Black.copy(alpha = 0.05f), focusColor)
+                        )
+                    )
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset {
+                        IntOffset((containerWidth.floatValue * percentage).toInt(), 0)
+                    }
+                    .size(width = 1.dp, height = 1.dp)
+                    .background(Color(0xFFF1EEFE))
+            )
+        }
+
+        // Swipe logic
+        LaunchedEffect(offsetX.floatValue) {
+            val length = abs(offsetX.floatValue)
+            if (containerWidth.floatValue > 0) {
+                opacity.floatValue = 1.1f - (length / containerWidth.floatValue)
             }
         }
 
-        // Progress bar
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color.Black.copy(alpha = 0.22f))
-        )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth(fraction = percentage)
-                .height(1.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(Color.Black.copy(alpha = 0.05f), focusColor)
-                    )
-                )
-        )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .offset {
-                    IntOffset((containerWidth.floatValue * percentage).toInt(), 0)
-                }
-                .size(width = 1.dp, height = 1.dp)
-                .background(Color(0xFFF1EEFE))
-        )
-    }
-
-    // Swipe logic
-    LaunchedEffect(offsetX.floatValue) {
-        val length = abs(offsetX.floatValue)
-        if (containerWidth.floatValue > 0) {
-            opacity.floatValue = 1.1f - (length / containerWidth.floatValue)
-        }
-    }
-
-    LaunchedEffect(swipeableState.currentValue) {
-        if (swipeableState.currentValue == 1) {
-            offsetX.floatValue = containerWidth.floatValue
-            opacity.floatValue = 0f
-            onStopPlayback()
-        } else {
-            offsetX.floatValue = 0f
-            opacity.floatValue = 1f
+        LaunchedEffect(swipeableState.currentValue) {
+            if (swipeableState.currentValue == 1) {
+                offsetX.floatValue = containerWidth.floatValue
+                opacity.floatValue = 0f
+                onStopPlayback()
+            } else {
+                offsetX.floatValue = 0f
+                opacity.floatValue = 1f
+            }
         }
     }
 }

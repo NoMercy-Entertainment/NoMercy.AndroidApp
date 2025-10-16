@@ -63,7 +63,8 @@ fun NMCard(
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
-            .paletteBackground(data.colorPalette?.poster)) {
+            .paletteBackground(data.colorPalette?.poster)
+        ) {
             TMDBImage(
                 path = data.poster,
                 title = data.title,

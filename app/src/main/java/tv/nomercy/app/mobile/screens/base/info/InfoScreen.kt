@@ -109,7 +109,7 @@ fun InfoScreen(type: String, id: String, navController: NavHostController) {
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize().padding(bottom = 16.dp)) {
+        Box(modifier = Modifier.fillMaxSize()) {
             InfoColumn(infoData, navController)
         }
     }
@@ -138,10 +138,11 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
     ) {
         item {
 
-            TopSection(infoData, navController, focusColor)
+            TopSection(infoData, navController)
 
             Column(
                 modifier = Modifier
+                    .padding(bottom = 16.dp)
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -287,12 +288,12 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
 }
 
 @Composable
-fun TopSection(infoData: InfoResponse?, navController: NavHostController, focusColor: Color) {
+fun TopSection(infoData: InfoResponse?, navController: NavHostController) {
     Box {
 
         BackdropImage(infoData)
 
-        InfoCard(infoData, navController, focusColor)
+        InfoCard(infoData, navController)
     }
 }
 

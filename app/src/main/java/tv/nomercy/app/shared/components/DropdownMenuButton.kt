@@ -23,35 +23,33 @@ import tv.nomercy.app.R
 fun DropdownMenuButton(content: @Composable () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            event.changes.forEach { it.consume() } // ⛔️ Stop propagation
-                        }
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        event.changes.forEach { it.consume() } // ⛔️ Stop propagation
                     }
                 }
-                .clickable { expanded = true },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.menudotsvertical),
-                contentDescription = "More",
-                modifier = Modifier
-                    .size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
+            }
+            .clickable { expanded = true },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.menudotsvertical),
+            contentDescription = "More",
+            modifier = Modifier
+                .size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+    }
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            content()
-        }
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false }
+    ) {
+        content()
     }
 }

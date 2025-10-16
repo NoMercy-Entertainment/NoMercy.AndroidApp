@@ -290,14 +290,13 @@ fun BigHeaderText(
 fun ControlHeader(listData: MusicList?, backgroundColor: Color) {
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 12.dp)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            modifier = Modifier
-                .padding(vertical = 12.dp),
+            modifier = Modifier,
             horizontalArrangement = Arrangement.spacedBy(0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -435,10 +434,14 @@ fun SortHeader(backgroundColor: Color) {
                         else listOf(backgroundColor.copy(alpha = 0.6f), backgroundColor.copy(alpha = 0.6f))
                 )
             )
-            .padding(start = 24.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(28.dp)
+            .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("#")
+        Text(
+            text = "#",
+            modifier = Modifier.width(32.dp),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
         Text("Title")
     }
 }

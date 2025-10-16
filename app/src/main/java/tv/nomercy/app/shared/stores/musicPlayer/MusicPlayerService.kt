@@ -367,7 +367,7 @@ class MusicPlayerService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Music Player",
-            NotificationManager.IMPORTANCE_HIGH // Changed from LOW to HIGH for visibility
+            NotificationManager.IMPORTANCE_LOW
         )
         channel.description = "Media playback controls"
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager

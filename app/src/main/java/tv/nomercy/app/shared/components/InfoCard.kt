@@ -21,19 +21,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import tv.nomercy.app.R
+import tv.nomercy.app.shared.models.ColorPalettes
 import tv.nomercy.app.shared.models.InfoResponse
+import tv.nomercy.app.shared.models.PaletteColors
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
+import tv.nomercy.app.shared.utils.paletteBackground
 
 @Composable
 fun InfoCard(
     infoData: InfoResponse?,
     navController: NavHostController,
-    focusColor: Color,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -59,7 +62,7 @@ fun InfoCard(
             } else {
                 Card(
                     infoData = infoData,
-                    focusColor = focusColor,
+                    palette = infoData.colorPalette?.poster,
                     modifier = Modifier
                         .fillMaxSize()
                 )
@@ -87,7 +90,7 @@ fun InfoCard(
 @Composable
 fun Card(
     infoData: InfoResponse?,
-    focusColor: Color,
+    palette: PaletteColors? = null,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -95,6 +98,7 @@ fun Card(
             .clip(RoundedCornerShape(12.dp))
             .fillMaxWidth()
             .wrapContentHeight()
+            .paletteBackground(palette)
             .aspectFromType(AspectRatio.Poster),
     ) {
         if (infoData?.poster != null) {
@@ -114,13 +118,6 @@ fun Card(
                     .aspectFromType(AspectRatio.Poster)
             )
         }
-
-        GradientBlurOverlay(
-            baseColor = focusColor,
-            modifier = Modifier
-                .height(300.dp)
-                .align(Alignment.BottomStart)
-        )
     }
 }
 
@@ -183,9 +180,9 @@ fun BottomRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.Bottom
+            .padding(horizontal = 8.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
         Button(
@@ -204,7 +201,7 @@ fun BottomRow(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Watch",
+                    text = stringResource(R.string.watch),
                     color = Color.Black,
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
@@ -229,7 +226,7 @@ fun BottomRow(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Watch trailer",
+                    text = stringResource(R.string.watch_trailer),
                     color = Color.White,
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,

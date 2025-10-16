@@ -58,7 +58,7 @@ fun TrackRow(
                 onClick = onClick,
                 onLongClick = { onContextMenu(Offset.Zero) }
             )
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(start = 16.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -113,7 +113,7 @@ fun TrackRow(
 
         // Actions
         Row(
-            horizontalArrangement = Arrangement.spacedBy(0.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             MediaLikeButton(favorite = data.favorite, color = backgroundColor)

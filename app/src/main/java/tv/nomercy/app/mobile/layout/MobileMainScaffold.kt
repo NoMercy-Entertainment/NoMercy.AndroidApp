@@ -43,12 +43,13 @@ fun MobileMainScaffold(
         bottomBar = {
             Column(Modifier.zIndex(0f)) {
                 AnimatedVisibility(
-                    visible = !isImmersive,
+                    visible = !isImmersive && isMiniPlayerVisible,
                     enter = slideInVertically(initialOffsetY = { it }),
                     exit = slideOutVertically(targetOffsetY = { it })
                 ) {
                     MiniPlayer(
                         navController = navController,
+                        isOpen = isMiniPlayerVisible,
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surface),
@@ -81,10 +82,16 @@ fun MobileMainScaffold(
                 modifier = Modifier.fillMaxSize()
             )
 
-            FullPlayerScreen(
-                isOpen = isFullPlayerOpen,
-                onDismiss = { isFullPlayerOpen = false }
-            )
+            AnimatedVisibility(
+                visible = !isImmersive && isMiniPlayerVisible,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it })
+            ) {
+                FullPlayerScreen(
+                    isOpen = isFullPlayerOpen,
+                    onDismiss = { isFullPlayerOpen = false }
+                )
+            }
         }
     }
 }
