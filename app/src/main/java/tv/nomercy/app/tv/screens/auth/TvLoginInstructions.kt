@@ -1,4 +1,4 @@
-package tv.nomercy.app.tv.auth
+package tv.nomercy.app.tv.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

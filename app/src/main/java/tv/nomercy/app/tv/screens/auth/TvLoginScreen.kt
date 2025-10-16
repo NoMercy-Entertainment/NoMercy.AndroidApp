@@ -1,4 +1,4 @@
-package tv.nomercy.app.tv.auth
+package tv.nomercy.app.tv.screens.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

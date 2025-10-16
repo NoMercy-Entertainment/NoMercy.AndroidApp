@@ -32,7 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import tv.nomercy.app.R
-import tv.nomercy.app.tv.auth.TvLoginInstructions
+import tv.nomercy.app.tv.screens.auth.TvLoginInstructions
 
 @Composable
 fun LoginScreen(

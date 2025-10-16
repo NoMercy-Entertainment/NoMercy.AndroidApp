@@ -29,7 +29,7 @@ import tv.nomercy.app.mobile.screens.selectServer.SelectServerViewModel
 import tv.nomercy.app.mobile.screens.selectServer.SetupViewModelFactory
 import tv.nomercy.app.shared.stores.AppConfigStore
 import tv.nomercy.app.shared.stores.GlobalStores
-import tv.nomercy.app.tv.auth.TvLoginScreen
+import tv.nomercy.app.tv.screens.auth.TvLoginScreen
 import tv.nomercy.app.tv.layout.TVMainScaffold
 
 @Composable
