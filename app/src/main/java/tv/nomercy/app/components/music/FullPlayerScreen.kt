@@ -74,7 +74,7 @@ import tv.nomercy.app.shared.utils.pickPaletteColor
 @Composable
 fun FullPlayerScreen(
     isOpen: Boolean,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
     val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)

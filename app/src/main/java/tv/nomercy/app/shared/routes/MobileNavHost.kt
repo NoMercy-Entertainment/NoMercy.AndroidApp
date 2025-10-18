@@ -19,7 +19,7 @@ import tv.nomercy.app.views.base.libraries.mobile.LibrariesScreen
 import tv.nomercy.app.views.base.library.mobile.LibraryScreen
 import tv.nomercy.app.views.base.paginatedLibrary.mobile.PaginatedLibraryScreen
 import tv.nomercy.app.views.base.person.mobile.PersonScreen
-import tv.nomercy.app.views.base.watch.mobile.WatchScreen
+import tv.nomercy.app.views.base.watch.tv.WatchScreen
 import tv.nomercy.app.views.profile.AboutScreen
 import tv.nomercy.app.views.profile.AppSettingsScreen
 import tv.nomercy.app.views.profile.ProfileScreen

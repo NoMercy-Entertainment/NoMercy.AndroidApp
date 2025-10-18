@@ -99,7 +99,7 @@ fun SharedMainScreen(
             } else {
                 when (platform) {
                     Platform.Mobile -> MobileMainScaffold(isImmersive = isImmersiveState)
-                    Platform.TV -> TvMainScaffold()
+                    Platform.TV -> TvMainScaffold(isImmersive = isImmersiveState)
                 }
             }
         }
