@@ -1,5 +1,6 @@
 package tv.nomercy.app.layout.tv
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -7,6 +8,7 @@ import tv.nomercy.app.layout.mobile.AppNavItem
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -46,28 +48,15 @@ fun TvMainScaffold(
 
     val navbarFocusBridge = remember { NavbarFocusBridge() }
 
-//    var isFullPlayerOpen by remember { mutableStateOf(false) }
-//
-//    navController.addOnDestinationChangedListener { _, destination, _ ->
-//        isFullPlayerOpen = destination.route?.contains("/watch") == true
-//        isFullPlayerOpen = false
-//    }
-
-
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     CompositionLocalProvider(LocalNavbarFocusBridge provides navbarFocusBridge) {
         Scaffold(
             topBar = {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    TvNavHost(
-                        navController = navController,
-                        modifier = Modifier
-                            .fillMaxSize()
-                    )
-
+                Box(modifier = Modifier.fillMaxWidth()) {
                     AnimatedVisibility(
                         visible = !isImmersive,
                         enter = slideInVertically(initialOffsetY = { it }),
-                        exit = slideOutVertically(targetOffsetY = { it })
+                        exit = slideOutVertically(targetOffsetY = { -it })
                     ) {
                         TvNavigationBar(
                             navController = navController,
@@ -79,12 +68,11 @@ fun TvMainScaffold(
                     }
                 }
             }
-        ) { innerPadding ->
+        ) { _ ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(1f)
-                    .padding(innerPadding)
             ) {
                 TvNavHost(
                     navController = navController,

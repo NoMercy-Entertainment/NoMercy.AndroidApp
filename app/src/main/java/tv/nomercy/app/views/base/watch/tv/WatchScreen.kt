@@ -16,7 +16,6 @@ import androidx.navigation.NavHostController
 import tv.nomercy.app.MainActivity
 import tv.nomercy.app.shared.components.DisposableWebView
 import tv.nomercy.app.shared.stores.GlobalStores
-import tv.nomercy.app.shared.ui.SystemUiController
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -26,11 +25,9 @@ fun WatchScreen(type: String?, id: String?, navController: NavHostController) {
     val context = LocalContext.current
 
     DisposableEffect(activity) {
-        SystemUiController.lockOrientationLandscape(activity)
         (activity as? MainActivity)?.setImmersive(true)
 
         onDispose {
-            SystemUiController.lockOrientationPortrait(activity)
             (activity as? MainActivity)?.setImmersive(false)
         }
     }
