@@ -39,6 +39,7 @@ import coil3.request.crossfade
 import tv.nomercy.app.R
 import tv.nomercy.app.mobile.screens.auth.AuthViewModel
 import tv.nomercy.app.mobile.screens.auth.AuthViewModelFactory
+import tv.nomercy.app.shared.components.MoooomIcon
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.gradientButtonBackground
 
@@ -61,13 +62,7 @@ fun BottomNavigationBarButton(
             .fillMaxSize()
             .padding(top = 4.dp, start = 4.dp, bottom = 0.dp, end = 4.dp)
             .clickable {
-                navController.navigate(item.route) {
-//                    popUpTo(navController.graph.findStartDestination().id) {
-//                        saveState = true
-//                    }
-//                    launchSingleTop = true
-//                    restoreState = true
-                }
+                navController.navigate(item.route)
             }
     ) {
         if (item.route == "/profile") {
@@ -87,7 +82,6 @@ fun BottomNavigationBarButton(
                     .data(avatarUrl)
                     .crossfade(true)
                     .build(),
-                contentDescription = item.description,
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
@@ -99,13 +93,13 @@ fun BottomNavigationBarButton(
                     .then(
                         if (isSelected) Modifier.rotate(12f) else Modifier
                     ),
+                contentDescription = stringResource(item.name),
                 contentScale = ContentScale.Crop,
                 fallback = painterResource(R.drawable.user),
                 error = painterResource(R.drawable.user)
             )
         }
         else {
-            // Regular icon with background for other tabs
             Box(
                 modifier = Modifier
                     .size(28.dp)
@@ -113,15 +107,15 @@ fun BottomNavigationBarButton(
                     .then(if (isSelected) gradientButtonBackground() else Modifier),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    painter = painterResource(item.icon),
-                    contentDescription = item.description,
+                MoooomIcon(
+                    icon = item.icon,
+                    contentDescription = stringResource(item.name),
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(20.dp)
                         .then(
                             if (isSelected) Modifier.rotate(12f) else Modifier
                         ),
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -129,7 +123,7 @@ fun BottomNavigationBarButton(
         Spacer(modifier = Modifier.height(2.dp))
 
         Text(
-            text = stringResource(item.title),
+            text = stringResource(item.name),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

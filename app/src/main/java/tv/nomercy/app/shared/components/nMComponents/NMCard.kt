@@ -27,11 +27,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import tv.nomercy.app.shared.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.getColorFromPercent
+import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
 
@@ -85,22 +85,23 @@ fun NMCard(
                     .padding(start = 0.dp, top = 16.dp)
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f))
-                    .align(Alignment.BottomStart)
-            ) {
-                Text(
-                    text = data.title,
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.dp.value.sp),
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 2,
-                    minLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-
+            if (!isTv()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f))
+                        .align(Alignment.BottomStart)
+                ) {
+                    Text(
+                        text = data.title,
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.dp.value.sp),
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 2,
+                        minLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
+                }
             }
         }
     }
@@ -121,6 +122,10 @@ fun CompletionOverlay(
     data: OverlayProps,
     modifier: Modifier = Modifier
 ) {
+    if (isTv()) {
+        // Don't show overlay on TV for now
+        return
+    }
 
     val percent = calculateCompletionPercent(data.haveItems, data.numberOfItems)
     val color = getColorFromPercent(percent)

@@ -9,6 +9,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
+    <!-- Declare TV leanback feature (not required so phones remain supported) -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <!-- Mark touchscreen as optional so adding leanback doesn't exclude touch devices -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
     <application
         android:name=".NoMercyApplication"
         android:allowBackup="true"
@@ -17,6 +22,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
+        android:banner="@mipmap/ic_banner"
         android:supportsRtl="true"
         android:hardwareAccelerated="true"
         android:enableOnBackInvokedCallback="true"
@@ -27,12 +33,17 @@
             android:launchMode="singleTask"
             android:hardwareAccelerated="true"
             android:configChanges="orientation|screenSize|screenLayout|uiMode"
-            android:screenOrientation="sensorPortrait"
             android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Make the app discoverable on Android TV launchers -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
 

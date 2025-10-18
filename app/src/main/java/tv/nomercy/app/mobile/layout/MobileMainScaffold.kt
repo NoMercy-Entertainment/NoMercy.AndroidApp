@@ -19,6 +19,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.R
 import tv.nomercy.app.mobile.layout.BottomNavigationBar
+import tv.nomercy.app.shared.components.MoooomIconName
 import tv.nomercy.app.shared.components.music.FullPlayerScreen
 import tv.nomercy.app.shared.components.music.MiniPlayer
 import tv.nomercy.app.shared.routes.MobileNavHost
@@ -29,11 +30,11 @@ fun MobileMainScaffold(
 ) {
     val navController = rememberNavController()
     val navItems = listOf(
-        AppNavItem("/home", R.string.title_home, R.drawable.home1, "Main dashboard"),
-        AppNavItem("/search", R.string.title_search, R.drawable.searchmagnifyingglass, "Global search"),
-        AppNavItem("/libraries", R.string.title_libraries, R.drawable.folder, "Libraries"),
-        AppNavItem("/music/start", R.string.title_music, R.drawable.noteeighthpair, "Music playback"),
-        AppNavItem("/profile", R.string.title_profile, R.drawable.user, "User settings"),
+        AppNavItem("/home", R.string.title_home, MoooomIconName.Home1),
+        AppNavItem("/search", R.string.title_search, MoooomIconName.SearchMagnifyingGlass),
+        AppNavItem("/libraries", R.string.title_libraries, MoooomIconName.Folder),
+        AppNavItem("/music/start", R.string.title_music, MoooomIconName.NoteEighthPair),
+        AppNavItem("/profile", R.string.title_profile, MoooomIconName.User),
     )
 
     var isMiniPlayerVisible by remember { mutableStateOf(true) }
@@ -96,9 +97,8 @@ fun MobileMainScaffold(
     }
 }
 
-annotation class AppNavItem(
+class AppNavItem(
     val route: String,
-    val title: Int,
-    val icon: Int,
-    val description: String
+    val name: Int,
+    val icon: MoooomIconName,
 )

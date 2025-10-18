@@ -2,17 +2,11 @@ package tv.nomercy.app.shared.repositories
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
+import tv.nomercy.app.shared.api.KeycloakConfig
 import tv.nomercy.app.shared.api.ServerApiClient
 import tv.nomercy.app.shared.api.parseComponentsParallel
 import tv.nomercy.app.shared.api.services.AuthService
@@ -34,11 +28,34 @@ class HomeRepository(
         }
     }
 
-    fun fetch(serverUrl: String): Flow<Result<List<Component>>> = flow {
+    fun fetch(serverUrl: String): Flow<Result<List<Component>>> =
+        if (KeycloakConfig.isTv(context)) fetchTvHome(serverUrl)
+        else fetchMobileHome(serverUrl)
+
+
+    fun fetchMobileHome(serverUrl: String): Flow<Result<List<Component>>> = flow {
         try {
             val service = createServerApiService(serverUrl)
 
-            val response = service.getHome()
+            val response = service.getMobileHome()
+            val jsonString = response.body()?.string() ?: throw Exception("Empty response")
+
+            val parsed = withContext(Dispatchers.Default) {
+                parseComponentsParallel(jsonString)
+            }
+
+            emit(Result.success(parsed))
+        } catch (e: Exception) {
+            println(e.message)
+            emit(Result.failure(e))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    fun fetchTvHome(serverUrl: String): Flow<Result<List<Component>>> = flow {
+        try {
+            val service = createServerApiService(serverUrl)
+
+            val response = service.getTvHome()
             val jsonString = response.body()?.string() ?: throw Exception("Empty response")
 
             val parsed = withContext(Dispatchers.Default) {

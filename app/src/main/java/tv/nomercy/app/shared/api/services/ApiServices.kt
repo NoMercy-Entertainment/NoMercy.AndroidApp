@@ -58,7 +58,10 @@ interface ServerApiService {
     suspend fun getServerPermissions(): Response<ApiResponse<PermissionsResponse>>
 
     @GET("home") // raw json
-    suspend fun getHome(): Response<ResponseBody>
+    suspend fun getMobileHome(): Response<ResponseBody>
+
+    @GET("home/tv") // raw json
+    suspend fun getTvHome(): Response<ResponseBody>
 
     /**
      * Get libraries from the user's server
@@ -68,6 +71,9 @@ interface ServerApiService {
 
     @GET("libraries/mobile")
     suspend fun getLibraryList(): Response<ApiResponse<List<Component>>>
+
+    @GET("libraries/tv")
+    suspend fun getTvLibraryList(): Response<ApiResponse<List<Component>>>
 
     /**
      * Get media items from a specific library

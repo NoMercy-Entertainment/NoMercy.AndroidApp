@@ -28,6 +28,8 @@ import tv.nomercy.app.shared.ui.SystemUiController
 import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
 import tv.nomercy.app.shared.ui.NoMercyTheme
 import tv.nomercy.app.shared.ui.ThemeOverrideManager
+import android.content.pm.PackageManager
+import android.content.res.Configuration
 
 class MainActivity : ComponentActivity() {
     private lateinit var insetsController: WindowInsetsControllerCompat
@@ -64,8 +66,19 @@ class MainActivity : ComponentActivity() {
         // Handle any incoming intent that may contain the AppAuth redirect immediately.
         handleAuthIntent(intent)
 
+        // Detect whether we're running on a TV device so we can choose the right UI and behavior.
+        val isTvDevice = try {
+            packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
+                    (resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION
+        } catch (_: Exception) {
+            false
+        }
+
         SystemUiController.setEdgeToEdge(this)
-        SystemUiController.lockOrientationPortrait(this)
+        // Lock portrait on phones only; TVs should not force orientation
+        if (!isTvDevice) {
+            SystemUiController.lockOrientationPortrait(this)
+        }
 
         insetsController = WindowInsetsControllerCompat(window, window.decorView)
 
@@ -95,7 +108,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     SharedMainScreen(
-                        platform = Platform.Mobile,
+                        platform = if (isTvDevice) Platform.TV else Platform.Mobile,
                         authViewModel = authViewModel,
                         appConfigStore = appConfigStore,
                         isImmersiveState = isImmersiveState,

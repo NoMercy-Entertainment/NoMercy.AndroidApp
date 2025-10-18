@@ -81,7 +81,8 @@ open class BaseApiClient(
 
                 val refreshSuccess = runBlocking {
                     try {
-                        authService.refreshToken()
+                        // Use the synchronized refresh so concurrent 401 handlers don't call refresh in parallel
+                        authService.refreshTokenSynchronized(token)
                     } catch (e: Exception) {
                         false
                     }

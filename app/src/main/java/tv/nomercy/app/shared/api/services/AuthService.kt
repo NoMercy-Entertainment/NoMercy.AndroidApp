@@ -1,14 +1,18 @@
 package tv.nomercy.app.shared.api.services
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.util.Base64
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationRequest
@@ -26,11 +30,43 @@ class AuthService(
     private val context: Context,
     private val authStore: AuthStore
 ) {
+    // Mutex to serialize token refresh attempts so multiple 401s don't trigger parallel refreshes
+    private val refreshMutex = Mutex()
     private var authState: AuthState? = null
     private val deviceAuthClient = DeviceAuthClient(
         authUrl = "https://auth-dev.nomercy.tv", // Replace with your auth URL
         clientId = "nomercy-ui" // Replace with your client ID
     )
+
+    /**
+     * Synchronized token refresh. If another coroutine has already refreshed the token
+     * (i.e. authStore.accessToken changed), this will detect that and return true without
+     * calling the token endpoint again.
+     *
+     * @param previousToken optional token that triggered the refresh (so we can detect a concurrent refresh)
+     */
+    suspend fun refreshTokenSynchronized(previousToken: String?): Boolean {
+        return refreshMutex.withLock {
+            try {
+                // Check if a refresh already happened while waiting for the lock
+                val currentToken = try {
+                    authStore.accessToken.first()
+                } catch (_: Exception) {
+                    null
+                }
+
+                if (previousToken != null && currentToken != null && currentToken != previousToken) {
+                    // Token already refreshed by another coroutine
+                    return@withLock true
+                }
+
+                // Otherwise perform the refresh
+                return@withLock refreshToken()
+            } catch (_: Exception) {
+                return@withLock false
+            }
+        }
+    }
 
     private fun getAuthService(): AuthorizationService {
         return getOrCreateAuthService(context)
@@ -277,6 +313,7 @@ class AuthService(
     }
     
     companion object {
+        @SuppressLint("StaticFieldLeak")
         @Volatile
         private var authServiceInstance: AuthorizationService? = null
 

@@ -162,7 +162,7 @@ fun MobileHomeScreen(
     }
 }
 
-private fun hasContent(component: Component): Boolean {
+fun hasContent(component: Component): Boolean {
     return when (val props = component.props ) {
         is NMCarouselProps -> props.items.isNotEmpty()
         is NMGridProps -> props.items.isNotEmpty()

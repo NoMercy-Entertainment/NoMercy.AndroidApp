@@ -3,11 +3,11 @@
   <component name="deploymentTargetSelector">
     <selectionStates>
       <SelectionState runConfigName="app">
-        <option name="selectionMode" value="DIALOG" />
-        <DropdownSelection timestamp="2025-10-13T17:25:59.653997Z">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2025-10-16T15:41:17.128207Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\patri\.android\avd\Pixel_9.avd" />
+              <DeviceId pluginId="Default" identifier="serial=192.168.2.80:5555;connection=09a1a799" />
             </handle>
           </Target>
         </DropdownSelection>

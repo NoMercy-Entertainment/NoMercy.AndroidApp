@@ -48,6 +48,13 @@ fun SharedMainScreen(
 
     var isSetupComplete by remember { mutableStateOf(false) }
 
+    // Automatically start TV device-auth when the auth state becomes Unauthenticated on TV devices
+    LaunchedEffect(authState) {
+        if (platform == Platform.TV && authState is AuthState.Unauthenticated) {
+            authViewModel.login()
+        }
+    }
+
     when (authState) {
         is AuthState.Loading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -63,10 +70,20 @@ fun SharedMainScreen(
                 }
             }
 
-            LoginScreen(
-                authViewModel = authViewModel,
-                onLoginSuccess = { /* handled via authViewModel */ }
-            )
+            if (platform == Platform.TV) {
+                // On TV, show the TvLoginScreen (QR/code) — login has already been triggered by LaunchedEffect
+                TvLoginScreen(
+                    authViewModel = authViewModel,
+                    onLoginSuccess = { /* handled by authViewModel */ },
+                    authState = authState
+                )
+            } else {
+                // Mobile/tablet path: show the standard login screen
+                LoginScreen(
+                    authViewModel = authViewModel,
+                    onLoginSuccess = { /* handled via authViewModel */ }
+                )
+            }
         }
 
         is AuthState.Authenticated -> {

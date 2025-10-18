@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -27,26 +26,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import tv.nomercy.app.shared.components.EmptyGrid
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCarouselProps
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
+import tv.nomercy.app.shared.utils.isTv
 
 @Composable
 fun NMCarousel(
     component: Component,
     modifier: Modifier = Modifier,
     navController: NavController,
-    visibleCards: Int = 3,
-    peekFraction: Float = 0.4f, // tweak for peek effect
+    visibleCards: Int = if (isTv()) 7 else 3,
+    peekFraction: Float = if (isTv()) 0.6f else 0.25f,
 ) {
     val props = component.props as? NMCarouselProps ?: return
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight(), // 👈 let content define height
+            .wrapContentHeight(),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         // Header row
@@ -55,8 +54,13 @@ fun NMCarousel(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
+                .height(if (isTv()) 36.dp else 52.dp)
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = if (isTv()) 4.dp else 12.dp,
+                    bottom = 4.dp
+                )
         ) {
             Text(
                 text = props.title.orEmpty(),
@@ -91,7 +95,6 @@ fun NMCarousel(
         ) {
             val spacing = 8.dp
             val totalSpacing = spacing * (visibleCards - 1)
-            val peekFraction = 0.25f
             val cardWidth = (maxWidth - totalSpacing) / (visibleCards + peekFraction)
 
             LazyRow(

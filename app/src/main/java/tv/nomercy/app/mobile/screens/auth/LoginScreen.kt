@@ -112,18 +112,21 @@ fun LoginScreen(
                                 .replace("auth-", "")
                                 .replace("/realms/NoMercyTV/device", "/tv"),
                             userCode = currentState.userCode,
+                            expiresAt = currentState.expiresAt,
                             onConfirm = { authViewModel.pollForToken() }
                         )
                     }
 
                     is AuthState.TvPolling -> {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            CircularProgressIndicator()
-                            Text(text = "Waiting for login on another device...")
-                        }
+                        // Keep showing the QR/instructions while polling; do not re-trigger polling here
+                        TvLoginInstructions(
+                            verificationUri = currentState.verificationUri
+                                .replace("auth-", "")
+                                .replace("/realms/NoMercyTV/device", "/tv"),
+                            userCode = currentState.userCode,
+                            expiresAt = currentState.expiresAt,
+                            onConfirm = { /* polling already in progress; no-op */ }
+                        )
                     }
 
                     else -> {
@@ -193,4 +196,3 @@ fun LoginScreen(
         }
     }
 }
-

@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import tv.nomercy.app.shared.api.DeviceAuthResponse
@@ -31,6 +33,8 @@ class AuthViewModel(
     val loginIntent: StateFlow<AuthResult.LoginIntent?> = _loginIntent.asStateFlow()
 
     private var deviceAuthResponse: DeviceAuthResponse? = null
+    // Job used to track and cancel the polling coroutine (prevents concurrent polls)
+    private var pollingJob: Job? = null
 
     init {
         checkAuthStatus()
@@ -56,7 +60,7 @@ class AuthViewModel(
                 } else {
                     _authState.value = AuthState.Unauthenticated
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _authState.value = AuthState.Unauthenticated
             }
         }
@@ -71,6 +75,9 @@ class AuthViewModel(
     }
 
     fun login() {
+        // Cancel any existing polling to ensure a clean device flow
+        pollingJob?.cancel()
+        pollingJob = null
         viewModelScope.launch {
             _authState.value = AuthState.Loading
 
@@ -78,10 +85,15 @@ class AuthViewModel(
                 is AuthResult.Success -> {
                     _authState.value = AuthState.Authenticated
                     _userInfo.value = result.user
+                    // Cancel any polling if present
+                    pollingJob?.cancel()
+                    pollingJob = null
                 }
 
                 is AuthResult.Error -> {
                     _authState.value = AuthState.Error(result.message)
+                    pollingJob?.cancel()
+                    pollingJob = null
                 }
 
                 is AuthResult.LoginIntent -> {
@@ -91,9 +103,11 @@ class AuthViewModel(
 
                 is AuthResult.TvLogin -> {
                     deviceAuthResponse = result.response
+                    val expiresAt = System.currentTimeMillis() + (result.response.expiresIn * 1000L)
                     _authState.value = AuthState.TvInstructions(
                         result.response.verificationUri,
-                        result.response.userCode
+                        result.response.userCode,
+                        expiresAt
                     )
                 }
             }
@@ -101,35 +115,94 @@ class AuthViewModel(
     }
 
     fun pollForToken() {
-        viewModelScope.launch {
-            _authState.value = AuthState.TvPolling
-            var polling = true
-            while (polling) {
-                val response = deviceAuthResponse ?: break
-                when (val result = authService.pollForToken(response.deviceCode)) {
-                    is AuthResult.Success -> {
-                        _authState.value = AuthState.Authenticated
-                        _userInfo.value = result.user
-                        polling = false
-                    }
+        // If a polling job is already active, don't start another
+        if (pollingJob?.isActive == true) return
 
-                    is AuthResult.Error -> {
-                        if (result.message == "pending") {
-                            delay(response.interval * 1000L) // Poll at the specified interval
-                        } else if (result.message == "slow down") {
-                            delay((response.interval + 5) * 1000L) // Slow down and poll after a longer delay
-                        } else {
-                            _authState.value = AuthState.Error(result.message)
-                            polling = false
+        // Launch and track the polling job so it can be cancelled externally
+        pollingJob = viewModelScope.launch {
+            try {
+                var resp = deviceAuthResponse
+                if (resp == null) {
+                    _authState.value = AuthState.Error("No device auth response available")
+                    return@launch
+                }
+
+                // compute expiresAt for the current response
+                var expiresAt = System.currentTimeMillis() + (resp.expiresIn * 1000L)
+                _authState.value = AuthState.TvPolling(resp.verificationUri, resp.userCode, expiresAt)
+
+                var polling = true
+                while (polling && isActive) {
+                    // Re-evaluate expiration on each loop
+                    val now = System.currentTimeMillis()
+
+                    // If device code expired, request a new device code and restart polling
+                    if (now >= (deviceAuthResponse?.let { expiresAt } ?: now)) {
+                        // Request new device code by calling login(); this will update deviceAuthResponse
+                        when (val newResult = authService.login()) {
+                            is AuthResult.TvLogin -> {
+                                deviceAuthResponse = newResult.response
+                                resp = deviceAuthResponse ?: break
+                                expiresAt = System.currentTimeMillis() + (resp.expiresIn * 1000L)
+                                // update UI to show new code
+                                _authState.value = AuthState.TvInstructions(resp.verificationUri, resp.userCode, expiresAt)
+                                // continue to polling with new resp
+                                continue
+                            }
+
+                            is AuthResult.Error -> {
+                                _authState.value = AuthState.Error(newResult.message)
+                                deviceAuthResponse = null
+                                break
+                            }
+
+                            else -> {
+                                _authState.value = AuthState.Error("Failed to refresh device code")
+                                deviceAuthResponse = null
+                                break
+                            }
                         }
                     }
 
-                    else -> {
-                        // Should not happen
-                        _authState.value = AuthState.Error("Unexpected result during polling")
-                        polling = false
+                    // Always read the latest deviceAuthResponse
+                    val current = deviceAuthResponse ?: run {
+                        _authState.value = AuthState.Error("Device auth cancelled")
+                        break
+                    }
+
+                    when (val result = authService.pollForToken(current.deviceCode)) {
+                        is AuthResult.Success -> {
+                            _authState.value = AuthState.Authenticated
+                            _userInfo.value = result.user
+                            // clear device auth data to stop further polling
+                            deviceAuthResponse = null
+                            polling = false
+                        }
+
+                        is AuthResult.Error -> {
+                            when (result.message) {
+                                "pending" -> delay(current.interval * 1000L)
+                                "slow down" -> delay((current.interval + 5) * 1000L)
+                                else -> {
+                                    _authState.value = AuthState.Error(result.message)
+                                    // clear device auth data
+                                    deviceAuthResponse = null
+                                    polling = false
+                                }
+                            }
+                        }
+
+                        else -> {
+                            // Should not happen
+                            _authState.value = AuthState.Error("Unexpected result during polling")
+                            deviceAuthResponse = null
+                            polling = false
+                        }
                     }
                 }
+            } finally {
+                // Clear the tracked job so a new poll can be started later
+                pollingJob = null
             }
         }
     }
@@ -145,10 +218,15 @@ class AuthViewModel(
                 is AuthResult.Success -> {
                     _authState.value = AuthState.Authenticated
                     _userInfo.value = result.user
+                    // Cancel any polling job when an authorization response completes the flow
+                    pollingJob?.cancel()
+                    pollingJob = null
                 }
 
                 is AuthResult.Error -> {
                     _authState.value = AuthState.Error(result.message)
+                    pollingJob?.cancel()
+                    pollingJob = null
                 }
 
                 is AuthResult.LoginIntent -> {
@@ -171,6 +249,10 @@ class AuthViewModel(
             if (success) {
                 _authState.value = AuthState.Unauthenticated
                 _userInfo.value = null
+                // cancel any ongoing device-auth data/polling
+                deviceAuthResponse = null
+                pollingJob?.cancel()
+                pollingJob = null
             } else {
                 _authState.value = AuthState.Error("Logout failed")
             }
@@ -217,7 +299,7 @@ sealed class AuthState {
     object Authenticated : AuthState()
     object Unauthenticated : AuthState()
     object AwaitingLogin : AuthState()
-    data class TvInstructions(val verificationUri: String, val userCode: String) : AuthState()
-    object TvPolling : AuthState()
+    data class TvInstructions(val verificationUri: String, val userCode: String, val expiresAt: Long) : AuthState()
+    data class TvPolling(val verificationUri: String, val userCode: String, val expiresAt: Long) : AuthState()
     data class Error(val message: String) : AuthState()
 }
