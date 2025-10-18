@@ -166,7 +166,6 @@ fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = 
 
                 Indexer(
                     modifier = Modifier,
-                    viewModel = viewModel,
                     showIndexerState = viewModel.showIndexer,
                     selectedIndexState = viewModel.selectedIndex,
                     activeLettersState = viewModel.activeIndexerLetters,

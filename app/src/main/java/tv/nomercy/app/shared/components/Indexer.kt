@@ -22,14 +22,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import tv.nomercy.app.mobile.screens.base.library.LibrariesViewModel
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun Indexer(
     modifier: Modifier,
-    viewModel: LibrariesViewModel? = null,
-    // explicit flows (preferred for non-library usages)
+    // explicit flows (preferred for all usages)
     showIndexerState: StateFlow<Boolean>? = null,
     selectedIndexState: StateFlow<Int>? = null,
     activeLettersState: StateFlow<Set<Char>>? = null,
@@ -65,8 +63,8 @@ fun Indexer(
                     .clip(CircleShape.copy(CornerSize(5.dp)))
                     .background(backgroundColor)
                     .clickable(enabled = showIndexer && isActive) {
-                        // prefer explicit callback, otherwise call through viewModel
-                        onIndexSelectedCallback?.invoke(char) ?: viewModel?.onIndexSelected(char)
+                        // invoke explicit callback when provided
+                        onIndexSelectedCallback?.invoke(char)
                     }
                     .alpha(if (isActive) 1f else 0.3f),
                 contentAlignment = Alignment.Center
