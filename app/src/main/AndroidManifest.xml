@@ -29,7 +29,7 @@
         android:theme="@style/Theme.App.Starting">
 
         <activity
-            android:name=".mobile.entrypoint.MainActivity"
+            android:name=".MainActivity"
             android:launchMode="singleTask"
             android:hardwareAccelerated="true"
             android:configChanges="orientation|screenSize|screenLayout|uiMode"

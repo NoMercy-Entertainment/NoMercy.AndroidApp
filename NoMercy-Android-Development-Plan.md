@@ -832,8 +832,7 @@ Packages added in this PR
   - CastRole, CastMessage (Discover, Advertise, PairRequest, PairResult), Control (Play, Pause, SeekTo, SetVolume, Navigate), State (AppState)
   - CastSession, CastSignalingClient, CastReceiver
   - CastNoop — default no-op signaling implementation used as placeholder
-- platform/mobile — CastControllerFacade (controller entrypoint)
-- platform/tv — CastReceiverFacade (receiver entrypoint)
+- core/cast — CastControllerFacade (controller entrypoint) and CastReceiverFacade (receiver entrypoint)
 
 Rollout plan
 1) v0.1 (this PR): Protocol DTOs, interfaces, facades, no runtime wiring. Safe, no behavior change.
