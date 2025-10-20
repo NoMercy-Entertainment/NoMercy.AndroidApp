@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.music
+package tv.nomercy.app.components.music
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.rememberSwipeableState
-import tv.nomercy.app.shared.components.Marquee
+import tv.nomercy.app.components.Marquee
 import tv.nomercy.app.components.nMComponents.CoverImage
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.pickPaletteColor

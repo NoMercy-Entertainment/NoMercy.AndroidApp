@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -41,9 +40,9 @@ import androidx.navigation.NavHostController
 import tv.nomercy.app.views.base.home.shared.HomeViewModel
 import tv.nomercy.app.views.base.home.shared.HomeViewModelFactory
 import tv.nomercy.app.views.base.home.mobile.hasContent
-import tv.nomercy.app.shared.components.EmptyGrid
-import tv.nomercy.app.shared.components.SplitTitleText
-import tv.nomercy.app.shared.components.TMDBImage
+import tv.nomercy.app.components.EmptyGrid
+import tv.nomercy.app.components.SplitTitleText
+import tv.nomercy.app.components.TMDBImage
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.models.NMCarouselProps
@@ -62,6 +61,16 @@ import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.ui.LocalNavbarFocusBridge
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
+import tv.nomercy.app.shared.utils.isTv
+import tv.nomercy.app.shared.utils.pickPaletteColor
+import java.util.UUID
 
 @Composable
 fun TvHomeScreen(navController: NavHostController) {
@@ -94,31 +103,57 @@ fun TvHomeScreen(navController: NavHostController) {
     val overlap = 72.dp
 
     // Track the currently active card (focused/hovered). Falls back to firstItem when null.
-    val activeCardState = androidx.compose.runtime.remember { mutableStateOf<NMCardProps?>(null) }
+    val activeCardState = remember { mutableStateOf<NMCardProps?>(null) }
 
     // Debounced selected card for hero/backdrop to avoid thrashing while scrolling
-    val debouncedSelectedCard = androidx.compose.runtime.remember { mutableStateOf<NMCardProps?>(firstItem) }
+    val debouncedSelectedCard = remember { mutableStateOf(firstItem) }
 
     // Reset active card when the home data changes to ensure a sensible default
-    androidx.compose.runtime.LaunchedEffect(homeData) { activeCardState.value = null }
+    LaunchedEffect(homeData) { activeCardState.value = null }
 
     // Keep the debounced card in sync with firstItem when no active card
-    androidx.compose.runtime.LaunchedEffect(firstItem) {
+    LaunchedEffect(firstItem) {
         if (activeCardState.value == null) {
             debouncedSelectedCard.value = firstItem
         }
     }
 
     // Debounce hero/background updates so carousel scrolling takes priority
-    androidx.compose.runtime.LaunchedEffect(activeCardState.value, firstItem) {
-        val target = activeCardState.value ?: firstItem
-        // Short debounce to let flings/scroll settle
-        kotlinx.coroutines.delay(16)
-        debouncedSelectedCard.value = target
+    val debounceJob = remember { mutableStateOf<Job?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(activeCardState.value) {
+        debounceJob.value?.cancel()
+        val job = coroutineScope.launch {
+            withFrameNanos { }
+            delay(600)
+            withFrameNanos { }
+            val target = activeCardState.value ?: firstItem
+            debouncedSelectedCard.value = target
+        }
+        debounceJob.value = job
+    }
+
+    val posterPalette = if (isTv()) debouncedSelectedCard.value?.colorPalette?.backdrop else debouncedSelectedCard.value?.colorPalette?.poster
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
+    val themeOverrideManager = LocalThemeOverrideManager.current
+    val key = remember { UUID.randomUUID() }
+    val scope = rememberCoroutineScope()
+
+    DisposableEffect(focusColor) {
+        val job = scope.launch {
+            withFrameNanos { }
+            themeOverrideManager.add(key, focusColor)
+        }
+
+        onDispose {
+            job.cancel()
+//            themeOverrideManager.remove(key)
+        }
     }
 
     Box(
         modifier = Modifier
+            .background(Color.Black)
             .fillMaxSize()
     ) {
         BackdropImageWithOverlay(
@@ -129,10 +164,11 @@ fun TvHomeScreen(navController: NavHostController) {
             HeroRow(
                 title = debouncedSelectedCard.value?.title,
                 overview = debouncedSelectedCard.value?.overview,
+                maxLines = 5,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(heroHeight)
-                    .align(Alignment.TopStart)
+                    .align(Alignment.TopStart),
             )
 
             Box(
@@ -142,6 +178,22 @@ fun TvHomeScreen(navController: NavHostController) {
                     .zIndex(1f)
             ) {
                 when {
+                    isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+
+                    isEmptyStable -> {
+                        EmptyGrid(
+                            modifier = Modifier.fillMaxSize(),
+                            text = "No content available in this library."
+                        )
+                    }
+
                     homeData.isNotEmpty() -> {
                         val filteredData = homeData.filter { component -> hasContent(component) }
 
@@ -153,16 +205,18 @@ fun TvHomeScreen(navController: NavHostController) {
 
                         // Register a handler so the navbar can send focus into the first focusable element of this screen
                         val navbarBridge = LocalNavbarFocusBridge.current
+
+                        // Ensure first card becomes focused when data arrives
+                        val initialFocusRequested = remember { mutableStateOf(false) }
+
+                        LaunchedEffect(filteredData) {
+                            initialFocusRequested.value = false
+                        }
+
                         LaunchedEffect(filteredData, rowControllers.size) {
                             navbarBridge.focusFirstInContent = suspend {
                                 router.focusFirstInContent()
                             }
-                        }
-
-                        // Ensure first card becomes focused when data arrives
-                        val initialFocusRequested = remember { mutableStateOf(false) }
-                        LaunchedEffect(homeData) { initialFocusRequested.value = false }
-                        LaunchedEffect(filteredData, rowControllers.size) {
                             if (!initialFocusRequested.value && filteredData.isNotEmpty()) {
                                 router.requestInitialFocus()
                                 initialFocusRequested.value = true
@@ -199,22 +253,6 @@ fun TvHomeScreen(navController: NavHostController) {
                         }
                         authStore.markReady()
                     }
-
-                    isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    isEmptyStable -> {
-                        EmptyGrid(
-                            modifier = Modifier.fillMaxSize(),
-                            text = "No content available in this library."
-                        )
-                    }
                 }
             }
         }
@@ -226,7 +264,8 @@ fun TvHomeScreen(navController: NavHostController) {
 fun HeroRow(
     title: String?,
     overview: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    maxLines: Int,
 ) {
 
     Row(
@@ -234,18 +273,20 @@ fun HeroRow(
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        LeftColumn(title = title, overview = overview, modifier = Modifier.weight(3f))
+        LeftColumn(title = title, overview = overview, maxLines = maxLines, modifier = Modifier.weight(3f))
         RightColumn(modifier = Modifier.weight(2f))
     }
 }
 
 @Composable
-fun LeftColumn(title: String?, overview: String?, modifier: Modifier = Modifier) {
-    // Reserve fixed heights for title and overview blocks to prevent layout shift
-    // Title block: accommodates one main line (26sp lineHeight) plus optional subtitle (22sp) and 4dp spacing
-    // Overview block: 4 lines at 24sp lineHeight
-    val titleBlockHeight = 56.dp
-    val overviewBlockHeight = 104.dp
+fun LeftColumn(
+    title: String?,
+    overview: String?,
+    modifier: Modifier = Modifier,
+    maxLines: Int?
+) {
+    val titleBlockHeight = 26.dp + 24.dp + 8.dp
+    val overviewBlockHeight = 20.dp * (maxLines ?: 5)
 
     Column(
         modifier = modifier
@@ -270,7 +311,7 @@ fun LeftColumn(title: String?, overview: String?, modifier: Modifier = Modifier)
                                 fontSize = 19.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color.White,
-                                lineHeight = 22.sp
+                                lineHeight = 24.sp
                             ),
                     )
                 }
@@ -287,7 +328,7 @@ fun LeftColumn(title: String?, overview: String?, modifier: Modifier = Modifier)
                             fontWeight = FontWeight.SemiBold,
                             lineHeight = 20.sp
                         ),
-                        maxLines = 5,
+                        maxLines = maxLines ?: 5,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -341,46 +382,50 @@ fun BackdropImageWithOverlay(imageUrl: String?) {
             )
         }
 
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .zIndex(1f)
-        ) {
-            val widthPx = constraints.maxWidth.toFloat()
-            val heightPx = constraints.maxHeight.toFloat()
-
-            val radius = maxOf(widthPx, heightPx) * 1.8f
-            val centerOffset = Offset(widthPx - 225, -500f)
-
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .graphicsLayer {
-                        scaleX = 1.15f
-                    }
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Transparent,
-                                Color.Transparent,
-                                Color.Black,
-                                Color.Black,
-                                Color.Black,
-                                Color.Black,
-                                Color.Black,
-                                Color.Black,
-                            ),
-                            center = centerOffset,
-                            radius = radius
-                        )
-                    )
-            )
-        }
+        OverlayGradient();
     }
 }
 
-// Delegate to centralize vertical focus routing and alignment for the Home TV column
+@Composable
+fun OverlayGradient(offsetModifier: Float = 0f) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .zIndex(1f)
+    ) {
+        val widthPx = constraints.maxWidth.toFloat()
+        val heightPx = constraints.maxHeight.toFloat()
+
+        val radius = maxOf(widthPx, heightPx) * 1.8f
+        val centerOffset = Offset(widthPx - 225, -450f + offsetModifier)
+
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .graphicsLayer {
+                    scaleX = 1.15f
+                }
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color.Black,
+                            Color.Black,
+                            Color.Black,
+                            Color.Black,
+                            Color.Black,
+                            Color.Black,
+                        ),
+                        center = centerOffset,
+                        radius = radius
+                    )
+                )
+        )
+    }
+}
+
 /**
  * Centralizes vertical focus routing and alignment for the Home TV LazyColumn.
  *
@@ -431,10 +476,10 @@ private class ColumnFocusRouter(
             listState.animateScrollToItem(rowIndex)
             var attempts = 0
             while (!listState.layoutInfo.visibleItemsInfo.any { it.index == rowIndex } && attempts < 60) {
-                kotlinx.coroutines.delay(4)
+                delay(16)
                 attempts++
             }
-            androidx.compose.runtime.withFrameNanos { }
+            withFrameNanos { }
             rowControllers[rowIndex]?.focusFirstVisible?.invoke()
         }
     }
@@ -448,10 +493,10 @@ private class ColumnFocusRouter(
             listState.animateScrollToItem(0)
             var attempts = 0
             while (rowControllers[0] == null && attempts < 60) {
-                kotlinx.coroutines.delay(4)
+                delay(16)
                 attempts++
             }
-            androidx.compose.runtime.withFrameNanos { }
+            withFrameNanos { }
             rowControllers[0]?.focusFirstVisible?.invoke()
         }
     }
@@ -465,10 +510,10 @@ private class ColumnFocusRouter(
             listState.animateScrollToItem(0)
             var attempts = 0
             while (rowControllers[0] == null && attempts < 60) {
-                kotlinx.coroutines.delay(4)
+                delay(16)
                 attempts++
             }
-            androidx.compose.runtime.withFrameNanos { }
+            withFrameNanos { }
             rowControllers[0]?.focusItem?.invoke(0)
         }
     }

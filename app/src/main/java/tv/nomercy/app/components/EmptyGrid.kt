@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components
+package tv.nomercy.app.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import tv.nomercy.app.components.TMDBImage
 import tv.nomercy.app.shared.utils.AspectRatio
 
 @Composable

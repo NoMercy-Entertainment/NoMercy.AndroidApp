@@ -1,5 +1,6 @@
 package tv.nomercy.app.layout.tv
 
+import android.view.KeyEvent
 import tv.nomercy.app.layout.mobile.AppNavItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,9 +34,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,17 +44,13 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import kotlinx.coroutines.launch
-import tv.nomercy.app.shared.components.MoooomIcon
+import tv.nomercy.app.components.MoooomIcon
 import tv.nomercy.app.components.nMComponents.CoverImage
 import tv.nomercy.app.shared.models.PlaylistItem
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.components.ProfileImage
-import tv.nomercy.app.shared.components.brand.AppLogoSquare
+import tv.nomercy.app.components.brand.AppLogoSquare
 import tv.nomercy.app.shared.ui.LocalNavbarFocusBridge
-import android.view.KeyEvent as AndroidKeyEvent
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 
 @Composable
 fun TvNavigationBar(
@@ -202,22 +197,22 @@ fun TvNavigationBarButton(
             .focusable(interactionSource = interaction)
             .hoverable(interactionSource = interaction)
             .onPreviewKeyEvent { event ->
-                if (event.nativeKeyEvent.action == AndroidKeyEvent.ACTION_DOWN) {
+                if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
                     when (event.nativeKeyEvent.keyCode) {
-                        AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
+                        KeyEvent.KEYCODE_DPAD_DOWN -> {
                             // Delegate focus to the bridge to move to the main content area
                             scope.launch {
                                 navbarBridge.focusFirstInContent()
                             }
-                            true
+                            navController.currentBackStackEntry?.destination?.route == "/home"
                         }
-                        AndroidKeyEvent.KEYCODE_DPAD_CENTER -> {
+                        KeyEvent.KEYCODE_DPAD_CENTER -> {
                             navController.navigate(item.route)
                             true
                         }
                         else -> false
                     }
-                } else true
+                } else false
             }
             .clickable(interactionSource = interaction, indication = null) {
 //                navController.navigate(item.route)

@@ -26,9 +26,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
 import tv.nomercy.app.shared.stores.GlobalStores
-import tv.nomercy.app.shared.components.EmptyGrid
-import tv.nomercy.app.shared.components.Indexer
-import tv.nomercy.app.shared.components.LibraryTabScroller
+import tv.nomercy.app.components.EmptyGrid
+import tv.nomercy.app.components.Indexer
+import tv.nomercy.app.components.LibraryTabScroller
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.models.NMGridProps

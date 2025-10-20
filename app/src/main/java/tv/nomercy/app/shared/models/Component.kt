@@ -99,7 +99,7 @@ data class NMCardProps(
     val haveItems: Int? = null,
     @SerialName("number_of_items")
     val numberOfItems: Int? = null
-)
+) : ComponentData
 
 @Serializable
 @SerialName("NMCarousel")

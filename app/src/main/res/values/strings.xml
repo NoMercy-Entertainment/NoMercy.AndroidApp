@@ -102,4 +102,6 @@
     <string name="genre_talk">Talk</string>
     <string name="genre_war_politics">War &amp; Politics</string>
     <string name="genre_tv_movie">TV Movie</string>
+    <string name="seasons_episodes">Seasons &amp; episodes</string>
+    <string name="add_to_watch_list">Add to watchlist</string>
 </resources>

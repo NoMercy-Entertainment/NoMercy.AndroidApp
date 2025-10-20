@@ -2,6 +2,7 @@ package tv.nomercy.app.components.nMComponents
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -16,15 +17,20 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
@@ -32,20 +38,29 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.models.Component
+import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.models.NMCarouselProps
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
+import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
+import tv.nomercy.app.shared.ui.LocalFocusRightInRow
+import tv.nomercy.app.shared.ui.LocalOnActiveInRow
+import tv.nomercy.app.shared.ui.LocalOnActiveRowInColumn
 import tv.nomercy.app.shared.ui.LocalRegisterRowFocusController
-import tv.nomercy.app.shared.ui.LocalRequestFocusAt
-import tv.nomercy.app.shared.ui.LocalRequestFocusAtViewportX
+import tv.nomercy.app.shared.ui.LocalRequestFocusAtFirstVisible
 import tv.nomercy.app.shared.ui.LocalRowIndex
 import tv.nomercy.app.shared.ui.RowFocusController
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.isTv
+import kotlin.math.round
 import android.view.KeyEvent as AndroidKeyEvent
 
 // --- Delegates & helpers for clearer DX ---
@@ -71,7 +86,7 @@ private fun createRowFocusController(
             val firstOffset = rowState.firstVisibleItemScrollOffset.toFloat()
             val scrollPx = firstIndex * stepPx + firstOffset
             val rawIndex = ((viewportX + scrollPx - paddingStartPx) / stepPx)
-            val target = kotlin.math.round(rawIndex).toInt().coerceIn(0, itemsSize - 1)
+            val target = round(rawIndex).toInt().coerceIn(0, itemsSize - 1)
             rowState.animateScrollToItem(target)
             focusRequesters.getOrNull(target)?.requestFocus()
         },
@@ -111,7 +126,7 @@ private suspend fun watchScrollAndSyncFocus(
             positionChanged = false
             controller.focusFirstVisible()
         }
-        kotlinx.coroutines.delay(4)
+        delay(4)
     }
 }
 
@@ -171,12 +186,12 @@ private fun handleItemKey(
         }
         AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
             scope.launch { requestFocusAtFirstVisible(rowIndex + 1) }
-            true
+            false
         }
         AndroidKeyEvent.KEYCODE_DPAD_UP -> {
             if (rowIndex > 0) {
                 scope.launch { requestFocusAtFirstVisible(rowIndex - 1) }
-                true
+                false
             } else false
         }
         else -> false
@@ -259,19 +274,41 @@ fun NMCarousel(
             val totalSpacing = spacing * (visibleCards - 1)
             val cardWidth = (maxWidth - totalSpacing) / (visibleCards + peekFraction)
 
-            val rowState = androidx.compose.foundation.lazy.rememberLazyListState()
+            val rowState = rememberLazyListState()
 
             // Access vertical align callback from parent column (if provided)
-            val onActiveRowInColumn = tv.nomercy.app.shared.ui.LocalOnActiveRowInColumn.current
+            val onActiveRowInColumn = LocalOnActiveRowInColumn.current
 
             // Deterministic vertical focus routing
             val rowIndex = LocalRowIndex.current
             val registerController = LocalRegisterRowFocusController.current
-            val requestFocusAtFirstVisible = tv.nomercy.app.shared.ui.LocalRequestFocusAtFirstVisible.current
+            val requestFocusAtFirstVisible = LocalRequestFocusAtFirstVisible.current
+
+            val items = if (isTv() && props.moreLink != null) {
+                val component = Component(
+                    id = "",
+                    component = "NMCard",
+                    props = NMCardWrapper(
+                        id = "",
+                        title = "",
+                        data = NMCardProps(
+                            id = "",
+                            title = "More ${props.title.orEmpty().replace("Latest in ", "")}",
+                            titleSort = "",
+                            link = props.moreLink,
+                            type = "tv",
+                        ),
+                    ),
+                )
+
+                props.items + component
+            } else {
+                props.items
+            }
 
             // Per-item FocusRequesters so we can programmatically move focus
-            val focusRequesters = androidx.compose.runtime.remember(props.items.size) {
-                List(props.items.size) { FocusRequester() }
+            val focusRequesters = remember(items.size) {
+                List(items.size) { FocusRequester() }
             }
 
             val density = LocalDensity.current
@@ -282,20 +319,24 @@ fun NMCarousel(
             val controller = createRowFocusController(
                 rowState = rowState,
                 focusRequesters = focusRequesters,
-                itemsSize = props.items.size,
+                itemsSize = items.size,
                 stepPx = stepPx,
                 paddingStartPx = paddingStartPx
             )
-            androidx.compose.runtime.LaunchedEffect(registerController, rowIndex, focusRequesters) {
+            LaunchedEffect(registerController, rowIndex, focusRequesters) {
                 if (rowIndex >= 0) registerController(rowIndex, controller)
             }
 
             // Synchronize focus only when real scroll position changes
-            androidx.compose.runtime.LaunchedEffect(rowState) {
+            LaunchedEffect(rowState) {
                 watchScrollAndSyncFocus(rowState, controller)
             }
 
             val scope = rememberCoroutineScope()
+
+            val endPadding = spacing + cardWidth * peekFraction - 48.dp
+
+            val focusCoordinator = viewModel<FocusCoordinatorViewModel>()
 
             LazyRow(
                 state = rowState,
@@ -304,23 +345,23 @@ fun NMCarousel(
                     .wrapContentHeight(),
                 contentPadding = PaddingValues(
                     start = if (isTv()) 40.dp else (spacing * 2),
-                    end = spacing + cardWidth * peekFraction - 48.dp
+                    end = if (endPadding < 0.dp) 18.dp else endPadding
                 ),
                 horizontalArrangement = Arrangement.spacedBy(spacing),
-                flingBehavior = androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior(
+                flingBehavior = rememberSnapFlingBehavior(
                     lazyListState = rowState
                 ),
             ) {
-                itemsIndexed(props.items, key = { index, item -> item.id }) { index, item ->
+                itemsIndexed(items, key = { index, item -> item.id }) { index, item ->
                     val aspectRatio = aspectFromComponent(item.component)
                     val onActiveInRow = makeOnActiveInRow(index, rowState, onActiveRowInColumn)
                     val focusLeft = makeFocusLeft(index, controller)
-                    val focusRight = makeFocusRight(index, props.items.lastIndex, controller)
-                    androidx.compose.runtime.CompositionLocalProvider(
-                        tv.nomercy.app.shared.ui.LocalOnActiveInRow provides onActiveInRow,
+                    val focusRight = makeFocusRight(index, items.lastIndex, controller)
+                    CompositionLocalProvider(
+                        LocalOnActiveInRow provides onActiveInRow,
                         LocalCurrentItemFocusRequester provides focusRequesters[index],
-                        tv.nomercy.app.shared.ui.LocalFocusLeftInRow provides focusLeft,
-                        tv.nomercy.app.shared.ui.LocalFocusRightInRow provides focusRight
+                        LocalFocusLeftInRow provides focusLeft,
+                        LocalFocusRightInRow provides focusRight
                     ) {
                         NMComponent(
                             components = listOf(item),
@@ -329,13 +370,13 @@ fun NMCarousel(
                             modifier = Modifier
                                 .width(cardWidth)
                                 .aspectFromType(aspectRatio)
+                                .focusRequester(if (index == 0) focusCoordinator.leftmostCarouselFocusRequester else FocusRequester.Default)
                                 .onPreviewKeyEvent { event ->
                                     if (event.type == KeyEventType.KeyDown) {
-                                        val code = event.nativeKeyEvent.keyCode
                                         handleItemKey(
-                                            code = code,
+                                            code = event.nativeKeyEvent.keyCode,
                                             index = index,
-                                            lastIndex = props.items.lastIndex,
+                                            lastIndex = items.lastIndex,
                                             rowIndex = rowIndex,
                                             scope = scope,
                                             controller = controller,
@@ -349,6 +390,11 @@ fun NMCarousel(
             }
         }
     }
+}
+
+class FocusCoordinatorViewModel : ViewModel() {
+    val leftmostCarouselFocusRequester = FocusRequester()
+    val leftmostButtonFocusRequester = FocusRequester()
 }
 
 /**

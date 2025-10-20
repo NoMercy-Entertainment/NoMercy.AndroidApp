@@ -1,21 +1,214 @@
 package tv.nomercy.app.views.base.info.tv
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import tv.nomercy.app.R
+import tv.nomercy.app.components.LinkButton
+import tv.nomercy.app.shared.models.InfoResponse
+import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
+import tv.nomercy.app.shared.utils.SnapAnchor
+import tv.nomercy.app.shared.utils.snapToOffset
+import tv.nomercy.app.shared.utils.pickPaletteColor
+import tv.nomercy.app.views.base.home.tv.BackdropImageWithOverlay
+import tv.nomercy.app.views.base.home.tv.HeroRow
+import tv.nomercy.app.views.base.info.shared.InfoViewModel
+import tv.nomercy.app.views.base.info.shared.InfoViewModelFactory
+import java.util.UUID
 
 @Composable
 fun InfoScreen(type: String, id: String, navController: NavHostController) {
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "InfoScreen: $type / $id")
+    val context = LocalContext.current
+    val factory = remember {
+        InfoViewModelFactory(
+            infoStore = GlobalStores.getInfoStore(context),
+            authStore = GlobalStores.getAuthStore(context)
+        )
+    }
+    val viewModel: InfoViewModel = viewModel(factory = factory, key = "$type/$id")
+
+    val infoData by viewModel.infoData.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    LaunchedEffect(type, id) {
+        viewModel.setInfoParams(type, id)
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        errorMessage?.let {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = {
+                        viewModel.clearError()
+                        viewModel.refresh()
+                    }) {
+                        Text(stringResource(R.string.try_again))
+                    }
+                }
+            }
+        }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            InfoColumn(infoData, navController)
         }
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
+@Composable
+fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
+    val themeOverrideManager = LocalThemeOverrideManager.current
+    val listState = rememberLazyListState()
+
+    val posterPalette = infoData?.colorPalette?.poster
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
+    val key = remember { UUID.randomUUID() }
+
+    DisposableEffect(focusColor) {
+//        themeOverrideManager.add(key, focusColor)
+
+        onDispose {
+            themeOverrideManager.remove(key)
+        }
+    }
+
+    val heroHeight = 300.dp
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        BackdropImageWithOverlay(
+            imageUrl = infoData?.backdrop,
+        )
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            HeroRow(
+                title = infoData?.title,
+                overview = infoData?.overview,
+                maxLines = 7,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp)
+                    .height(heroHeight)
+                    .align(Alignment.TopStart)
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 40.dp)
+                    .padding(top = heroHeight)
+                    .zIndex(1f)
+            ) {
+
+                val scrollState = rememberScrollState()
+                val density = LocalDensity.current
+                val configuration = LocalConfiguration.current
+
+                LaunchedEffect(Unit) {
+                    scrollState.snapToOffset(
+                        targetOffset = 0, // px from top of content
+                        anchor = SnapAnchor.Top,
+                        density = density,
+                        configuration = configuration
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(scrollState)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    infoData.let {
+                        LinkButton(
+                            text = R.string.watch,
+                            icon = R.drawable.nmplaysolid,
+                            onClick = { infoData?.link?.let { navController.navigate("${infoData.link}/watch") } },
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = 0.33f)
+                        )
+
+                        // trailer button
+                        LinkButton(
+                            text = R.string.watch_trailer,
+                            icon = R.drawable.playcircle,
+                            onClick = { /* TODO: implement trailer navigation */ },
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = 0.33f)
+                        )
+
+                        // seasons/episodes button
+                        LinkButton(
+                            text = R.string.seasons_episodes,
+                            icon = R.drawable.tv,
+                            onClick = { /* TODO: implement seasons/episodes navigation */ },
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = 0.33f)
+                        )
+
+                        // add to watch later button
+                        LinkButton(
+                            text = R.string.add_to_watch_list,
+                            icon = R.drawable.bookmark,
+                            onClick = { /* TODO: implement add to watch later navigation */ },
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = 0.33f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

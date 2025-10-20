@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.music
+package tv.nomercy.app.components.music
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateDpAsState
@@ -62,8 +62,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tv.nomercy.app.R
-import tv.nomercy.app.shared.components.MoooomIcon
-import tv.nomercy.app.shared.components.MoooomIconName
+import tv.nomercy.app.components.MoooomIcon
+import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.components.nMComponents.CoverImage
 import tv.nomercy.app.shared.models.PlaylistItem
 import tv.nomercy.app.shared.stores.GlobalStores

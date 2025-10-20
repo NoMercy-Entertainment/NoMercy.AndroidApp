@@ -2,6 +2,8 @@ package tv.nomercy.app.layout.tv
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import tv.nomercy.app.layout.mobile.AppNavItem
@@ -23,8 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.zIndex
 import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.R
-import tv.nomercy.app.shared.components.MoooomIconName
-import tv.nomercy.app.shared.components.music.FullPlayerScreen
+import tv.nomercy.app.components.MoooomIconName
+import tv.nomercy.app.components.music.FullPlayerScreen
 import tv.nomercy.app.shared.routes.MobileNavHost
 import tv.nomercy.app.shared.routes.TvNavHost
 import tv.nomercy.app.shared.stores.GlobalStores
@@ -55,8 +57,12 @@ fun TvMainScaffold(
                 Box(modifier = Modifier.fillMaxWidth()) {
                     AnimatedVisibility(
                         visible = !isImmersive,
-                        enter = slideInVertically(initialOffsetY = { it }),
-                        exit = slideOutVertically(targetOffsetY = { -it })
+                        enter = slideInVertically(
+                            initialOffsetY = { -it },
+                        ),
+                        exit = slideOutVertically(
+                            targetOffsetY = { -it },
+                        )
                     ) {
                         TvNavigationBar(
                             navController = navController,

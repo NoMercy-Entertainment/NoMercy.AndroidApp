@@ -39,7 +39,7 @@ import tv.nomercy.app.shared.stores.GlobalStores
 fun ProfileImage(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
-    showPresenceDot: Boolean = true,
+    showPresenceDot: Boolean = false,
     bottomPadding: Dp = 12.dp,
     borderWidth: Dp = 0.dp,
     borderColor: Color = Color.Transparent,

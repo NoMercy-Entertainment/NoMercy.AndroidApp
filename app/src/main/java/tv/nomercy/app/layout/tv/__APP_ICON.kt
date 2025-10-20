@@ -1,9 +1,8 @@
-package tv.nomercy.app.shared.components.brand
+package tv.nomercy.app.components.brand
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import tv.nomercy.app.shared.components.brand.IcLauncherForeground
-import tv.nomercy.app.shared.components.brand.IcLauncherMonochrome
+import tv.nomercy.app.layout.tv.app_icon.IcLauncherForeground
 import kotlin.collections.List as ____KtList
 
 public object APP_ICON

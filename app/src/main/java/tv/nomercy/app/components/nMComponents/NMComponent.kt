@@ -21,7 +21,7 @@ fun NMComponent(
 ) {
     components.forEach { component ->
         // Use the passed-in modifier directly so child scrollables receive proper constraints
-        Box(modifier = modifier) {
+        Box(modifier = Modifier) {
             when (component.component) {
                 "NMGrid" -> NMGrid(component, modifier, navController, lazyGridState)
                 "NMCarousel" -> NMCarousel(

@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components
+package tv.nomercy.app.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement

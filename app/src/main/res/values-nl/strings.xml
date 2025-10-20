@@ -101,4 +101,6 @@
     <string name="genre_talk">Praatprogramma</string>
     <string name="genre_war_politics">Oorlog &amp; Politiek</string>
     <string name="genre_tv_movie">TV-film</string>
+    <string name="seasons_episodes">Seizoenen &amp; afleveringen</string>
+    <string name="add_to_watch_list">Toevogen aan Kijklijst</string>
 </resources>

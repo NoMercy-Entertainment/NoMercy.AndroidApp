@@ -1,7 +1,12 @@
 package tv.nomercy.app.shared.utils
 
+import android.annotation.SuppressLint
+import android.content.res.Configuration
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -9,16 +14,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.models.PaletteColors
 
@@ -137,3 +147,61 @@ fun Modifier.assertBoundedWidth(): Modifier = layout { measurable, constraints -
         placeable.place(0, 0)
     }
 }
+
+
+enum class SnapAnchor {
+    Top,
+    Bottom,
+    Left,
+    Right,
+}
+
+suspend fun ScrollState.snapToOffset(
+    targetOffset: Int,
+    anchor: SnapAnchor = SnapAnchor.Top,
+    density: Density,
+    configuration: Configuration
+) {
+    val viewportHeightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }
+    val viewportWidthPx = with(density) { configuration.screenWidthDp.dp.roundToPx() }
+
+    val snapOffset = when (anchor) {
+        SnapAnchor.Top -> targetOffset.coerceAtLeast(0)
+        SnapAnchor.Bottom -> (targetOffset - viewportHeightPx).coerceAtLeast(0)
+        SnapAnchor.Left -> targetOffset.coerceAtLeast(0)
+        SnapAnchor.Right -> (targetOffset - viewportWidthPx).coerceAtLeast(0)
+    }
+
+    animateScrollTo(snapOffset.coerceIn(0, this.maxValue))
+}
+
+suspend fun LazyListState.snapToOffset(
+    targetOffset: Int,
+    anchor: SnapAnchor,
+    density: Density,
+    configuration: Configuration
+) {
+    val viewportHeightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }
+    val viewportWidthPx = with(density) { configuration.screenWidthDp.dp.roundToPx() }
+
+    val snapOffset = when (anchor) {
+        SnapAnchor.Top -> targetOffset.coerceAtLeast(0)
+        SnapAnchor.Bottom -> (targetOffset - viewportHeightPx).coerceAtLeast(0)
+        SnapAnchor.Left -> targetOffset.coerceAtLeast(0)
+        SnapAnchor.Right -> (targetOffset - viewportWidthPx).coerceAtLeast(0)
+    }
+
+    this.scrollToItem(0, snapOffset)
+}
+
+fun Modifier.onSubtreeFocusChanged(
+    onFocusChanged: (Boolean) -> Unit
+): Modifier = this.then(
+    Modifier
+        .focusGroup()
+        .then(
+            Modifier.onFocusEvent { event ->
+                onFocusChanged(event.hasFocus)
+            }
+        )
+)

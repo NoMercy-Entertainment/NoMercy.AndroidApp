@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import tv.nomercy.app.MainActivity
-import tv.nomercy.app.shared.components.DisposableWebView
+import tv.nomercy.app.components.DisposableWebView
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.SystemUiController
 

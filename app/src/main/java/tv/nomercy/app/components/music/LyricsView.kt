@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.music
+package tv.nomercy.app.components.music
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import tv.nomercy.app.shared.components.MoooomIcon
-import tv.nomercy.app.shared.components.MoooomIconName
+import tv.nomercy.app.components.MoooomIcon
+import tv.nomercy.app.components.MoooomIconName
 
 // Data class for a lyric line
 data class LyricLine(val time: Float, val text: String)

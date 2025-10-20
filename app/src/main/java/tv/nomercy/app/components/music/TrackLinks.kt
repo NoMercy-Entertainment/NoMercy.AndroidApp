@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.music
+package tv.nomercy.app.components.music
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import tv.nomercy.app.shared.components.Marquee
+import tv.nomercy.app.components.Marquee
 import tv.nomercy.app.shared.models.Album
 import tv.nomercy.app.shared.models.Artist
 import kotlin.collections.forEach

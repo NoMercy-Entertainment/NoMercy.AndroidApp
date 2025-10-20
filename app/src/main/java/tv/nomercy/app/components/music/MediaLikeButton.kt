@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.music
+package tv.nomercy.app.components.music
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

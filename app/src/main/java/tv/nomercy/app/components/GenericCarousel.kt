@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components
+package tv.nomercy.app.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import tv.nomercy.app.components.TMDBImage
 import tv.nomercy.app.components.nMComponents.CompletionOverlay
 import tv.nomercy.app.components.nMComponents.OverlayProps
 import tv.nomercy.app.shared.models.ColorPalettes

@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.brand
+package tv.nomercy.app.components.brand
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlin.Unit
-import tv.nomercy.app.shared.components.brand.APP_ICON
+import tv.nomercy.app.components.brand.APP_ICON
 
 public val APP_ICON.IcLauncherMonochrome: ImageVector
     get() {

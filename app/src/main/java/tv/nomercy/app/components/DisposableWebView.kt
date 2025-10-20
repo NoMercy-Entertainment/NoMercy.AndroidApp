@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components
+package tv.nomercy.app.components
 
 import android.annotation.SuppressLint
 import android.graphics.Color
@@ -62,9 +62,15 @@ fun DisposableWebView(
             }
 
             webViewClient = object : WebViewClient() {
+                override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
+                    super.onPageStarted(view, url, favicon)
+                    injectMediaSessionPolyfill(view)
+                }
+
                 override fun onPageFinished(view: WebView, url: String?) {
                     super.onPageFinished(view, url)
                     injectHistoryListener(view)
+                    injectMediaSessionPolyfill(view)
                     onPageFinished(url)
                 }
             }
@@ -156,6 +162,75 @@ fun injectHistoryListener(webView: WebView) {
             // Listen for navigation events
             try { window.addEventListener('popstate', notifyAndroid); } catch (e) {}
             try { window.addEventListener('hashchange', notifyAndroid); } catch (e) {}
+        })();
+    """.trimIndent()
+
+    webView.evaluateJavascript(js, null)
+}
+
+// Add this function to inject MediaSession API simulation
+fun injectMediaSessionPolyfill(webView: WebView) {
+    val js = """
+        (function() {
+            if (window.navigator.mediaSession) {
+                console.log("MediaSession API already exists");
+                return;
+            }
+
+            // Create MediaMetadata constructor
+            class MediaMetadata {
+                constructor(metadata = {}) {
+                    this.title = metadata.title || '';
+                    this.artist = metadata.artist || '';
+                    this.album = metadata.album || '';
+                    this.artwork = metadata.artwork || [];
+                }
+            }
+
+            // Create MediaSession implementation
+            class MediaSession {
+                constructor() {
+                    this.metadata = null;
+                    this.playbackState = 'none';
+                    this._actionHandlers = new Map();
+                    this._positionState = {
+                        duration: 0,
+                        playbackRate: 1.0,
+                        position: 0
+                    };
+                }
+
+                setActionHandler(action, handler) {
+                    if (handler === null) {
+                        this._actionHandlers.delete(action);
+                    } else {
+                        this._actionHandlers.set(action, handler);
+                    }
+                }
+
+                setPositionState(state) {
+                    this._positionState = {
+                        duration: state.duration || 0,
+                        playbackRate: state.playbackRate || 1.0,
+                        position: state.position || 0
+                    };
+                }
+            }
+
+            // Create the mediaSession instance
+            const mediaSession = new MediaSession();
+            
+            // Expose MediaMetadata globally
+            window.MediaMetadata = MediaMetadata;
+            
+            // Expose mediaSession on navigator
+            Object.defineProperty(window.navigator, 'mediaSession', {
+                value: mediaSession,
+                writable: false,
+                configurable: false
+            });
+
+            console.log("MediaSession API polyfill injected successfully");
         })();
     """.trimIndent()
 

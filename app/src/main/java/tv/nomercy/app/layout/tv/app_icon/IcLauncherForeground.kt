@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.brand
+package tv.nomercy.app.layout.tv.app_icon
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Brush.Companion.linearGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType.Companion.NonZero
@@ -19,16 +20,17 @@ import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tv.nomercy.app.shared.ui.NoMercyTheme
 import kotlin.Unit
 
 val IcLauncherForeground: ImageVector
     @Composable
     get() {
-        if (_icLauncherForeground != null) {
-            return _icLauncherForeground!!
-        }
-        _icLauncherForeground = Builder(
+//        if (_icLauncherForeground != null) {
+//            return _icLauncherForeground!!
+//        }
+        val activeBrush = Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)))
+
+        var _icLauncherForeground = Builder(
             name = "IcLauncherForeground", defaultWidth = 1024.0.dp,
             defaultHeight = 1024.0.dp, viewportWidth = 1024.0f, viewportHeight =
                 1024.0f
@@ -37,7 +39,7 @@ val IcLauncherForeground: ImageVector
             }
             group {
                 path(
-                    fill = SolidColor(MaterialTheme.colorScheme.primary),
+                    fill = activeBrush,
                     stroke = null,
                     strokeLineWidth = 0.0f,
                     strokeLineCap = Butt,
@@ -710,10 +712,10 @@ val IcLauncherForeground: ImageVector
             }
         }
             .build()
-        return _icLauncherForeground!!
+        return _icLauncherForeground
     }
 
-private var _icLauncherForeground: ImageVector? = null
+//private var _icLauncherForeground: ImageVector? = null
 
 @Preview
 @Composable

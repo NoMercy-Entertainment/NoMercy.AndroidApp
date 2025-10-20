@@ -1,4 +1,4 @@
-package tv.nomercy.app.shared.components.music
+package tv.nomercy.app.components.music
 
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,8 +25,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import tv.nomercy.app.R
-import tv.nomercy.app.shared.components.DropdownMenuButton
-import tv.nomercy.app.shared.components.Marquee
+import tv.nomercy.app.components.DropdownMenuButton
+import tv.nomercy.app.components.Marquee
 import tv.nomercy.app.shared.models.PlaylistItem
 import tv.nomercy.app.shared.stores.GlobalStores
 

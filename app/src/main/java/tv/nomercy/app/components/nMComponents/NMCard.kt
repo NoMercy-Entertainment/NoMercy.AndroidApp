@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import tv.nomercy.app.shared.components.TMDBImage
+import tv.nomercy.app.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.utils.AspectRatio
@@ -154,6 +154,28 @@ fun NMCard(
             data.link.let { navController.navigate(it) }
         }
     ) {
+        if(data.title.startsWith("More ")) {
+            // empty more card
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+            ) {
+                Text(
+                    text = data.title,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.dp.value.sp),
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    minLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+
+            return@Card
+        }
         Box(modifier = Modifier
             .fillMaxSize()
             .paletteBackground(data.colorPalette?.poster)

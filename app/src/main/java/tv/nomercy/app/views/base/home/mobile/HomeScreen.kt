@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import tv.nomercy.app.R
-import tv.nomercy.app.shared.components.EmptyGrid
+import tv.nomercy.app.components.EmptyGrid
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCardWrapper

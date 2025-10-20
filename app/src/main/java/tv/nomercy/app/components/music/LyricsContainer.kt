@@ -1,6 +1,6 @@
 @file:Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE", "UNUSED_IMPORT")
 
-package tv.nomercy.app.shared.components.music
+package tv.nomercy.app.components.music
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,8 +40,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import tv.nomercy.app.R
-import tv.nomercy.app.shared.components.MoooomIcon
-import tv.nomercy.app.shared.components.MoooomIconName
+import tv.nomercy.app.components.MoooomIcon
+import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.shared.stores.GlobalStores
 
 

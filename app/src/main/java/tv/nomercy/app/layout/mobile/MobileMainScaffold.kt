@@ -21,9 +21,9 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.R
 import tv.nomercy.app.layout.mobile.BottomNavigationBar
-import tv.nomercy.app.shared.components.MoooomIconName
-import tv.nomercy.app.shared.components.music.FullPlayerScreen
-import tv.nomercy.app.shared.components.music.MiniPlayer
+import tv.nomercy.app.components.MoooomIconName
+import tv.nomercy.app.components.music.FullPlayerScreen
+import tv.nomercy.app.components.music.MiniPlayer
 import tv.nomercy.app.shared.routes.MobileNavHost
 
 @Composable

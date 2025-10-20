@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import tv.nomercy.app.shared.components.MoooomIcon
+import tv.nomercy.app.components.MoooomIcon
 import tv.nomercy.app.components.ProfileImage
 import tv.nomercy.app.shared.utils.gradientButtonBackground
 
