@@ -75,7 +75,8 @@ fun MobileHomeScreen(
             else -> null
         }
     }
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
+    val fallbackColor = MaterialTheme.colorScheme.primary
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = fallbackColor) }
     val key = remember { UUID.randomUUID() }
 
     DisposableEffect(focusColor) {
@@ -168,9 +169,9 @@ fun hasContent(component: Component): Boolean {
     return when (val props = component.props ) {
         is NMCarouselProps -> props.items.isNotEmpty()
         is NMGridProps -> props.items.isNotEmpty()
-        is NMContainerProps -> props.items.isNotEmpty()
+//        is NMContainerProps -> props.items.isNotEmpty()
         is NMHomeCardWrapper -> props.data != null
         is NMCardWrapper -> true
-        else -> true
+        else -> false
     }
 }

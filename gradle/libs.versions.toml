@@ -3,15 +3,10 @@ activityCompose = "1.11.0"
 agp = "8.13.0"
 appauth = "0.11.1"
 browser = "1.9.0"
-coilCompose = "2.7.0"
-coilComposeVersion = "2.2.2"
-coilKtCoilCompose = "3.0.0"
 coilKtCoilComposeVersion = "3.3.0"
 coilKtCoilSvg = "3.3.0"
 coilNetworkKtor3 = "3.3.0"
 coilNetworkOkhttp = "3.3.0"
-coilSvg = "2.7.0"
-coilSvgVersion = "3.0.0"
 composeBom = "2025.10.00"
 composeBomVersion = "2025.10.00"
 composemeshgradient = "0.3.0"
@@ -19,7 +14,6 @@ converterGson = "3.0.0"
 core = "3.5.3"
 coreSplashscreen = "1.0.1"
 datastorePreferences = "1.1.7"
-gson = "2.13.2"
 kotlin = "2.2.20"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -31,21 +25,12 @@ kotlinxSerializationJson = "1.9.0"
 kotlinxSerializationJsonVersion = "1.9.0"
 lifecycleViewmodelCompose = "2.9.4"
 loggingInterceptor = "5.2.1"
-material = "1.13.0"
-constraintlayout = "2.2.1"
 lifecycleLivedataKtx = "2.9.4"
-lifecycleViewmodelKtx = "2.9.4"
 materialVersion = "1.13.0"
 media = "1.7.1"
 navigationCompose = "2.9.5"
-navigationFragmentKtx = "2.9.5"
-navigationUiKtx = "2.9.5"
-legacySupportV4 = "1.0.0"
 okhttp = "5.2.1"
 pagingCompose = "3.3.6"
-recyclerview = "1.4.0"
-mediarouter = "1.8.1"
-fragment = "1.8.9"
 lifecycleRuntimeCompose = "2.9.4"
 retrofit = "3.0.0"
 retrofit2KotlinxSerializationConverter = "1.0.0"
@@ -61,6 +46,8 @@ uiGraphics = "1.9.3"
 runtime = "1.9.3"
 composeMaterial = "1.5.3"
 ui = "1.9.3"
+composeHotReload = "0.4.7"
+navigationSafeArgsGenerator = "2.9.5"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -84,19 +71,13 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingCompose" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 appauth = { module = "net.openid:appauth", version.ref = "appauth" }
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
-coil-compose-v222 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
-coil-compose-v300 = { module = "io.coil-kt:coil-compose", version.ref = "coilKtCoilCompose" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coilNetworkKtor3" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
-coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coilSvg" }
-coil-svg-v300 = { module = "io.coil-kt:coil-svg", version.ref = "coilSvgVersion" }
 coil3-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilKtCoilComposeVersion" }
 coil3-coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coilKtCoilSvg" }
 composemeshgradient = { module = "io.github.om252345:composemeshgradient", version.ref = "composemeshgradient" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core = { module = "com.google.zxing:core", version.ref = "core" }
-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -105,16 +86,6 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlinx-serialization-json-v160 = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJsonVersion" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
-androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
-androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
-androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
-androidx-legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacySupportV4" }
-androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
-androidx-mediarouter = { group = "androidx.mediarouter", name = "mediarouter", version.ref = "mediarouter" }
-androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 material-v1110 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
@@ -131,8 +102,10 @@ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", ve
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+androidx-navigation-safe-args-generator = { group = "androidx.navigation", name = "navigation-safe-args-generator", version.ref = "navigationSafeArgsGenerator" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload"}

@@ -1,4 +1,4 @@
-package tv.nomercy.app.views.music.start.tv
+package tv.nomercy.app.views.base.home.tv
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.SnapPosition
@@ -30,12 +30,11 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tv.nomercy.app.components.BackdropImageWithOverlay
@@ -45,13 +44,13 @@ import tv.nomercy.app.components.VideoMusicHeroSection
 import tv.nomercy.app.components.LoadingIndicator
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.Component
+import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.models.NMCarouselProps
-import tv.nomercy.app.shared.models.NMMusicCardProps
-import tv.nomercy.app.shared.models.NMMusicHomeCardProps
 import tv.nomercy.app.shared.stores.AuthStore
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalNavbarFocusBridge
-import tv.nomercy.app.shared.ui.LocalOnActiveCardChange2
+import tv.nomercy.app.shared.ui.LocalOnActiveCardChange
 import tv.nomercy.app.shared.ui.LocalOnActiveRowInColumn
 import tv.nomercy.app.shared.ui.LocalRegisterRowFocusController
 import tv.nomercy.app.shared.ui.LocalRequestFocusAt
@@ -60,43 +59,44 @@ import tv.nomercy.app.shared.ui.LocalRequestFocusAtViewportX
 import tv.nomercy.app.shared.ui.LocalRowIndex
 import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
 import tv.nomercy.app.shared.ui.RowFocusController
+import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.pickPaletteColor
 import tv.nomercy.app.views.base.home.mobile.hasContent
-import tv.nomercy.app.views.music.start.shared.MusicStartViewModel
-import tv.nomercy.app.views.music.start.shared.MusicStartViewModelFactory
+import tv.nomercy.app.views.base.home.shared.HomeViewModel
+import tv.nomercy.app.views.base.home.shared.HomeViewModelFactory
 import java.util.UUID
 
 @Composable
-fun MusicStartScreen(navController: NavController) {
+fun TvHomeScreen(navController: NavHostController) {
     val context = LocalContext.current
     val authStore = remember { GlobalStores.getAuthStore(context) }
-    val viewModel: MusicStartViewModel = viewModel(
-        factory = MusicStartViewModelFactory(
-            musicStartStore = GlobalStores.getMusicStartStore(context),
+    val viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(
+            homeStore = GlobalStores.getHomeStore(context),
             authStore = authStore
         )
     )
 
-    val musicStartData by viewModel.musicStartData.collectAsStateWithLifecycle()
+    val homeData by viewModel.homeData.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val isEmptyStable by viewModel.isEmptyStable.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
-    val filteredData = remember(musicStartData) { musicStartData.filter(::hasContent) }
+    val filteredData = remember(homeData) { homeData.filter(::hasContent) }
 
     val firstItem = remember(filteredData) {
         ((filteredData.firstOrNull()?.props as? NMCarouselProps)
-            ?.items?.firstOrNull()?.props as? NMMusicHomeCardProps)
+            ?.items?.firstOrNull()?.props as? NMCardWrapper)
         ?.data
     }
 
     val heroHeight = 336.dp
     val overlap = 72.dp
 
-    val activeCardState = remember { mutableStateOf<NMMusicCardProps?>(null) }
+    val activeCardState = remember { mutableStateOf<NMCardProps?>(null) }
     val debouncedSelectedCard = remember { mutableStateOf(firstItem) }
 
-    LaunchedEffect(filteredData) { activeCardState.value = null }
+    LaunchedEffect(homeData) { activeCardState.value = null }
 
     LaunchedEffect(firstItem) {
         if (activeCardState.value == null) {
@@ -104,10 +104,21 @@ fun MusicStartScreen(navController: NavController) {
         }
     }
 
+    LaunchedEffect(activeCardState.value) {
+        delay(600)
+        debouncedSelectedCard.value = activeCardState.value ?: firstItem
+    }
+
     val primary = MaterialTheme.colorScheme.primary
+    val isTv = isTv()
     val focusColor by remember {
         derivedStateOf {
-            pickPaletteColor(debouncedSelectedCard.value?.colorPalette?.cover, fallbackColor = primary)
+            val posterPalette = if (isTv) {
+                debouncedSelectedCard.value?.colorPalette?.backdrop
+            } else {
+                debouncedSelectedCard.value?.colorPalette?.poster
+            }
+            pickPaletteColor(posterPalette, fallbackColor = primary)
         }
     }
 
@@ -126,17 +137,12 @@ fun MusicStartScreen(navController: NavController) {
         }
     }
 
-    LaunchedEffect(activeCardState.value) {
-        delay(300)
-        debouncedSelectedCard.value = activeCardState.value ?: firstItem
-    }
-
     Box(
         modifier = Modifier
             .background(Color.Black)
             .fillMaxSize()
     ) {
-        BackdropImageWithOverlay(imageUrl = debouncedSelectedCard.value?.cover)
+        BackdropImageWithOverlay(imageUrl = debouncedSelectedCard.value?.backdrop)
 
         Box(modifier = Modifier.fillMaxSize()) {
             VideoMusicHeroSection(debouncedSelectedCard.value, heroHeight)
@@ -168,18 +174,17 @@ fun MusicStartScreen(navController: NavController) {
 }
 
 @Composable
-fun ContentList(
+private fun ContentList(
     filteredData: List<Component>,
-    navController: NavController,
+    navController: NavHostController,
     listState: LazyListState,
-    activeCardState: MutableState<NMMusicCardProps?>,
-    firstItem: NMMusicCardProps?,
+    activeCardState: MutableState<NMCardProps?>,
+    firstItem: NMCardProps?,
     authStore: AuthStore
 ) {
     val rowControllers = remember { mutableMapOf<Int, RowFocusController>() }
-    val topAlignOffsetPx = with(LocalDensity.current) { 0.dp.roundToPx() }
     val router = remember(filteredData, rowControllers.size) {
-        ColumnFocusRouter(listState, rowControllers, filteredData, topAlignOffsetPx)
+        ColumnFocusRouter(listState, rowControllers, filteredData)
     }
 
     val navbarBridge = LocalNavbarFocusBridge.current
@@ -211,7 +216,7 @@ fun ContentList(
     ) {
         itemsIndexed(filteredData, key = { index, item -> item.id }) { rowIndex, component ->
             CompositionLocalProvider(
-                LocalOnActiveCardChange2 provides { card -> activeCardState.value = card },
+                LocalOnActiveCardChange provides { card -> activeCardState.value = card },
                 LocalOnActiveRowInColumn provides suspend { router.alignRow(rowIndex) },
                 LocalRowIndex provides rowIndex,
                 LocalRegisterRowFocusController provides router::registerController,

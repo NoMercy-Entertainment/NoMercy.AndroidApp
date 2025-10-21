@@ -193,6 +193,29 @@ data class NMMusicHomeCardWrapper(
 ) : ComponentData
 
 
+@Serializable
+@SerialName("NMMusicCard")
+data class NMMusicCardWrapper(
+    val id: String,
+    val title: String,
+    val data: NMMusicCardProps? = null,
+    val items: List<Component> = emptyList(),
+    @SerialName("next_id")
+    val nextId: String? = null,
+    @SerialName("previous_id")
+    val previousId: String? = null,
+    @SerialName("more_link")
+    val moreLink: String? = null,
+    @SerialName("more_link_text")
+    val moreLinkText: String? = null,
+    val watch: Boolean = false,
+    @SerialName("context_menu_items")
+    val contextMenuItems: List<JsonElement> = emptyList(),
+    val url: String? = null,
+    val displayList: List<String> = emptyList()
+) : ComponentData
+
+
 // Custom serializer remains the same
 object ComponentSerializer : KSerializer<Component> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Component") {

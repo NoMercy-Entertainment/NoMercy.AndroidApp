@@ -32,6 +32,7 @@ import androidx.navigation.NavController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.models.Season
 import tv.nomercy.app.shared.utils.AspectRatio
+import tv.nomercy.app.shared.utils.isTv
 
 @Composable
 fun SeasonCarousel(
@@ -72,9 +73,14 @@ fun SeasonCarousel(
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 18.dp, vertical = 16.dp)
+                    .padding(
+                        start = if (isTv()) 40.dp else 16.dp,
+                        end = 16.dp,
+                        top = if (isTv()) 4.dp else 12.dp,
+                        bottom = 16.dp
+                    )
             ) {
-                val dropdownWidth = maxWidth * 0.6f
+                val dropdownWidth = maxWidth * (if(isTv()) 0.3f else 0.6f)
                 val isDisabled = seasons.size <= 1
 
                 Column(modifier = Modifier.width(dropdownWidth)) {

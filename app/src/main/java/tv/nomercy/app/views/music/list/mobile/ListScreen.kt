@@ -80,9 +80,10 @@ fun ListScreen(
         viewModel.selectList(type, id)
     }
 
+    val fallbackColor = MaterialTheme.colorScheme.primary
     val scrollState = rememberLazyListState()
     val palette = listData?.colorPalette?.cover ?: listData?.colorPalette?.image
-    val backgroundColor = remember(palette) { pickPaletteColor(palette, 80) }
+    val backgroundColor = remember(palette) { pickPaletteColor(palette, 80, fallbackColor = fallbackColor) }
     val key = remember { UUID.randomUUID() }
 
     DisposableEffect(backgroundColor) {

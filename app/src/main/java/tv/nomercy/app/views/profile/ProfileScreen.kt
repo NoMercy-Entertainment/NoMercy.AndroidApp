@@ -19,7 +19,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import coil3.disk.DiskCache
+import coil3.disk.directory
+import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import tv.nomercy.app.R
@@ -99,6 +103,7 @@ fun ProfileScreen(
 private fun ProfileHeader(
     userInfo: UserInfo?,
 ) {
+    val context = LocalContext.current
     val appConfigStore = GlobalStores.getAppConfigStore(LocalContext.current)
     val userProfile by appConfigStore.userProfile.collectAsState()
 
@@ -107,6 +112,15 @@ private fun ProfileHeader(
         ?: userInfo?.email?.let { email ->
             "https://www.gravatar.com/avatar/${email.hashCode()}?d=retro&s=80"
         }
+
+    val imageLoader = ImageLoader.Builder(context)
+        .diskCache {
+            DiskCache.Builder()
+                .directory(context.cacheDir.resolve("image_cache"))
+                .maxSizePercent(0.02)
+                .build()
+        }
+        .build()
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -126,6 +140,7 @@ private fun ProfileHeader(
                     .crossfade(true)
                     .build(),
                 contentDescription = "Profile Picture",
+                imageLoader = imageLoader,
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape),

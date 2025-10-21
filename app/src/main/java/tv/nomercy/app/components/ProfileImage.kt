@@ -21,13 +21,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import coil3.disk.DiskCache
+import coil3.disk.directory
+import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import tv.nomercy.app.R
 import tv.nomercy.app.views.base.auth.shared.AuthViewModel
 import tv.nomercy.app.views.base.auth.shared.AuthViewModelFactory
 import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.utils.aspectFromType
 
 /**
  * Generic profile image component that can be reused across mobile and TV.
@@ -59,6 +64,15 @@ fun ProfileImage(
             "https://www.gravatar.com/avatar/${email.hashCode()}?d=retro&s=128"
         }
 
+    val imageLoader = ImageLoader.Builder(context)
+        .diskCache {
+            DiskCache.Builder()
+                .directory(context.cacheDir.resolve("image_cache"))
+                .maxSizePercent(0.02)
+                .build()
+        }
+        .build()
+
     Box(
         modifier = modifier
             .padding(bottom = bottomPadding)
@@ -71,6 +85,7 @@ fun ProfileImage(
                     .crossfade(true)
                     .build(),
                 contentDescription = userInfo?.username,
+                imageLoader = imageLoader,
                 modifier = Modifier
                     .size(size)
                     .clip(CircleShape)

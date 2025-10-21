@@ -58,6 +58,7 @@ configurations.all {
     resolutionStrategy {
         force("com.google.dagger:dagger:2.48") // Dagger runtime
     }
+    exclude(group = "xmlpull", module = "xmlpull")
 }
 
 dependencies {
@@ -119,6 +120,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.ui)
+    implementation(libs.androidx.navigation.safe.args.generator)
 
     // Debug tools
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -141,4 +143,5 @@ dependencies {
     implementation(libs.coil3.coil.svg)
 
     implementation(libs.androidx.media)
+
 }

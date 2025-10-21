@@ -113,7 +113,7 @@ fun FullPlayerScreen(
     val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor = remember(currentSong) {
         currentSong?.colorPalette?.cover?.let { palette ->
-            pickPaletteColor(palette, 20, 160)
+            pickPaletteColor(palette, 20, 160, fallbackColor)
         } ?: fallbackColor
     }
 

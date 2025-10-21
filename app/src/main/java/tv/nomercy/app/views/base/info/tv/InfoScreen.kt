@@ -1,17 +1,18 @@
 package tv.nomercy.app.views.base.info.tv
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -23,26 +24,29 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
 import tv.nomercy.app.R
+import tv.nomercy.app.components.BackdropImageWithOverlay
+import tv.nomercy.app.components.GenericCarousel
+import tv.nomercy.app.components.HeroRow
 import tv.nomercy.app.components.LinkButton
+import tv.nomercy.app.components.SeasonCarousel
+import tv.nomercy.app.components.toCarouselItem
 import tv.nomercy.app.shared.models.InfoResponse
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
-import tv.nomercy.app.shared.utils.SnapAnchor
-import tv.nomercy.app.shared.utils.snapToOffset
 import tv.nomercy.app.shared.utils.pickPaletteColor
-import tv.nomercy.app.views.base.home.tv.BackdropImageWithOverlay
-import tv.nomercy.app.views.base.home.tv.HeroRow
+import tv.nomercy.app.shared.utils.sortByFilteredAlphabetized
 import tv.nomercy.app.views.base.info.shared.InfoViewModel
 import tv.nomercy.app.views.base.info.shared.InfoViewModelFactory
 import java.util.UUID
@@ -103,25 +107,27 @@ fun InfoScreen(type: String, id: String, navController: NavHostController) {
     }
 }
 
-@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
+private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
     val themeOverrideManager = LocalThemeOverrideManager.current
-    val listState = rememberLazyListState()
 
+    val primary = MaterialTheme.colorScheme.primary
     val posterPalette = infoData?.colorPalette?.poster
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = primary) }
     val key = remember { UUID.randomUUID() }
 
     DisposableEffect(focusColor) {
-//        themeOverrideManager.add(key, focusColor)
+        themeOverrideManager.add(key, focusColor)
 
         onDispose {
             themeOverrideManager.remove(key)
         }
     }
 
-    val heroHeight = 300.dp
+    val listState = rememberLazyListState(0, 40)
+    val scope = rememberCoroutineScope()
+
+    val heroHeight = 336.dp
 
     Box(
         modifier = Modifier
@@ -135,77 +141,147 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
             HeroRow(
                 title = infoData?.title,
                 overview = infoData?.overview,
-                maxLines = 7,
+                maxLines = 10,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 32.dp)
+                    .padding(top = 52.dp)
                     .height(heroHeight)
                     .align(Alignment.TopStart)
             )
 
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(start = 40.dp)
-                    .padding(top = heroHeight)
+                    .padding(top = heroHeight - 50.dp)
                     .zIndex(1f)
             ) {
 
-                val scrollState = rememberScrollState()
-                val density = LocalDensity.current
-                val configuration = LocalConfiguration.current
-
-                LaunchedEffect(Unit) {
-                    scrollState.snapToOffset(
-                        targetOffset = 0, // px from top of content
-                        anchor = SnapAnchor.Top,
-                        density = density,
-                        configuration = configuration
-                    )
-                }
-
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(scrollState)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                    horizontalAlignment = Alignment.Start,
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(bottom = 32.dp),
                 ) {
-                    infoData.let {
+                    item {
                         LinkButton(
                             text = R.string.watch,
                             icon = R.drawable.nmplaysolid,
                             onClick = { infoData?.link?.let { navController.navigate("${infoData.link}/watch") } },
                             modifier = Modifier
-                                .fillMaxWidth(fraction = 0.33f)
+                                .onFocusChanged {
+                                    if (it.isFocused) {
+                                        scope.launch {
+                                            listState.animateScrollToItem(0, 0)
+                                        }
+                                    }
+                                }
+                                .padding(start = 40.dp)
                         )
-
+                    }
+                    item {
                         // trailer button
                         LinkButton(
                             text = R.string.watch_trailer,
                             icon = R.drawable.playcircle,
                             onClick = { /* TODO: implement trailer navigation */ },
                             modifier = Modifier
-                                .fillMaxWidth(fraction = 0.33f)
+                                .onFocusChanged {
+                                    if (it.isFocused) {
+                                        scope.launch {
+                                            listState.animateScrollToItem(1, 0)
+                                        }
+                                    }
+                                }
+                                .padding(start = 40.dp)
                         )
-
-                        // seasons/episodes button
-                        LinkButton(
-                            text = R.string.seasons_episodes,
-                            icon = R.drawable.tv,
-                            onClick = { /* TODO: implement seasons/episodes navigation */ },
-                            modifier = Modifier
-                                .fillMaxWidth(fraction = 0.33f)
-                        )
-
+                    }
+                    item {
                         // add to watch later button
                         LinkButton(
                             text = R.string.add_to_watch_list,
                             icon = R.drawable.bookmark,
                             onClick = { /* TODO: implement add to watch later navigation */ },
                             modifier = Modifier
-                                .fillMaxWidth(fraction = 0.33f)
+                                .onFocusChanged {
+                                    if (it.isFocused) {
+                                        scope.launch {
+                                            listState.animateScrollToItem(2, 0)
+                                        }
+                                    }
+                                }
+                                .padding(start = 40.dp)
                         )
+                    }
+                    item {
+                        SeasonCarousel(
+                            seasons = infoData?.seasons ?: emptyList(),
+                            navController = navController,
+                            visibleCards = 4,
+                            modifier = Modifier
+                                .onFocusChanged {
+                                    if (it.isFocused) {
+                                        scope.launch {
+                                            listState.animateScrollToItem(3, 40)
+                                        }
+                                    }
+                                }
+                        )
+                    }
+                    item {
+                        GenericCarousel(
+                            title = stringResource(R.string.collections),
+                            items = infoData?.collection?.map { it.toCarouselItem() } ?: emptyList(),
+                            navController = navController,
+                            visibleCards = 7,
+                            modifier = Modifier
+                                .onFocusChanged {
+                                    if (it.isFocused) {
+                                        scope.launch {
+                                            listState.animateScrollToItem(4, 40)
+                                        }
+                                    }
+                                }
+                        )
+                    }
+                    item {
+                        GenericCarousel(
+                            title = stringResource(R.string.cast),
+                            items = infoData?.cast?.map { it.toCarouselItem() } ?: emptyList(),
+                            navController = navController,
+                            visibleCards = 7,
+                            modifier = Modifier
+                                .onFocusChanged {
+                                    if (it.isFocused) {
+                                        scope.launch {
+                                            listState.animateScrollToItem(5, 40)
+                                        }
+                                    }
+                                }
+                        )
+                    }
+                    item {
+                        val sorted = infoData?.crew?.sortByFilteredAlphabetized(
+                            keySelector = { it.name },
+                            valueSelector = { it.knownForDepartment },
+                            sortSelector = { it.name },
+                            filterSelector = { it.profile != null }
+                        ) ?: emptyList()
+
+                        GenericCarousel(
+                            title = stringResource(R.string.crew),
+                            items = sorted.map { it.toCarouselItem() },
+                            navController = navController,
+                            visibleCards = 7,
+                            modifier = Modifier
+                                .onFocusChanged {
+                                    if (it.isFocused) {
+                                        scope.launch {
+                                            listState.animateScrollToItem(6, 40)
+                                        }
+                                    }
+                                }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }

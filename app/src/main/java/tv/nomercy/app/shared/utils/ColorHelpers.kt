@@ -4,9 +4,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import tv.nomercy.app.shared.models.PaletteColors
 
-fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 160): Color {
+fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 160, fallbackColor: Color?): Color {
     if (palette == null) {
-        return Color.Transparent
+        return fallbackColor ?: Color.Transparent
     }
 
     if (palette.lightVibrant != null && !isColorLight(palette.lightVibrant, light) && !isColorDark(palette.lightVibrant, dark)) {
@@ -28,7 +28,7 @@ fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 160):
         return palette.lightMuted.toColor()
     }
 
-    return Color.Transparent
+    return fallbackColor ?: Color.Transparent
 }
 
 fun String.toColor(): Color {

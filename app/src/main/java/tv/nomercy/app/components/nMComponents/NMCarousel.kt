@@ -186,12 +186,14 @@ private fun handleItemKey(
         }
         AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
             scope.launch { requestFocusAtFirstVisible(rowIndex + 1) }
-            false
+            // Consume to prevent default focus from interfering
+            true
         }
         AndroidKeyEvent.KEYCODE_DPAD_UP -> {
             if (rowIndex > 0) {
                 scope.launch { requestFocusAtFirstVisible(rowIndex - 1) }
-                false
+                // Consume to prevent default focus from interfering
+                true
             } else false
         }
         else -> false
@@ -403,7 +405,7 @@ class FocusCoordinatorViewModel : ViewModel() {
 fun aspectFromComponent(componentName: String?): AspectRatio {
     return when (componentName) {
         "NMCard" -> AspectRatio.Poster
-        "NMMusicCard" -> AspectRatio.Cover
-        else -> AspectRatio.Poster
+        "NMMusicCard" -> AspectRatio.Poster
+        else -> AspectRatio.Profile
     }
 }

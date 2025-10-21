@@ -66,10 +66,11 @@ fun MiniPlayer(
 
     val useAutoThemeColors = true // TODO: from settings
 
+    val fallbackColor = MaterialTheme.colorScheme.primary
     val palette = currentSong.colorPalette?.cover
     val focusColor = remember(palette, useAutoThemeColors) {
         if (!useAutoThemeColors) Color(0xFF444444) // fallback
-        else pickPaletteColor(palette, dark = 20, light = 160)
+        else pickPaletteColor(palette, dark = 20, light = 160, fallbackColor)
     }
 
     val containerWidth = remember { mutableFloatStateOf(0f) }

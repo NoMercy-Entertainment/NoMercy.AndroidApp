@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.Unit
 import tv.nomercy.app.components.brand.APP_ICON
 
-public val APP_ICON.IcLauncherMonochrome: ImageVector
+val APP_ICON.IcLauncherMonochrome: ImageVector
     get() {
         if (_icLauncherMonochrome != null) {
             return _icLauncherMonochrome!!
@@ -730,7 +730,7 @@ private var _icLauncherMonochrome: ImageVector? = null
 
 @Preview
 @Composable
-private fun Preview(): Unit {
+private fun Preview() {
     Box(modifier = Modifier.padding(12.dp)) {
         Image(imageVector = APP_ICON.IcLauncherMonochrome, contentDescription = "")
     }

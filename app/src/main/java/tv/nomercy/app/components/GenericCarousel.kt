@@ -1,9 +1,19 @@
 package tv.nomercy.app.components
 
+import android.view.KeyEvent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.FocusInteraction
+import androidx.compose.foundation.interaction.HoverInteraction
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,11 +33,22 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,6 +56,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import tv.nomercy.app.components.TMDBImage
 import tv.nomercy.app.components.nMComponents.CompletionOverlay
 import tv.nomercy.app.components.nMComponents.OverlayProps
@@ -44,8 +66,14 @@ import tv.nomercy.app.shared.models.Image
 import tv.nomercy.app.shared.models.PaletteColors
 import tv.nomercy.app.shared.models.Person
 import tv.nomercy.app.shared.models.Related
+import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
+import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
+import tv.nomercy.app.shared.ui.LocalFocusRightInRow
+import tv.nomercy.app.shared.ui.LocalOnActiveCardChange
+import tv.nomercy.app.shared.ui.LocalOnActiveInRow
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
+import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
 
@@ -139,7 +167,36 @@ fun GenericCarousel(
         }
 
         val palette = item.paletteForType()
-        val focusColor: Color = remember(palette) { pickPaletteColor(palette) }
+        val primary = MaterialTheme.colorScheme.primary
+        val focusColor = remember(palette) { pickPaletteColor(palette, fallbackColor = primary) }
+
+        val interaction = remember { MutableInteractionSource() }
+        var isFocused by remember { mutableStateOf(false) }
+        var isHovered by remember { mutableStateOf(false) }
+        LaunchedEffect(interaction) {
+            interaction.interactions.collect { inter ->
+                when (inter) {
+                    is FocusInteraction.Focus -> isFocused = true
+                    is FocusInteraction.Unfocus -> isFocused = false
+                    is HoverInteraction.Enter -> isHovered = true
+                    is HoverInteraction.Exit -> isHovered = false
+                }
+            }
+        }
+        val isTvPlatform = isTv()
+        val isActive = isTvPlatform && (isFocused || isHovered)
+        val borderWidth = animateDpAsState(
+            targetValue = if (isActive) 2.dp else 1.dp,
+            animationSpec = tween(durationMillis = 120, easing = FastOutSlowInEasing),
+            label = "nmcard-border"
+        ).value
+        val scale = animateFloatAsState(
+            targetValue = if (isActive) 1.015f else 1.0f,
+            animationSpec = tween(durationMillis = 120, easing = FastOutSlowInEasing),
+            label = "nmcard-scale"
+        ).value
+
+        val itemFocusRequester = LocalCurrentItemFocusRequester.current
 
         if (infoBanner == "underlay") {
             Box(
@@ -147,6 +204,17 @@ fun GenericCarousel(
                     .width(width)
                     .clip(RoundedCornerShape(6.dp))
                     .border(1.dp, focusColor, RoundedCornerShape(6.dp))
+                    .graphicsLayer { if (isTvPlatform) { scaleX = scale; scaleY = scale } }
+                    .then(if (itemFocusRequester != null) Modifier.focusRequester(itemFocusRequester) else Modifier)
+                    .then(
+                        if (isTvPlatform) Modifier
+                            .border(borderWidth, focusColor.copy(alpha = if (isActive) 1f else 0.5f), RoundedCornerShape(6.dp))
+                            .focusable(interactionSource = interaction)
+                            .hoverable(interactionSource = interaction)
+                            .semantics { role = Role.Button }
+                        else Modifier
+                            .border(borderWidth, focusColor, RoundedCornerShape(6.dp))
+                    )
                     .clickable { item.link?.let { navController.navigate(it) } },
                 contentAlignment = Alignment.TopStart,
             ) {
@@ -288,8 +356,13 @@ fun GenericCarousel(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(40.dp)
-                        .padding(horizontal = 18.dp, vertical = 4.dp)
+                        .height(if (isTv()) 36.dp else 52.dp)
+                        .padding(
+                            start = if (isTv()) 40.dp else 16.dp,
+                            end = 16.dp,
+                            top = if (isTv()) 4.dp else 12.dp,
+                            bottom = 4.dp
+                        )
                 ) {
                     Text(
                         text = title,
@@ -333,11 +406,15 @@ fun GenericCarousel(
                 }
 
                 val cardWidth = (maxWidth - totalSpacing) / (visibleCards + peekFraction)
+                val endPadding = spacing + cardWidth * peekFraction - 48.dp
 
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(spacing),
-                    contentPadding = PaddingValues(start = 18.dp, end = 18.dp)
+                    contentPadding = PaddingValues(
+                        start = if (isTv()) 40.dp else (spacing * 2),
+                        end = if (endPadding < 0.dp) 18.dp else endPadding
+                    ),
                 ) {
                     items(items, key = { it.id }) { item ->
                         itemContent(item, cardWidth)

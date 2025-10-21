@@ -719,7 +719,7 @@ val IcLauncherForeground: ImageVector
 
 @Preview
 @Composable
-private fun Preview(): Unit {
+private fun Preview() {
     Box(modifier = Modifier.padding(0.dp)) {
         Image(imageVector = IcLauncherForeground, contentDescription = "")
     }

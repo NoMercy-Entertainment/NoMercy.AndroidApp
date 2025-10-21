@@ -54,24 +54,22 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tv.nomercy.app.R
 import tv.nomercy.app.components.GradientBlurOverlay
 import tv.nomercy.app.components.LinkButton
+import tv.nomercy.app.components.OverlayGradient
 import tv.nomercy.app.components.SplitTitleText
 import tv.nomercy.app.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMHomeCardProps
 import tv.nomercy.app.shared.models.NMHomeCardWrapper
-import tv.nomercy.app.shared.ui.LocalNavbarFocusBridge
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.onSubtreeFocusChanged
 import tv.nomercy.app.shared.utils.paletteBackground
 import tv.nomercy.app.shared.utils.pickPaletteColor
-import tv.nomercy.app.views.base.home.tv.OverlayGradient
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
@@ -84,8 +82,9 @@ fun NMHomeCard(
     val wrapper = component.props as? NMHomeCardWrapper ?: return
     val data = wrapper.data ?: return
 
+    val fallbackColor = MaterialTheme.colorScheme.primary
     val posterPalette = if (aspectRatio == null) data.colorPalette?.poster else data.colorPalette?.backdrop
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = fallbackColor) }
 
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -270,7 +269,7 @@ fun TvButtons(
                 .padding(start = 200.dp)
                 .fillMaxSize()
         ) {
-            OverlayGradient(offsetModifier = 150f);
+            OverlayGradient(offsetModifier = 150f)
         }
 
         Row(
@@ -279,7 +278,7 @@ fun TvButtons(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            LeftColumn(
+            NMHomeCardLeftColumn(
                 navController = navController,
                 data = data,
                 modifier = Modifier
@@ -288,7 +287,7 @@ fun TvButtons(
                 bringIntoViewRequester = bringIntoViewRequester
             )
 
-            RightColumn(
+            NMHomeCardRightColumn(
                 modifier = Modifier
                     .fillMaxHeight()
             )
@@ -298,14 +297,14 @@ fun TvButtons(
 
 
 @Composable
-fun LeftColumn(
+fun NMHomeCardLeftColumn(
     navController: NavController,
     data: NMHomeCardProps,
     modifier: Modifier = Modifier,
     bringIntoViewRequester: BringIntoViewRequester,
 ) {
     val titleBlockHeight = 26.dp + 24.dp + 8.dp
-    val maxLines = 7;
+    val maxLines = 7
     val overviewBlockHeight = 20.dp * maxLines
 
     val scope = rememberCoroutineScope()
@@ -417,7 +416,7 @@ fun LeftColumn(
 
 
 @Composable
-fun RightColumn(modifier: Modifier = Modifier) {
+fun NMHomeCardRightColumn(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxHeight()

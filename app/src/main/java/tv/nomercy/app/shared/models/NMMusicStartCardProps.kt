@@ -25,6 +25,7 @@ data class NMMusicHomeCardProps(
 @Serializable
 @SerialName("NMMusicCard")
 data class NMMusicCardProps (
+    @SerialName("color_palette")
     val colorPalette: ColorPalettes? = null,
     val cover: String? = null,
     val disambiguation: String? = null,
@@ -33,10 +34,10 @@ data class NMMusicCardProps (
     val folder: String? = null,
     val id: String,
     val libraryID: String? = null,
-    val name: String? = null,
+    val name: String,
     val trackID: String? = null,
     val type: String? = null,
-    val link: String? = null,
+    val link: String,
     val tracks: Long? = null,
     val year: Int? = null,
 ): ComponentData

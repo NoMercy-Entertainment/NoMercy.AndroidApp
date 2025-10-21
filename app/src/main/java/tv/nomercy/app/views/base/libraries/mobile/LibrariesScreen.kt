@@ -73,7 +73,8 @@ fun LibrariesScreen(navController: NavHostController) {
             else -> null
         }
     }
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
+    val primary = MaterialTheme.colorScheme.primary
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = primary) }
     val key = remember { UUID.randomUUID() }
 
     DisposableEffect(focusColor) {

@@ -118,12 +118,13 @@ fun InfoScreen(type: String, id: String, navController: NavHostController) {
 }
 
 @Composable
-fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
+private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
     val themeOverrideManager = LocalThemeOverrideManager.current
     val listState = rememberLazyListState()
 
+    val primary = MaterialTheme.colorScheme.primary
     val posterPalette = infoData?.colorPalette?.poster
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = primary) }
     val key = remember { UUID.randomUUID() }
 
     DisposableEffect(focusColor) {
@@ -290,17 +291,17 @@ fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
 }
 
 @Composable
-fun TopSection(infoData: InfoResponse?, navController: NavHostController) {
+private fun TopSection(infoData: InfoResponse?, navController: NavHostController) {
     Box {
 
-        BackdropImage(infoData)
+        InfoBackdropImage(infoData)
 
         InfoCard(infoData, navController)
     }
 }
 
 @Composable
-fun InfoRow(infoData: InfoResponse?) {
+private fun InfoRow(infoData: InfoResponse?) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.padding(vertical = 4.dp)
@@ -350,7 +351,7 @@ fun InfoRow(infoData: InfoResponse?) {
 }
 
 @Composable
-fun BackdropImage(infoData: InfoResponse?) {
+private fun InfoBackdropImage(infoData: InfoResponse?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -384,7 +385,7 @@ fun BackdropImage(infoData: InfoResponse?) {
 
 
 @Composable
-fun GenreRow(
+private fun GenreRow(
     infoData: InfoResponse?,
     navController: NavHostController
 ) {

@@ -1,5 +1,6 @@
 package tv.nomercy.app.components.nMComponents
 
+import android.view.KeyEvent
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -11,6 +12,7 @@ import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.HoverInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,120 +21,210 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import kotlinx.coroutines.launch
 import tv.nomercy.app.R
+import tv.nomercy.app.components.brand.AppLogoSquare
 import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMMusicCardProps
 import tv.nomercy.app.shared.models.NMMusicHomeCardProps
 import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
+import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
+import tv.nomercy.app.shared.ui.LocalFocusRightInRow
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.paletteBackground
+import tv.nomercy.app.shared.ui.LocalOnActiveCardChange2
+import tv.nomercy.app.shared.ui.LocalOnActiveInRow
+import tv.nomercy.app.shared.utils.pickPaletteColor
 
 @Composable
 fun NMMusicCard(
     component: Component,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     navController: NavController,
-    aspectRatio: AspectRatio? = null,
+    aspectRatio: AspectRatio? = AspectRatio.Cover,
 ) {
-    val wrapper = component.props as? NMMusicHomeCardProps ?: return
-    val data = wrapper.data ?: return
+    val data = when (val p = component.props) {
+        is NMMusicCardProps -> p
+        is NMMusicHomeCardProps -> p.data ?: return
+        else -> return
+    }
+
+    val fallbackColor = MaterialTheme.colorScheme.primary
+    val focusColor by remember(data.colorPalette?.cover) {
+        derivedStateOf {
+            pickPaletteColor(data.colorPalette?.cover, fallbackColor = fallbackColor)
+        }
+    }
 
     val footText = remember(data) { buildFootText(data) }
+    val (isFocused, isHovered, interactionSource) = rememberTvInteractionState()
 
-    if (data.link != null) {
-        // TV hover/focus state: animated border growth and slight scale
-        val interaction = remember { MutableInteractionSource() }
-        var isFocused by remember { mutableStateOf(false) }
-        var isHovered by remember { mutableStateOf(false) }
-        LaunchedEffect(interaction) {
-            interaction.interactions.collect { inter ->
-                when (inter) {
-                    is FocusInteraction.Focus -> isFocused = true
-                    is FocusInteraction.Unfocus -> isFocused = false
-                    is HoverInteraction.Enter -> isHovered = true
-                    is HoverInteraction.Exit -> isHovered = false
-                }
-            }
+    val isTvPlatform = isTv()
+    val isActive = isTvPlatform && (isFocused || isHovered)
+    val borderWidth by animateDpAsState(if (isActive) 4.dp else 1.dp, label = "border")
+    val scale by animateFloatAsState(if (isActive) 1.03f else 1f, label = "scale")
+
+    val onActiveCardChange = LocalOnActiveCardChange2.current
+    val onActiveInRow = LocalOnActiveInRow.current
+
+    LaunchedEffect(isActive) {
+        if (isActive) {
+            onActiveCardChange(data)
+            onActiveInRow()
         }
-        val isTvPlatform = isTv()
-        val isActive = isTvPlatform && (isFocused || isHovered)
-        val borderWidth = animateDpAsState(targetValue = if (isActive) 4.dp else 1.dp, label = "nmmusiccard-border").value
-        val scale = animateFloatAsState(targetValue = if (isActive) 1.03f else 1.0f, label = "nmmusiccard-scale").value
-        val maxBorder = 4.dp
+    }
 
-        Column(
-            modifier = modifier
-                .fillMaxWidth()
-                .clickable { navController.navigate(data.link) },
-            horizontalAlignment = Alignment.Start
+    val focusRequester = LocalCurrentItemFocusRequester.current
+    val focusLeft = LocalFocusLeftInRow.current
+    val focusRight = LocalFocusRightInRow.current
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+            .clickable { navController.navigate(data.link) },
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(2f)
+                .clip(RoundedCornerShape(6.dp))
+                .aspectFromType(AspectRatio.Cover)
+                .graphicsLayer {
+                    if (isTvPlatform) {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                }
+                .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
+                .then(
+                    if (isTvPlatform) Modifier
+                        .border(borderWidth, focusColor.copy(alpha = if (isActive) 1f else 0.5f), RoundedCornerShape(6.dp))
+                        .focusable(interactionSource = interactionSource)
+                        .hoverable(interactionSource = interactionSource)
+                        .semantics { role = Role.Button }
+                    else Modifier.border(borderWidth, focusColor, RoundedCornerShape(6.dp))
+                )
+                .onPreviewKeyEvent { event ->
+                    if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+                        when (event.nativeKeyEvent.keyCode) {
+                            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                                scope.launch { focusLeft() }; true
+                            }
+                            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                                scope.launch { focusRight() }; true
+                            }
+                            KeyEvent.KEYCODE_DPAD_CENTER -> {
+                                scope.launch { navController.navigate(data.link) }; true
+                            }
+                            else -> false
+                        }
+                    } else false
+                },
+            shape = RoundedCornerShape(6.dp),
+            onClick = { navController.navigate(data.link) }
         ) {
-            // Outer container with border on TV
-            Box(
+            MusicCardImage(
+                data = data,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectFromType(aspectRatio)
-                    .graphicsLayer { if (isTvPlatform) { scaleX = scale; scaleY = scale } }
-                    .then(if (isTvPlatform) Modifier.border(borderWidth, MaterialTheme.colorScheme.primary.copy(alpha = if (isActive) 0.9f else 0.5f), RoundedCornerShape(12.dp)).focusable(interactionSource = interaction).hoverable(interactionSource = interaction) else Modifier)
-                    .clip(RoundedCornerShape(12.dp))
-            ) {
-                MusicCardImage(
-                    data = data,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectFromType(aspectRatio)
-                )
-            }
+                    .aspectFromType(AspectRatio.Cover)
+            )
+        }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = data.name.orEmpty(),
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = footText,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+        MusicCardText(
+            title = data.name,
+            subtitle = footText,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxSize()
+        )
+    }
+}
+
+@Composable
+private fun MusicCardText(title: String, subtitle: String, modifier: Modifier) {
+    Column(
+        modifier = modifier
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.labelSmall.copy(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun rememberTvInteractionState(): Triple<Boolean, Boolean, MutableInteractionSource> {
+    val interaction = remember { MutableInteractionSource() }
+    var isFocused by remember { mutableStateOf(false) }
+    var isHovered by remember { mutableStateOf(false) }
+
+    LaunchedEffect(interaction) {
+        interaction.interactions.collect { inter ->
+            when (inter) {
+                is FocusInteraction.Focus -> isFocused = true
+                is FocusInteraction.Unfocus -> isFocused = false
+                is HoverInteraction.Enter -> isHovered = true
+                is HoverInteraction.Exit -> isHovered = false
             }
         }
     }
+
+    return Triple(isFocused, isHovered, interaction)
 }
 
 @Composable
@@ -253,12 +345,11 @@ fun CoverImage(cover: String?, name: String?, modifier: Modifier) {
                 .build(),
             contentDescription = "Cover image for ${name ?: ""}",
             modifier = modifier
-                .fillMaxSize()
                 .shadow(elevation = 4.dp, shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)),
             contentScale = ContentScale.Crop
         )
     } else {
-        AppLogoSquare()
+        AppLogoSquare(modifier)
     }
 }
 
@@ -266,7 +357,7 @@ fun CoverImage(cover: String?, name: String?, modifier: Modifier) {
 fun CoverImage(data: NMMusicCardProps, modifier: Modifier) {
     CoverImage(
         cover = data.cover.orEmpty(),
-        name = data.name.orEmpty(),
+        name = data.name,
         modifier = modifier
     )
 }
@@ -281,25 +372,6 @@ fun FavoriteImage() {
     )
 }
 
-@Composable
-fun AppLogoSquare(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .aspectFromType(AspectRatio.Cover)
-            .shadow(elevation = 4.dp, shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
-            .background(Color.Black),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = "App Logo",
-//            tint = color ?: MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .fillMaxSize()
-        )
-    }
-}
 
 fun resolveImageUrl(
     cover: String?,

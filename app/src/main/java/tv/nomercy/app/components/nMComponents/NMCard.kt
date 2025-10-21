@@ -52,7 +52,7 @@ import tv.nomercy.app.shared.ui.LocalOnActiveCardChange
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import android.view.KeyEvent as AndroidKeyEvent
+import android.view.KeyEvent
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
 import tv.nomercy.app.shared.ui.LocalFocusRightInRow
@@ -71,9 +71,10 @@ fun NMCard(
     val wrapper = component.props as? NMCardWrapper ?: return
     val data = wrapper.data ?: return
 
+    val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor: Color = remember(data.colorPalette) {
         val palette = data.colorPalette?.poster
-        val color = pickPaletteColor(palette)
+        val color = pickPaletteColor(palette, fallbackColor = fallbackColor)
         color
     }
 
@@ -136,11 +137,11 @@ fun NMCard(
                     .border(borderWidth, focusColor, RoundedCornerShape(6.dp))
             )
             .onPreviewKeyEvent { event ->
-                if (event.nativeKeyEvent.action == AndroidKeyEvent.ACTION_DOWN) {
+                if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
                     when (event.nativeKeyEvent.keyCode) {
-                        AndroidKeyEvent.KEYCODE_DPAD_LEFT -> { keyScope.launch { focusLeftInRow() }; true }
-                        AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> { keyScope.launch { focusRightInRow() }; true }
-                        AndroidKeyEvent.KEYCODE_DPAD_CENTER -> {
+                        KeyEvent.KEYCODE_DPAD_LEFT -> { keyScope.launch { focusLeftInRow() }; true }
+                        KeyEvent.KEYCODE_DPAD_RIGHT -> { keyScope.launch { focusRightInRow() }; true }
+                        KeyEvent.KEYCODE_DPAD_CENTER -> {
                             keyScope.launch {
                                 data.link.let { navController.navigate(it) }
                             }; true

@@ -3,13 +3,15 @@ package tv.nomercy.app.shared.ui
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.focus.FocusRequester
 import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMMusicCardProps
 
 /**
  * Notifies listeners when a generic card becomes active on TV (focused/hovered).
  *
  * Default provider is a no-op so non-TV screens or contexts that don't care remain unaffected.
  */
-val LocalOnActiveCardChange = staticCompositionLocalOf<(NMCardProps?) -> Unit> { { _: NMCardProps? -> } }
+val LocalOnActiveCardChange = staticCompositionLocalOf { { _: NMCardProps? -> } }
+val LocalOnActiveCardChange2 = staticCompositionLocalOf { { _: NMMusicCardProps? -> } }
 
 /**
  * Inside a horizontal carousel (LazyRow), request the row to align the currently active

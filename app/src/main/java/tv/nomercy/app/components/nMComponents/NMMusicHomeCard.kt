@@ -1,7 +1,17 @@
 package tv.nomercy.app.components.nMComponents
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.FocusInteraction
+import androidx.compose.foundation.interaction.HoverInteraction
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,25 +24,44 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.focusRequester
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMMusicHomeCardProps
 import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
+import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
+import tv.nomercy.app.shared.ui.LocalFocusRightInRow
+import tv.nomercy.app.shared.ui.LocalOnActiveCardChange2
+import tv.nomercy.app.shared.ui.LocalOnActiveInRow
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
+import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.pickPaletteColor
+import android.view.KeyEvent as AndroidKeyEvent
 
 @Composable
 fun NMMusicHomeCard(
@@ -47,8 +76,9 @@ fun NMMusicHomeCard(
     val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
     serverConfigStore.currentServer.collectAsState()
 
+    val fallbackColor = MaterialTheme.colorScheme.primary
     val ringColor = remember(data.colorPalette?.cover) {
-        pickPaletteColor(data.colorPalette?.cover)
+        pickPaletteColor(data.colorPalette?.cover, fallbackColor = fallbackColor)
     }
 
     val backgroundGradient = if (data.type != "playlists") {
@@ -71,6 +101,48 @@ fun NMMusicHomeCard(
 
     val labelText = "Most listened ${data.type?.removeSuffix("s")?.replaceFirstChar { it.uppercase() }}"
 
+    // TV focus/hover and key handling setup
+    val interaction = remember { MutableInteractionSource() }
+    var isFocused by remember { mutableStateOf(false) }
+    var isHovered by remember { mutableStateOf(false) }
+    LaunchedEffect(interaction) {
+        interaction.interactions.collect { inter ->
+            when (inter) {
+                is FocusInteraction.Focus -> isFocused = true
+                is FocusInteraction.Unfocus -> isFocused = false
+                is HoverInteraction.Enter -> isHovered = true
+                is HoverInteraction.Exit -> isHovered = false
+            }
+        }
+    }
+    val isTvPlatform = isTv()
+    val isActive = isTvPlatform && (isFocused || isHovered)
+    val borderWidth = animateDpAsState(
+        targetValue = if (isActive) 2.dp else 1.dp,
+        animationSpec = tween(durationMillis = 120, easing = FastOutSlowInEasing),
+        label = "nmmusichomecard-border"
+    ).value
+    val scale = animateFloatAsState(
+        targetValue = if (isActive) 1.015f else 1.0f,
+        animationSpec = tween(durationMillis = 120, easing = FastOutSlowInEasing),
+        label = "nmmusichomecard-scale"
+    ).value
+
+    // Notify screen and parent row when this item becomes active
+    val onActiveCardChange2 = LocalOnActiveCardChange2.current
+    val onActiveInRow = LocalOnActiveInRow.current
+    LaunchedEffect(isActive) {
+        if (isActive) {
+            onActiveCardChange2(wrapper.data)
+            onActiveInRow()
+        }
+    }
+
+    val itemFocusRequester = LocalCurrentItemFocusRequester.current
+    val focusLeftInRow = LocalFocusLeftInRow.current
+    val focusRightInRow = LocalFocusRightInRow.current
+    val keyScope = rememberCoroutineScope()
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -78,6 +150,27 @@ fun NMMusicHomeCard(
             .background(
                 brush = backgroundGradient
             )
+            .graphicsLayer { if (isTvPlatform) { scaleX = scale; scaleY = scale } }
+            .then(if (itemFocusRequester != null) Modifier.focusRequester(itemFocusRequester) else Modifier)
+            .then(
+                if (isTvPlatform) Modifier
+                    .border(borderWidth, ringColor.copy(alpha = if (isActive) 1f else 0.5f), RoundedCornerShape(20.dp))
+                    .focusable(interactionSource = interaction)
+                    .hoverable(interactionSource = interaction)
+                    .semantics { role = Role.Button }
+                else Modifier
+                    .border(borderWidth, ringColor, RoundedCornerShape(20.dp))
+            )
+            .onPreviewKeyEvent { event ->
+                if (event.nativeKeyEvent.action == AndroidKeyEvent.ACTION_DOWN) {
+                    when (event.nativeKeyEvent.keyCode) {
+                        AndroidKeyEvent.KEYCODE_DPAD_LEFT -> { keyScope.launch { focusLeftInRow() }; true }
+                        AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> { keyScope.launch { focusRightInRow() }; true }
+                        AndroidKeyEvent.KEYCODE_DPAD_CENTER -> { keyScope.launch { data.link?.let { navController.navigate(it) } }; true }
+                        else -> false
+                    }
+                } else false
+            }
             .clickable { data.link?.let { navController.navigate(it) } }
             .padding(12.dp)
     ) {
