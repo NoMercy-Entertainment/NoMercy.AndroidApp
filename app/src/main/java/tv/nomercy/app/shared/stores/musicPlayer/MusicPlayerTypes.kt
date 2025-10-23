@@ -9,11 +9,11 @@ package tv.nomercy.app.shared.stores.musicPlayer
  * Represents the current playback time state.
  */
 data class TimeState(
-    val buffered: Long = 0,
-    val duration: Long = 0,
-    val percentage: Float = 0f,
-    val position: Long = 0,
-    val remaining: Long = 0,
+    var buffered: Long = 0,
+    var duration: Long = 0,
+    var percentage: Float = 0f,
+    var position: Long = 0,
+    var remaining: Long = 0,
 )
 
 /**

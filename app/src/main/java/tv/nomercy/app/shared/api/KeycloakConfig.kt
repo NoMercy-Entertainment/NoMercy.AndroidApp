@@ -9,14 +9,10 @@ import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.ResponseTypeValues
 import net.openid.appauth.browser.BrowserAllowList
 import net.openid.appauth.browser.VersionedBrowserMatcher
+import tv.nomercy.app.BuildConfig
 
 object KeycloakConfig {
-
-    fun getSuffix(): String {
-        // For Android, we'll determine dev environment based on build type or other criteria
-        // For now, using production environment. Can be made dynamic later.
-        return "-dev" // or "-dev" for development
-    }
+    fun getSuffix(): String = BuildConfig.SUFFIX
 
     private fun getAuthBaseUrl(): String {
         val suffix = getSuffix()
@@ -24,8 +20,7 @@ object KeycloakConfig {
     }
 
     fun createAuthServiceConfig(): AuthorizationServiceConfiguration {
-        val suffix = getSuffix()
-        val baseUrl = "https://auth$suffix.nomercy.tv"
+        val baseUrl = getAuthBaseUrl()
 
         return AuthorizationServiceConfiguration(
             "$baseUrl/realms/NoMercyTV/protocol/openid-connect/auth".toUri(), // authorization endpoint
@@ -38,7 +33,7 @@ object KeycloakConfig {
             createAuthServiceConfig(),
             "nomercy-ui", // clientId
             ResponseTypeValues.CODE,
-            "tv.nomercy.app2://oauth".toUri() // redirectUri
+            "tv.nomercy.app://oauth".toUri() // redirectUri
         ).setScope("openid profile email")
             .build()
     }

@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIcon
 import tv.nomercy.app.components.MoooomIconName
-import tv.nomercy.app.components.nMComponents.CoverImage
+import tv.nomercy.app.components.CoverImage
 import tv.nomercy.app.shared.models.PlaylistItem
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.pickPaletteColor
@@ -72,10 +72,7 @@ import tv.nomercy.app.shared.utils.pickPaletteColor
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun FullPlayerScreen(
-    isOpen: Boolean,
-    onDismiss: () -> Unit,
-) {
+fun FullPlayerScreen() {
     val context = LocalContext.current
     val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)
 
@@ -121,132 +118,132 @@ fun FullPlayerScreen(
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scrollState = rememberScrollState()
 
-    if (isOpen) {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = sheetState,
-            containerColor = Color.Black,
-            dragHandle = null,
-            shape = RectangleShape,
-            scrimColor = Color.Transparent,
-        ) {
-            BoxWithConstraints(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                focusColor.copy(alpha = 0.7f),
-                                focusColor.copy(alpha = 0.3f)
-                            )
-                        ) )
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-            ) {
-                val collapsedLyricsHeight = 400.dp
-                val expandedLyricsHeight = minHeight - MaterialTheme.typography.titleMedium.fontSize.value.dp - 30.dp
-
-                val lyricsHeight by animateDpAsState(
-                    targetValue = if (lyricsExpanded) expandedLyricsHeight else collapsedLyricsHeight,
-                    animationSpec = tween(300),
-                    label = "lyricsHeight"
-                )
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(expandedLyricsHeight)
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.SpaceBetween,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            TopRow(
-                                onDismiss = {
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        sheetState.hide()
-                                        onDismiss()
-                                    }
-                                }
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            if (fullPlaylist.isNotEmpty()) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(1f)
-                                        .padding(vertical = 12.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    HorizontalPager(
-                                        state = pagerState,
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) { page ->
-                                        fullPlaylist.getOrNull(page)?.let {
-                                            CoverArtwork(item = it, modifier = Modifier.fillMaxSize())
-                                        }
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            TrackRow(item = currentSong)
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            PlayerProgressBar(
-                                currentTime = timeState.position,
-                                duration = timeState.duration,
-                                onSeek = { musicPlayerStore.seekTo(it) }
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            ButtonContainer(
-                                activeColor = focusColor,
-                                controlRowHeight = 48.dp
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    LyricsContainer(
-                        isExpanded = lyricsExpanded,
-                        height = lyricsHeight,
-                        onToggleExpand = {
-                            lyricsExpanded = !lyricsExpanded
-                            CoroutineScope(Dispatchers.Main).launch {
-                                delay(40L)
-                                bringIntoViewRequester.bringIntoView()
-                            }
-                        },
-                        activeColor = focusColor,
-                        bringIntoViewRequester = bringIntoViewRequester,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp)
-                            .bringIntoViewRequester(bringIntoViewRequester)
+    ModalBottomSheet(
+        onDismissRequest = { musicPlayerStore.closeFullPlayer() },
+        sheetState = sheetState,
+        containerColor = Color.Black,
+        dragHandle = null,
+        shape = RectangleShape,
+        scrimColor = Color.Transparent,
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            focusColor.copy(alpha = 0.7f),
+                            focusColor.copy(alpha = 0.3f)
+                        )
                     )
+                )
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        ) {
+            val collapsedLyricsHeight = 400.dp
+            val expandedLyricsHeight = minHeight - MaterialTheme.typography.titleMedium.fontSize.value.dp - 30.dp
+
+            val lyricsHeight by animateDpAsState(
+                targetValue = if (lyricsExpanded) expandedLyricsHeight else collapsedLyricsHeight,
+                animationSpec = tween(300),
+                label = "lyricsHeight"
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(expandedLyricsHeight)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        TopRow(
+                            onDismiss = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    sheetState.hide()
+                                    musicPlayerStore.closeFullPlayer()
+                                }
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        if (fullPlaylist.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                HorizontalPager(
+                                    state = pagerState,
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) { page ->
+                                    fullPlaylist.getOrNull(page)?.let {
+                                        CoverArtwork(item = it, modifier = Modifier.fillMaxSize())
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        TrackRow(item = currentSong)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        PlayerProgressBar(
+                            currentTime = timeState.position,
+                            duration = timeState.duration,
+                            onSeek = { musicPlayerStore.seekTo(it) }
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ButtonContainer(
+                            activeColor = focusColor,
+                            controlRowHeight = 48.dp
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                LyricsContainer(
+                    isExpanded = lyricsExpanded,
+                    height = lyricsHeight,
+                    onToggleExpand = {
+                        lyricsExpanded = !lyricsExpanded
+                        CoroutineScope(Dispatchers.Main).launch {
+                            delay(40L)
+                            bringIntoViewRequester.bringIntoView()
+                        }
+                    },
+                    activeColor = focusColor,
+                    bringIntoViewRequester = bringIntoViewRequester,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .bringIntoViewRequester(bringIntoViewRequester)
+                )
             }
+
         }
     }
 }
 
 
 @Composable
-private fun CoverArtwork(
+fun CoverArtwork(
     item: PlaylistItem,
     modifier: Modifier = Modifier
 ) {
@@ -362,7 +359,7 @@ private fun TopRow(
 }
 
 @Composable
-private fun TrackRow(
+fun TrackRow(
     item: PlaylistItem?,
     modifier: Modifier = Modifier
 ) {
@@ -424,7 +421,7 @@ private fun TrackRow(
 }
 
 @Composable
-private fun ButtonContainer(
+fun ButtonContainer(
      modifier: Modifier = Modifier,
      activeColor: Color = Color.White,
      controlRowHeight: Dp = 40.dp
@@ -472,7 +469,7 @@ private fun ButtonContainer(
  }
 
 @Composable
-private fun StyledPlaybackButton(
+fun StyledPlaybackButton(
      modifier: Modifier = Modifier,
      backgroundColor: Color = Color.White
  ) {

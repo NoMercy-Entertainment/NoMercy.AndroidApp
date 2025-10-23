@@ -1,1 +1,0 @@
-package tv.nomercy.app.views.music.artist.shared

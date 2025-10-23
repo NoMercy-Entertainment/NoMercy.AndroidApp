@@ -38,7 +38,7 @@ import androidx.navigation.NavHostController
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.rememberSwipeableState
 import tv.nomercy.app.components.Marquee
-import tv.nomercy.app.components.nMComponents.CoverImage
+import tv.nomercy.app.components.CoverImage
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.pickPaletteColor
 import kotlin.math.abs
@@ -46,7 +46,6 @@ import kotlin.math.abs
 @OptIn(ExperimentalWearMaterialApi::class)
 @Composable
 fun MiniPlayer(
-    onOpenFullPlayer: () -> Unit,
     onStopPlayback: () -> Unit,
     modifier: Modifier = Modifier,
     navController: NavHostController,
@@ -85,7 +84,7 @@ fun MiniPlayer(
                 .fillMaxWidth()
                 .height(56.dp)
                 .background(MaterialTheme.colorScheme.surface)
-                .clickable { onOpenFullPlayer() }
+                .clickable { musicPlayerStore.openFullPlayer() }
                 .onGloballyPositioned {
                     containerWidth.floatValue = it.size.width.toFloat()
                 }

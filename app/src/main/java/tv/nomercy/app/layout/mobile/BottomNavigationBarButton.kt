@@ -50,8 +50,6 @@ fun BottomNavigationBarButton(
     ) {
         if (item.route == "/profile") {
             ProfileImage(
-                size = 28.dp,
-                bottomPadding = 0.dp,
                 showPresenceDot = false,
                 borderWidth = if (isSelected) 2.dp else 0.dp,
                 borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,

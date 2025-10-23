@@ -1,6 +1,7 @@
 package tv.nomercy.app.layout.tv
 
 import android.view.KeyEvent
+import androidx.compose.animation.core.animateFloatAsState
 import tv.nomercy.app.layout.mobile.AppNavItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,34 +10,35 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,11 +47,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import kotlinx.coroutines.launch
 import tv.nomercy.app.components.MoooomIcon
-import tv.nomercy.app.components.nMComponents.CoverImage
+import tv.nomercy.app.components.CoverImage
+import tv.nomercy.app.components.Marquee
+import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.shared.models.PlaylistItem
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.components.ProfileImage
 import tv.nomercy.app.components.brand.AppLogoSquare
+import tv.nomercy.app.components.music.EqSpinner
+import tv.nomercy.app.components.music.TrackLinksArtists
+import tv.nomercy.app.components.music.TvMiniPlayer
 import tv.nomercy.app.shared.ui.LocalNavbarFocusBridge
 
 @Composable
@@ -69,86 +76,58 @@ fun TvNavigationBar(
             .padding(horizontal = 36.dp)
             .fillMaxWidth()
             .height(70.dp),
-        verticalAlignment = Alignment.Bottom,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-
-        if (currentSong != null) {
-            SongPreviewButton(
-                song = currentSong!!,
-                isPlaying = isPlaying,
-                onClick = {
-
-                }
-            )
-        } else {
-            AppLogoSquare()
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .height(52.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (currentSong != null) {
+                TvMiniPlayer(
+                    song = currentSong!!,
+                    isPlaying = isPlaying,
+                    navController = navController,
+                )
+            } else {
+                AppLogoSquare()
+            }
         }
 
         Row(
             modifier = Modifier
-                .wrapContentWidth()
-                .fillMaxWidth()
-                .weight(3f)
-                .padding(start = 16.dp, end = 16.dp),
+                .weight(2f)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            Row(
-                modifier = Modifier,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 navItems.forEach { item ->
                     TvNavigationBarButton(item, navController)
                 }
             }
-
-        }
-        ProfileImage()
-    }
-}
-
-@Composable
-fun SongPreviewButton(
-    song: PlaylistItem,
-    isPlaying: Boolean,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .width(240.dp)
-            .height(40.dp),
-        contentPadding = PaddingValues(0.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Box(modifier = Modifier.size(40.dp)) {
-
-            CoverImage(cover = song.cover, name = song.name, modifier = Modifier.matchParentSize().graphicsLayer { alpha = 0.5f })
-
-            Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
-                if (isPlaying) Text("▶", color = Color.White) else Text("▷", color = Color.White)
-            }
         }
 
-        Column(
+        Row(
             modifier = Modifier
-                .padding(start = 8.dp)
-                .weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .weight(1f)
+                .fillMaxWidth()
+                .height(40.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            MarqueeText(song.name)
-            Text(
-                text = song.artistTrack.joinToString(", ") { it.name },
-                fontSize = 10.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            ProfileImage(modifier = Modifier.size(40.dp))
         }
     }
 }
+
+
 
 @Composable
 fun TvNavigationBarButton(
@@ -262,6 +241,3 @@ fun TvNavigationBarButton(
     }
 }
 
-
-
-@Composable fun MarqueeText(text: String) { Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis) }

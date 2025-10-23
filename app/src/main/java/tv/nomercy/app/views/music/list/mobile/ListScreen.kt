@@ -1,6 +1,8 @@
 package tv.nomercy.app.views.music.list.mobile
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -46,7 +50,7 @@ import tv.nomercy.app.components.music.BigPlayButton
 import tv.nomercy.app.components.music.MediaLikeButton
 import tv.nomercy.app.components.music.ShareButton
 import tv.nomercy.app.components.music.TrackRow
-import tv.nomercy.app.components.nMComponents.CoverImage
+import tv.nomercy.app.components.CoverImage
 import tv.nomercy.app.shared.models.MusicList
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.views.music.list.shared.ListViewModel
@@ -142,10 +146,10 @@ fun ListScreen(
                     )
                 }
             } else {
-                items(listData?.tracks ?: emptyList()) { track ->
+                itemsIndexed(listData?.tracks ?: emptyList()) { index, track ->
                     TrackRow(
                         data = track,
-                        index = listData?.tracks?.indexOf(track) ?: 0,
+                        index = index,
                         onClick = {
                             val currentSong = musicPlayerStore.currentSong.value
                             if (currentSong?.id == track.id) {
@@ -155,15 +159,15 @@ fun ListScreen(
                                 musicPlayerStore.playTrack(track, listData?.tracks, playlistId)
                             }
                         },
-                        onContextMenu = { offset ->
-                            // Handle context menu
-                        },
                         navController = navController,
                         modifier = Modifier
                             .testTag("track-${listData?.id}"),
                         isAlbumRoute = listData?.type == "albums",
                         isArtistRoute = listData?.type == "artists",
-                        backgroundColor = backgroundColor
+                        backgroundColor = backgroundColor,
+                        onContextMenu = { offset ->
+                            // Handle context menu
+                        },
                     )
                 }
             }
@@ -349,8 +353,8 @@ fun ScrollSync(
     ) {
         AnimatedVisibility(
             visible = showTitle,
-            enter = androidx.compose.animation.fadeIn(),
-            exit = androidx.compose.animation.fadeOut()
+            enter = fadeIn(),
+            exit = fadeOut()
         ) {
             Column(
                 modifier = Modifier
@@ -411,8 +415,8 @@ fun ScrollSync(
 
         AnimatedVisibility(
             visible = showSortHeader,
-            enter = androidx.compose.animation.fadeIn(),
-            exit = androidx.compose.animation.fadeOut()
+            enter = fadeIn(),
+            exit = fadeOut()
         ) {
             Column(
                 modifier = Modifier
@@ -443,7 +447,7 @@ fun SortHeader(backgroundColor: Color) {
         Text(
             text = "#",
             modifier = Modifier.width(32.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
         Text("Title")
     }

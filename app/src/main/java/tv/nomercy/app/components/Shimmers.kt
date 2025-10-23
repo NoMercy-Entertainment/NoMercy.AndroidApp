@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -117,8 +118,7 @@ fun ShimmerTrackRow(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(start = 16.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -130,37 +130,28 @@ fun ShimmerTrackRow(modifier: Modifier = Modifier) {
             ShimmerBox(
                 modifier = Modifier
                     .width(20.dp)
-                    .height(14.dp)
+                    .height(8.dp)
                     .clip(RoundedCornerShape(2.dp))
             )
         }
 
-        // Cover + Title + Artist/Album links
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        Column(
+            modifier = Modifier.weight(1f).height(48.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                ShimmerBox(
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                )
+            ShimmerBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(MaterialTheme.typography.bodyMedium.lineHeight.value.dp)
+                    .clip(RoundedCornerShape(4.dp))
+            )
 
-                ShimmerBox(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .height(12.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                )
-            }
+            ShimmerBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .height(MaterialTheme.typography.bodyMedium.lineHeight.value.dp)
+                    .clip(RoundedCornerShape(4.dp))
+            )
         }
     }
 }

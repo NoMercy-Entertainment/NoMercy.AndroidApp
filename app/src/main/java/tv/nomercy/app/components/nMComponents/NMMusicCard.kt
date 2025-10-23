@@ -4,15 +4,15 @@ import android.view.KeyEvent
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.HoverInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,24 +27,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -52,26 +47,22 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import kotlinx.coroutines.launch
 import tv.nomercy.app.R
-import tv.nomercy.app.components.brand.AppLogoSquare
+import tv.nomercy.app.components.CoverImage
 import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMMusicCardProps
 import tv.nomercy.app.shared.models.NMMusicHomeCardProps
-import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
 import tv.nomercy.app.shared.ui.LocalFocusRightInRow
+import tv.nomercy.app.shared.ui.LocalOnActiveCardChange2
+import tv.nomercy.app.shared.ui.LocalOnActiveInRow
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.paletteBackground
-import tv.nomercy.app.shared.ui.LocalOnActiveCardChange2
-import tv.nomercy.app.shared.ui.LocalOnActiveInRow
 import tv.nomercy.app.shared.utils.pickPaletteColor
 
 @Composable
@@ -319,48 +310,6 @@ fun buildFootText(data: NMMusicCardProps): String {
     return "$typeLabel$trackInfo"
 }
 
-@Composable
-fun CoverImage(cover: String?, name: String?, modifier: Modifier) {
-
-    val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
-    val currentServer by serverConfigStore.currentServer.collectAsState()
-
-    val serverBaseUrl = currentServer?.let {
-        if (it.serverBaseUrl.isNotBlank()) {
-            it.serverBaseUrl.trimEnd('/')
-        } else {
-            null
-        }
-    }
-
-    val imageUrl = remember(cover, serverBaseUrl) {
-        resolveImageUrl(cover, serverBaseUrl)
-    }
-
-    if (imageUrl != null) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(imageUrl)
-                .crossfade(true)
-                .build(),
-            contentDescription = "Cover image for ${name ?: ""}",
-            modifier = modifier
-                .shadow(elevation = 4.dp, shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)),
-            contentScale = ContentScale.Crop
-        )
-    } else {
-        AppLogoSquare(modifier)
-    }
-}
-
-@Composable
-fun CoverImage(data: NMMusicCardProps, modifier: Modifier) {
-    CoverImage(
-        cover = data.cover.orEmpty(),
-        name = data.name,
-        modifier = modifier
-    )
-}
 
 @Composable
 fun FavoriteImage() {

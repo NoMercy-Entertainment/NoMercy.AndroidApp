@@ -28,7 +28,7 @@ fun TvNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    NavHost(navController = navController, startDestination = "/home", modifier = modifier) {
+    NavHost(navController = navController, startDestination = "/music/album/83b72d02-1513-4a8b-af14-4d58acdf97e1", modifier = modifier) {
 
         composable("/home") { TvHomeScreen(navController) }
         composable("/search") { SearchScreen(navController) }

@@ -31,6 +31,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "SUFFIX", "\"\"")
+        }
+        debug {
+            buildConfigField("String", "SUFFIX", "\"-dev\"")
         }
     }
     compileOptions {
@@ -121,6 +125,9 @@ dependencies {
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.navigation.safe.args.generator)
+    implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.ui.test)
 
     // Debug tools
     debugImplementation(libs.androidx.compose.ui.tooling)

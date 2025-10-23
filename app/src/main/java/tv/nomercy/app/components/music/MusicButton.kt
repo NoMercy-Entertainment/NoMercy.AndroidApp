@@ -4,20 +4,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import kotlinx.serialization.json.JsonNull.content
 
 @Composable
 fun MusicButton(
     onClick: () -> Unit,
     label: String,
     modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
+    content: @Composable () -> Unit
 ) {
-    Box(
+    IconButton(
+        onClick = { },
         modifier = modifier
             .size(48.dp)
             .pointerInput(Unit) {
@@ -29,8 +32,6 @@ fun MusicButton(
                 }
             }
             .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        content()
-    }
+        content = content
+    )
 }

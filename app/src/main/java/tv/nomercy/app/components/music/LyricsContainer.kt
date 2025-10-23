@@ -43,13 +43,14 @@ import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIcon
 import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.utils.isTv
 
 
 @Composable
 fun LyricsContainer(
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
-    height: Dp,
+    height: Dp? = null,
     onToggleExpand: () -> Unit,
     activeColor: Color = Color.White,
     onHeaderHeightMeasured: (Dp) -> Unit = {},
@@ -59,100 +60,71 @@ fun LyricsContainer(
     val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)
     val currentSong by musicPlayerStore.currentSong.collectAsState()
     val timeState by musicPlayerStore.timeState.collectAsState()
-    val userStore = GlobalStores.getAuthStore(context)
-    val serverStore = GlobalStores.getServerConfigStore(context)
-    val accessToken = userStore.accessToken
-    val serverUrl = serverStore.currentServer.collectAsState().value?.serverApiUrl
-
-    suspend fun fetchLyrics(): List<LyricLine>? {
-        val songId = currentSong?.id ?: return null
-        val url = "$serverUrl/music/tracks/$songId/lyrics"
-        val client = OkHttpClient()
-
-        val request = Request.Builder()
-            .url(url)
-            .header("Authorization", "Bearer $accessToken")
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .build()
-
-        return withContext(Dispatchers.IO) {
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    val body = response.body.string()
-                    val arr = JSONArray(body)
-                    List(arr.length()) { i ->
-                        val obj = arr.getJSONObject(i)
-                        LyricLine(
-                            time = obj.optDouble("time", 0.0).toFloat(),
-                            text = obj.optString("text", "")
-                        )
-                    }
-                } else null
-            }
-        }
-    }
 
     val density = LocalDensity.current
+    val isTv = isTv()
 
     Column(
         modifier = modifier
-            .height(height)
+            .then(
+                if (height != null) Modifier.height(height) else Modifier
+            )
             .clip(RoundedCornerShape(16.dp))
-            .background(activeColor.copy(alpha = 0.8f))
+            .background( if(isTv) Color.Transparent else activeColor.copy(alpha = 0.8f))
             .zIndex(2f)
     ) {
-        // build header modifier and attach bringIntoViewRequester if provided
-        val headerModifier = remember(bringIntoViewRequester) {
-            var m = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-            if (bringIntoViewRequester != null) m = m.bringIntoViewRequester(bringIntoViewRequester)
-            m
+
+        if(!isTv) {
+            // build header modifier and attach bringIntoViewRequester if provided
+            val headerModifier = remember(bringIntoViewRequester) {
+                var m = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                if (bringIntoViewRequester != null) m = m.bringIntoViewRequester(bringIntoViewRequester)
+                m
+            }
+            Row(
+                modifier = headerModifier.onGloballyPositioned { coords ->
+                    // report header height in Dp back to the parent
+                    val hPx = coords.size.height.toFloat()
+                    val hDp = with(density) { hPx.toDp() }
+                    onHeaderHeightMeasured(hDp)
+                },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(id = R.string.lyrics),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+
+                MoooomIcon(
+                    icon = if (isExpanded) MoooomIconName.ArrowCollapse else MoooomIconName.ArrowExpand,
+                    contentDescription = if (isExpanded) stringResource(id = R.string.collapse) else stringResource(
+                        id = R.string.expand
+                    ),
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable {
+                            onToggleExpand()
+                        }
+                )
+            }
         }
 
-        Row(
-            modifier = headerModifier.onGloballyPositioned { coords ->
-                // report header height in Dp back to the parent
-                val hPx = coords.size.height.toFloat()
-                val hDp = with(density) { hPx.toDp() }
-                onHeaderHeightMeasured(hDp)
-            },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(id = R.string.lyrics),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-
-            MoooomIcon(
-                icon = if (isExpanded) MoooomIconName.ArrowCollapse else MoooomIconName.ArrowExpand,
-                contentDescription = if (isExpanded) stringResource(id = R.string.collapse) else stringResource(id = R.string.expand),
-                tint = Color.White,
-                modifier = Modifier
-                    .size(16.dp)
-                    .clickable{
-                        onToggleExpand()
-                    }
-            )
-        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp)
+                .then(if(isTv) Modifier.padding(top = 52.dp, bottom = 24.dp) else Modifier.padding(start = 16.dp, end = 16.dp))
+
                 .weight(1f)
         ) {
             LyricsView(
-                lyrics = currentSong?.lyrics?.map { LyricLine(
-                    it.time.total.toFloat(),
-                    it.text
-                ) },
-                currentTime = timeState.position,
-                fetchLyrics = { fetchLyrics() },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
             )
         }
     }

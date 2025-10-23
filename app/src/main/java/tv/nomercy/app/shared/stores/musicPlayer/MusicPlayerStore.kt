@@ -10,14 +10,24 @@ import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.IOException
 import tv.nomercy.app.shared.models.PlaylistItem
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Store for managing music playback, queue, audio focus, and crossfade logic.
+ *
+ * Changes:
+ * - previous() now: if current position > 3s -> seek to 0 and keep playing; otherwise go to previous track.
+ * - seekTo(...) updates time state once seek completes (onSeekComplete).
+ * - onSeekComplete implemented to refresh TimeState and player flags.
+ * - Defensive, small cleanup to make seeking behavior more reliable for remote fast-forward/rewind.
  */
 class MusicPlayerStore(
     private val context: Context,
@@ -74,6 +84,12 @@ class MusicPlayerStore(
 
     private val _currentPlaylistId = MutableStateFlow<String?>(null)
     val currentPlaylistId: StateFlow<String?> = _currentPlaylistId.asStateFlow()
+
+    private val _isFullPlayerOpen = MutableStateFlow(false)
+    val isFullPlayerOpen: StateFlow<Boolean> = _isFullPlayerOpen.asStateFlow()
+
+    private val _showingLyrics = MutableStateFlow(false)
+    val showingLyrics: StateFlow<Boolean> = _showingLyrics.asStateFlow()
 
     val currentSong = queue.currentSong
     val queueList = queue.queue
@@ -166,7 +182,6 @@ class MusicPlayerStore(
     // region: Audio Focus
     private fun requestAudioFocus(): Boolean {
         if (hasAudioFocus) {
-            Log.d("MusicPlayerStore", "Already have audio focus, skipping request")
             return true
         }
 
@@ -179,23 +194,18 @@ class MusicPlayerStore(
             .setAudioAttributes(audioAttributes)
             .setAcceptsDelayedFocusGain(true)
             .setOnAudioFocusChangeListener { focusChange ->
-                Log.d("MusicPlayerStore", "Audio focus change: $focusChange")
                 when (focusChange) {
                     AudioManager.AUDIOFOCUS_LOSS -> {
-                        Log.d("MusicPlayerStore", "AUDIOFOCUS_LOSS - permanent loss")
                         hasAudioFocus = false
                         pause()
                     }
                     AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                        Log.d("MusicPlayerStore", "AUDIOFOCUS_LOSS_TRANSIENT - temporary loss")
                         pause()
                     }
                     AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                        Log.d("MusicPlayerStore", "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK - ducking")
                         currentPlayer?.setVolume(0.3f, 0.3f)
                     }
                     AudioManager.AUDIOFOCUS_GAIN -> {
-                        Log.d("MusicPlayerStore", "AUDIOFOCUS_GAIN - gained focus")
                         hasAudioFocus = true
                         applyVolume()
                     }
@@ -205,7 +215,6 @@ class MusicPlayerStore(
 
         val result = audioManager.requestAudioFocus(audioFocusRequest!!)
         hasAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-        Log.d("MusicPlayerStore", "Audio focus request result: $result, hasAudioFocus: $hasAudioFocus")
         return hasAudioFocus
     }
 
@@ -213,7 +222,6 @@ class MusicPlayerStore(
         audioFocusRequest?.let {
             audioManager.abandonAudioFocusRequest(it)
             hasAudioFocus = false
-            Log.d("MusicPlayerStore", "Audio focus abandoned")
         }
     }
     // endregion
@@ -269,7 +277,6 @@ class MusicPlayerStore(
                 queue.repeatState.value != RepeatState.ONE &&
                 remaining <= prefetchLeewayMs &&
                 remaining > 0) {
-                Log.d("MusicPlayerStore", "Prefetch triggered - remaining: $remaining ms, threshold: $prefetchLeewayMs ms")
                 hasNextQueued = true
                 prefetchNextTrack()
             }
@@ -279,13 +286,13 @@ class MusicPlayerStore(
                 remaining <= fadeDurationMs &&
                 remaining > 0 &&
                 hasNextQueued) {
-                Log.d("MusicPlayerStore", "Crossfade triggered - remaining: $remaining ms, threshold: $fadeDurationMs ms")
                 startCrossFade()
             }
         } catch (e: IllegalStateException) {
             Log.w("MusicPlayerStore", "Player not initialized: ${e.message}")
         }
     }
+    // endregion
 
     private fun prefetchNextTrack() {
         val nextSong = queue.getNextSong() ?: return
@@ -299,13 +306,11 @@ class MusicPlayerStore(
                 config.baseUrl.removeSuffix("/") + songPath
             }
 
-            Log.d("MusicPlayerStore", "Prefetching next track: ${nextSong.name}")
 
             val dataSource = AuthenticatedMediaDataSource(fullUrl, config.accessToken)
             nextPlayer?.setDataSource(dataSource)
             nextPlayer?.prepareAsync()
 
-            Log.d("MusicPlayerStore", "Next track prefetch started with authenticated data source")
         } catch (e: Exception) {
             Log.e("MusicPlayerStore", "Failed to prefetch next track: ${e.message}", e)
             hasNextQueued = false
@@ -383,7 +388,6 @@ class MusicPlayerStore(
         fadeRunnable?.let { handler.removeCallbacks(it) }
         fadeRunnable = null
     }
-    // endregion
 
     // region: Playback Control
     private fun prepareSource(source: String) {
@@ -406,6 +410,7 @@ class MusicPlayerStore(
             try {
                 if (currentPlayer?.isPlaying == true) {
                     currentPlayer?.stop()
+                    _timeState.value = TimeState()
                     _isPlaying.value = false
                 }
                 currentPlayer?.reset()
@@ -422,18 +427,11 @@ class MusicPlayerStore(
                 config.baseUrl.removeSuffix("/") + sourcePath
             }
 
-            Log.d("MusicPlayerStore", "prepareSource called")
-            Log.d("MusicPlayerStore", "baseUrl: ${config.baseUrl.removeSuffix("/")}")
-            Log.d("MusicPlayerStore", "source: $source")
-            Log.d("MusicPlayerStore", "fullUrl: $fullUrl")
-            Log.d("MusicPlayerStore", "currentPlayer: $currentPlayer")
-            Log.d("MusicPlayerStore", "accessToken: ${config.accessToken?.take(20)}...")
 
             val dataSource = AuthenticatedMediaDataSource(fullUrl, config.accessToken)
             currentPlayer?.setDataSource(dataSource)
             currentPlayer?.prepareAsync()
 
-            Log.d("MusicPlayerStore", "prepareAsync called successfully with authenticated data source")
 
             applyVolume()
         } catch (e: IOException) {
@@ -452,26 +450,20 @@ class MusicPlayerStore(
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
-        Log.d("MusicPlayerStore", "onPrepared called - mp: $mp, currentPlayer: $currentPlayer")
 
         if (mp == currentPlayer) {
-            Log.d("MusicPlayerStore", "Preparing to play current player")
             _playerState.value = PlayerState.READY // Set state to READY so play() can start playback
             play()
         } else {
-            Log.d("MusicPlayerStore", "Next player prepared for crossfade - not starting playback")
         }
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
-        Log.d("MusicPlayerStore", "onCompletion called - mp: $mp, currentPlayer: $currentPlayer, isFading: $isFading")
 
         val duration = try { mp?.duration ?: 0 } catch (_: Exception) { 0 }
         val position = try { mp?.currentPosition ?: 0 } catch (_: Exception) { 0 }
-        Log.d("MusicPlayerStore", "onCompletion - duration: $duration ms, position: $position ms")
 
         if (mp != currentPlayer) {
-            Log.d("MusicPlayerStore", "onCompletion - ignoring completion from non-current player")
             return
         }
 
@@ -485,10 +477,8 @@ class MusicPlayerStore(
             }
             RepeatState.ALL, RepeatState.OFF -> {
                 if (!isFading) {
-                    Log.d("MusicPlayerStore", "onCompletion - moving to next track")
                     next()
                 } else {
-                    Log.d("MusicPlayerStore", "onCompletion - crossfade in progress, not moving to next")
                 }
             }
         }
@@ -515,47 +505,56 @@ class MusicPlayerStore(
     }
 
     override fun onSeekComplete(mp: MediaPlayer?) {
+        // Refresh time state and player flags after async seek completes.
+        try {
+            val player = if (mp == currentPlayer) currentPlayer else mp
+            val duration = player?.duration?.toLong() ?: 0L
+            val position = player?.currentPosition?.toLong() ?: 0L
+            val percentage = if (duration > 0) position.toFloat() / duration.toFloat() else 0f
+            val remaining = if (duration > 0) duration - position else 0L
+
+            _timeState.value = TimeState(
+                buffered = (_bufferedPercentage.value * duration / 100),
+                duration = duration,
+                percentage = percentage,
+                position = position,
+                remaining = remaining
+            )
+        } catch (e: Exception) {
+            Log.w("MusicPlayerStore", "onSeekComplete: failed to refresh time state: ${e.message}")
+        }
     }
 
     fun play() {
-        Log.d("MusicPlayerStore", "play() called")
 
         val systemVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        Log.d("MusicPlayerStore", "System volume: $systemVolume/$maxVolume, App volume: ${_volume.value}, isMuted: ${_isMuted.value}")
 
         if (!requestAudioFocus()) {
-            Log.d("MusicPlayerStore", "Failed to gain audio focus")
             _error.value = "Failed to gain audio focus"
             return
         }
 
-        Log.d("MusicPlayerStore", "Audio focus gained")
 
         try {
             val isPlaying = currentPlayer?.isPlaying ?: false
-            Log.d("MusicPlayerStore", "Current player isPlaying before start: $isPlaying")
 
             // Only start if not already playing and player is READY or PAUSED
             if (isPlaying) {
-                Log.d("MusicPlayerStore", "Already playing, not starting again")
                 return
             }
             if (_playerState.value != PlayerState.READY && _playerState.value != PlayerState.PAUSED) {
-                Log.d("MusicPlayerStore", "Player is not ready or paused, cannot start playback")
                 return
             }
 
             currentPlayer?.start()
 
             val isPlayingAfter = currentPlayer?.isPlaying ?: false
-            Log.d("MusicPlayerStore", "Current player isPlaying after start: $isPlayingAfter")
 
             _isPlaying.value = true
             _playerState.value = PlayerState.PLAYING
             startTimeUpdates()
 
-            Log.d("MusicPlayerStore", "Playback started successfully")
         } catch (e: IllegalStateException) {
             println(e.message)
             _error.value = "Failed to start playback: ${e.message}"
@@ -564,7 +563,6 @@ class MusicPlayerStore(
     }
 
     fun pause() {
-        Log.d("MusicPlayerStore", "pause() called")
 
         try {
             currentPlayer?.pause()
@@ -577,7 +575,6 @@ class MusicPlayerStore(
                 isFading = false
             }
 
-            Log.d("MusicPlayerStore", "Paused successfully")
         } catch (e: IllegalStateException) {
             Log.e("MusicPlayerStore", "Failed to pause: ${e.message}", e)
             _error.value = "Failed to pause: ${e.message}"
@@ -585,7 +582,6 @@ class MusicPlayerStore(
     }
 
     fun togglePlayback() {
-        Log.d("MusicPlayerStore", "togglePlayback() called - current state: ${_playerState.value}, isPlaying: ${_isPlaying.value}")
 
         if (_isPlaying.value) {
             pause()
@@ -595,7 +591,6 @@ class MusicPlayerStore(
             } else {
                 val currentSong = queue.currentSong.value
                 if (currentSong != null) {
-                    Log.d("MusicPlayerStore", "Replaying current song: ${currentSong.name}")
                     prepareSource(currentSong.path)
                 } else {
                     Log.w("MusicPlayerStore", "No current song to play")
@@ -613,6 +608,7 @@ class MusicPlayerStore(
 
             _isPlaying.value = false
             _playerState.value = PlayerState.STOPPED
+            _timeState.value = TimeState()
             stopTimeUpdates()
             abandonAudioFocus()
 
@@ -630,20 +626,42 @@ class MusicPlayerStore(
         }
     }
 
+    /**
+     * Seek to an absolute position in milliseconds.
+     * Attempts to seek both players (current and next) so crossfade/prefetch remain in sync.
+     * Updates time state via onSeekComplete when available.
+     */
     fun seekTo(positionMs: Long) {
         try {
             val duration = getDuration()
             if (duration <= 0) return
 
             val adjustedPosition = if (isFading) {
-                val fadeAdjust = fadeDurationMs - (System.currentTimeMillis() % fadeDurationMs)
-                (positionMs - fadeAdjust).coerceIn(0, duration)
+                // During fade we try to avoid seeking past the fade boundary, but keep it simple:
+                positionMs.coerceIn(0L, duration)
             } else {
-                positionMs
+                positionMs.coerceIn(0L, duration)
             }
 
             currentPlayer?.seekTo(adjustedPosition.toInt())
-            nextPlayer?.seekTo(adjustedPosition.toInt())
+            // nextPlayer may be null or not prepared, guard it
+            try {
+                nextPlayer?.seekTo(adjustedPosition.toInt())
+            } catch (_: Exception) {
+            }
+
+            // Optimistically update time state immediately for snappy UI; onSeekComplete will refresh authoritative values
+            val dur = duration
+            val pos = adjustedPosition
+            val perc = pos.toFloat() / dur.toFloat()
+            val remaining = dur - pos
+            _timeState.value = TimeState(
+                buffered = (_bufferedPercentage.value * dur / 100),
+                duration = dur,
+                percentage = perc,
+                position = pos,
+                remaining = remaining
+            )
         } catch (e: Exception) {
             Log.e("MusicPlayerStore", "Seek error: ${e.message}", e)
         }
@@ -661,19 +679,10 @@ class MusicPlayerStore(
         // Ensure the service is running so the widget/notification appears
         ensureServiceRunning()
 
-        Log.d("MusicPlayerStore", "========================================")
-        Log.d("MusicPlayerStore", "playTrack called")
-        Log.d("MusicPlayerStore", "track.path: ${track.path}")
-        Log.d("MusicPlayerStore", "track.name: ${track.name}")
-        Log.d("MusicPlayerStore", "tracks size: ${tracks?.size}")
-        Log.d("MusicPlayerStore", "playlistId: $playlistId")
-        Log.d("MusicPlayerStore", "current playlistId: ${_currentPlaylistId.value}")
-        Log.d("MusicPlayerStore", "========================================")
 
         val isDifferentPlaylist = playlistId != null && _currentPlaylistId.value != playlistId
         if (isDifferentPlaylist) {
 
-            Log.d("MusicPlayerStore", "Switching to new playlist - stopping current playback and clearing queue")
             try {
                 currentPlayer?.stop()
                 currentPlayer?.reset()
@@ -681,6 +690,7 @@ class MusicPlayerStore(
                 nextPlayer?.reset()
 
                 _isPlaying.value = false
+                _timeState.value = TimeState()
                 stopTimeUpdates()
 
                 if (isFading) {
@@ -700,6 +710,10 @@ class MusicPlayerStore(
 
         queue.playTrack(track, tracks)
         prepareSource(track.path)
+
+        if(tracks?.isNotEmpty() == true){
+            _isFullPlayerOpen.value = true
+        }
     }
 
     fun isCurrentPlaylist(playlistId: String?): Boolean {
@@ -707,15 +721,13 @@ class MusicPlayerStore(
     }
 
     fun next() {
-        Log.d("MusicPlayerStore", "next() called - isFading: $isFading")
 
         if (isFading) {
-            Log.d("MusicPlayerStore", "Completing crossfade before next")
             completeCrossFade()
         } else {
+            _timeState.value = _timeState.value.copy(position = 0L)
             val nextSong = queue.moveToNext()
             if (nextSong != null) {
-                Log.d("MusicPlayerStore", "Moving to next song: ${nextSong.name}")
                 prepareSource(nextSong.path)
             } else {
                 Log.w("MusicPlayerStore", "No next song found")
@@ -723,14 +735,42 @@ class MusicPlayerStore(
         }
     }
 
+    /**
+     * Behavior requested by user:
+     * - If current position is later than 3 seconds -> set time back to 0 and keep playing the same track.
+     * - Otherwise go to previous track.
+     */
     fun previous() {
         Log.d("MusicPlayerStore", "previous() called")
+        val currentPosition = getPosition()
+        val threeSecondsMs = 3000L
 
-        val previousSong = queue.getPreviousSong() ?: return
+        // If we're further than 3s into the track, restart the current track
+        if (currentPosition > threeSecondsMs) {
+            Log.d("MusicPlayerStore", "Position > 3s ($currentPosition ms): seeking to 0")
+            seekTo(0L)
+            if (_isPlaying.value) {
+                _playerState.value = PlayerState.PLAYING
+            } else {
+                _playerState.value = PlayerState.PAUSED
+            }
+            return
+        }
 
-        Log.d("MusicPlayerStore", "Playing previous song: ${previousSong.name}")
+        // Otherwise, attempt to move the queue to the previous track (this mutates queue state)
+        val previousSong = queue.moveToPrevious()
+        if (previousSong == null) {
+            Log.w("MusicPlayerStore", "No previous song available, restarting current track")
+            seekTo(0L)
+            return
+        }
+
+        Log.d("MusicPlayerStore", "Switching to previous song: ${previousSong.name}")
+        // Reset time state and prepare the new source
+        _timeState.value = _timeState.value.copy(position = 0L, percentage = 0f, remaining = 0L)
         prepareSource(previousSong.path)
     }
+    // endregion
 
     fun setShuffle(enabled: Boolean) {
         queue.setShuffle(enabled)
@@ -741,12 +781,12 @@ class MusicPlayerStore(
     }
 
     fun seekForward() {
-        val newPosition = (getPosition() + 15000).coerceAtMost(getDuration())
+        val newPosition = min(getPosition() + 15000, getDuration())
         seekTo(newPosition)
     }
 
     fun seekBackward() {
-        val newPosition = (getPosition() - 15000).coerceAtLeast(0)
+        val newPosition = max(getPosition() - 15000, 0)
         seekTo(newPosition)
     }
 
@@ -760,4 +800,17 @@ class MusicPlayerStore(
             return instance!!
         }
     }
+
+    fun openFullPlayer() {
+        _isFullPlayerOpen.value = true
+    }
+
+    fun closeFullPlayer() {
+        _isFullPlayerOpen.value = false
+    }
+
+    fun toggleLyrics() {
+        _showingLyrics.value = !_showingLyrics.value
+    }
+
 }

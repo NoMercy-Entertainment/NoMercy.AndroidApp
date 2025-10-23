@@ -2,9 +2,11 @@ package tv.nomercy.app.shared.utils
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.view.KeyEvent
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,12 +16,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -28,6 +33,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.models.PaletteColors
@@ -84,7 +90,7 @@ fun Modifier.paletteBackground(palette: PaletteColors?): Modifier {
         drawRect(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color.White.copy(alpha = 0.15f),
+                    Color.Black.copy(alpha = 0.15f),
                     Color.Transparent
                 ),
                 center = glowCenter,
@@ -149,51 +155,6 @@ fun Modifier.assertBoundedWidth(): Modifier = layout { measurable, constraints -
 }
 
 
-enum class SnapAnchor {
-    Top,
-    Bottom,
-    Left,
-    Right,
-}
-
-suspend fun ScrollState.snapToOffset(
-    targetOffset: Int,
-    anchor: SnapAnchor = SnapAnchor.Top,
-    density: Density,
-    configuration: Configuration
-) {
-    val viewportHeightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }
-    val viewportWidthPx = with(density) { configuration.screenWidthDp.dp.roundToPx() }
-
-    val snapOffset = when (anchor) {
-        SnapAnchor.Top -> targetOffset.coerceAtLeast(0)
-        SnapAnchor.Bottom -> (targetOffset - viewportHeightPx).coerceAtLeast(0)
-        SnapAnchor.Left -> targetOffset.coerceAtLeast(0)
-        SnapAnchor.Right -> (targetOffset - viewportWidthPx).coerceAtLeast(0)
-    }
-
-    animateScrollTo(snapOffset.coerceIn(0, this.maxValue))
-}
-
-suspend fun LazyListState.snapToOffset(
-    targetOffset: Int,
-    anchor: SnapAnchor,
-    density: Density,
-    configuration: Configuration
-) {
-    val viewportHeightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }
-    val viewportWidthPx = with(density) { configuration.screenWidthDp.dp.roundToPx() }
-
-    val snapOffset = when (anchor) {
-        SnapAnchor.Top -> targetOffset.coerceAtLeast(0)
-        SnapAnchor.Bottom -> (targetOffset - viewportHeightPx).coerceAtLeast(0)
-        SnapAnchor.Left -> targetOffset.coerceAtLeast(0)
-        SnapAnchor.Right -> (targetOffset - viewportWidthPx).coerceAtLeast(0)
-    }
-
-    this.scrollToItem(0, snapOffset)
-}
-
 fun Modifier.onSubtreeFocusChanged(
     onFocusChanged: (Boolean) -> Unit
 ): Modifier = this.then(
@@ -205,3 +166,35 @@ fun Modifier.onSubtreeFocusChanged(
             }
         )
 )
+
+fun Modifier.dpadFocus(
+    onLeft: (() -> Boolean)? = null,
+    onRight: (() -> Boolean)? = null,
+    onUp: (() -> Boolean)? = null,
+    onDown: (() -> Boolean)? = null,
+    onEnter: (() -> Boolean)? = null,
+    onBack: (() -> Boolean)? = null,
+): Modifier = this.onPreviewKeyEvent { event ->
+    if (event.nativeKeyEvent.action != KeyEvent.ACTION_DOWN) return@onPreviewKeyEvent false
+    when (event.nativeKeyEvent.keyCode) {
+        KeyEvent.KEYCODE_DPAD_LEFT -> onLeft?.invoke() ?: false
+        KeyEvent.KEYCODE_DPAD_RIGHT -> onRight?.invoke() ?: false
+        KeyEvent.KEYCODE_DPAD_UP -> onUp?.invoke() ?: false
+        KeyEvent.KEYCODE_DPAD_DOWN -> onDown?.invoke() ?: false
+        KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER -> onEnter?.invoke() ?: false
+        KeyEvent.KEYCODE_BACK -> onBack?.invoke() ?: false
+        else -> false
+    }
+}
+
+fun Color.adjustBrightness(factor: Float): Color {
+    val hsv = FloatArray(3)
+    android.graphics.Color.colorToHSV(this.toArgb(), hsv)
+    hsv[2] = (hsv[2] * factor).coerceIn(0f, 1f) // V = brightness
+    return Color(android.graphics.Color.HSVToColor(hsv))
+}
+
+fun FocusRequester.hasParent(target: FocusRequester): Boolean {
+    // You can expand this to check hierarchy if needed
+    return this == target
+}

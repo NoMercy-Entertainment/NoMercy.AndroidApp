@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.zIndex
 import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.R
@@ -25,6 +27,7 @@ import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.components.music.FullPlayerScreen
 import tv.nomercy.app.components.music.MiniPlayer
 import tv.nomercy.app.shared.routes.MobileNavHost
+import tv.nomercy.app.shared.stores.GlobalStores
 
 @Composable
 fun MobileMainScaffold(
@@ -40,7 +43,6 @@ fun MobileMainScaffold(
     )
 
     var isMiniPlayerVisible by remember { mutableStateOf(true) }
-    var isFullPlayerOpen by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -56,7 +58,6 @@ fun MobileMainScaffold(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surface),
-                        onOpenFullPlayer = { isFullPlayerOpen = true },
                         onStopPlayback = { isMiniPlayerVisible = false }
                     )
                 }
@@ -90,10 +91,7 @@ fun MobileMainScaffold(
                 enter = slideInVertically(initialOffsetY = { it }),
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
-                FullPlayerScreen(
-                    isOpen = isFullPlayerOpen,
-                    onDismiss = { isFullPlayerOpen = false }
-                )
+                FullPlayerScreen()
             }
         }
     }

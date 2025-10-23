@@ -3,6 +3,8 @@ package tv.nomercy.app.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,9 +45,7 @@ import tv.nomercy.app.shared.utils.aspectFromType
 @Composable
 fun ProfileImage(
     modifier: Modifier = Modifier,
-    size: Dp = 40.dp,
     showPresenceDot: Boolean = false,
-    bottomPadding: Dp = 12.dp,
     borderWidth: Dp = 0.dp,
     borderColor: Color = Color.Transparent,
     avatarOverrideUrl: String? = null,
@@ -75,19 +75,16 @@ fun ProfileImage(
 
     Box(
         modifier = modifier
-            .padding(bottom = bottomPadding)
-            .size(size)
+            .aspectRatio(1f)
+            .clip(CircleShape)
     ) {
         if (!resolvedAvatarUrl.isNullOrBlank()) {
             AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(resolvedAvatarUrl)
-                    .crossfade(true)
-                    .build(),
+                model = resolvedAvatarUrl,
                 contentDescription = userInfo?.username,
                 imageLoader = imageLoader,
                 modifier = Modifier
-                    .size(size)
+                    .fillMaxSize()
                     .clip(CircleShape)
                     .border(borderWidth, borderColor, shape = CircleShape),
                 contentScale = ContentScale.Crop,
@@ -97,7 +94,7 @@ fun ProfileImage(
         } else {
             Box(
                 modifier = Modifier
-                    .size(size)
+                    .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape)
                     .border(borderWidth, borderColor, shape = CircleShape)
             )
