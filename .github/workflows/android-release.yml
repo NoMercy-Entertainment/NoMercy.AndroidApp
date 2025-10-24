@@ -37,6 +37,23 @@ jobs:
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_OUTPUT
 
+      - name: Delete existing tag if exists
+        run: |
+          git tag -d v${{ steps.set_version.outputs.VERSION_NAME }} 2>/dev/null || true
+          git push origin :refs/tags/v${{ steps.set_version.outputs.VERSION_NAME }} 2>/dev/null || true
+        continue-on-error: true
+
+      - name: Delete existing release if exists
+        run: |
+          RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/NoMercy-Entertainment/NoMercy.AndroidApp/releases/tags/v${{ steps.set_version.outputs.VERSION_NAME }} \
+            | jq -r '.id')
+          if [ "$RELEASE_ID" != "null" ] && [ -n "$RELEASE_ID" ]; then
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/NoMercy-Entertainment/NoMercy.AndroidApp/releases/$RELEASE_ID
+          fi
+        continue-on-error: true
+
       - name: Create Pre-release
         id: create_release
         uses: actions/create-release@v1
