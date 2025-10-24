@@ -8,6 +8,9 @@ on:
 jobs:
   build-release-and-pages:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        artifact: [apk, aab]
     permissions:
       contents: write
       pages: write
@@ -29,7 +32,7 @@ jobs:
         id: set_version
         run: |
           VERSION_CODE=${{ github.run_number }}
-          DATE=$(date +"%Y%m%d")
+          DATE=$(date +"%Y.%m.%d")
           EXTRA_VERSION=$(git tag --list "v${DATE}-*" | wc -l)
           if [ "$EXTRA_VERSION" -gt 0 ]; then
             VERSION_NAME="${DATE}-$((EXTRA_VERSION + 1))"
@@ -41,11 +44,42 @@ jobs:
           sed -i "s/versionCode = [0-9]\+/versionCode = $VERSION_CODE/" app/build.gradle.kts
           sed -i "s/versionName = \".*\"/versionName = \"$VERSION_NAME\"/" app/build.gradle.kts
 
-      - name: Build Android Release APK
+      - name: Build ${{ matrix.artifact }}
         run: |
           chmod +x ./gradlew
-          ./gradlew clean
-          ./gradlew assembleRelease --stacktrace
+          if [ "${{ matrix.artifact }}" == "apk" ]; then
+            ./gradlew assembleRelease --stacktrace
+          else
+            ./gradlew bundleRelease --stacktrace
+
+      - name: Zipalign ${{ matrix.artifact }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y zipalign
+          if [ "${{ matrix.artifact }}" == "apk" ]; then
+            zipalign -v 4 \
+              app/build/outputs/apk/release/app-release-unsigned.apk \
+              app/build/outputs/apk/release/app-release-aligned.apk
+          else
+            zipalign -v 4 \
+              app/build/outputs/bundle/release/app-release.aab \
+              app/build/outputs/bundle/release/app-release-aligned.aab
+
+      - name: Sign ${{ matrix.artifact }}
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ "${{ matrix.artifact }}" == "apk" ]; then
+            apksigner sign --ks keystore.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} app/build/outputs/apk/release/app-release-aligned.apk
+          else
+            jarsigner -verbose -keystore keystore.jks -storepass $KEYSTORE_PASSWORD \
+              app/build/outputs/bundle/release/app-release-aligned.aab ${{ secrets.KEY_ALIAS }}
+
+      - name: Verify ${{ matrix.artifact }}
+        run: |
+          if [ "${{ matrix.artifact }}" == "apk" ]; then
+            apksigner verify app/build/outputs/apk/release/app-release-aligned.apk
+          else
+            jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release-aligned.aab
 
       - name: List APK outputs
         run: |
@@ -55,44 +89,21 @@ jobs:
       - name: Decode keystore and create jks
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
-      - name: Zipalign APK
-        run: |
-          sudo apt-get update && sudo apt-get install -y zipalign apksigner
-          zipalign -v 4 \
-            app/build/outputs/apk/release/app-release-unsigned.apk \
-            app/build/outputs/apk/release/app-release-aligned.apk
-
-      - name: Sign APK with apksigner
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        run: |
-          apksigner sign --ks keystore.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} app/build/outputs/apk/release/app-release-aligned.apk
-
-      - name: Verify APK signature
-        run: |
-          apksigner verify app/build/outputs/apk/release/app-release-aligned.apk
-
-      - name: Get APK info
-        id: apkinfo
-        run: |
-          APK_FILE=app/build/outputs/apk/release/app-release-aligned.apk
-          echo "apk_size=$(du -h $APK_FILE | cut -f1)" >> $GITHUB_OUTPUT
-          echo "apk_sha256=$(sha256sum $APK_FILE | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-
-      - name: Build Android Release AAB
-        run: |
-          chmod +x ./gradlew
-          ./gradlew bundleRelease --stacktrace
-
-      - name: List AAB outputs
-        run: |
-          echo "Listing AABs in app/build/outputs/bundle/"
-          find app/build/outputs/bundle/ -type f -name "*.aab" || true
-
       - name: Append version to APK and AAB filenames
         run: |
           mv app/build/outputs/apk/release/app-release-aligned.apk app/build/outputs/apk/release/app-release-aligned-${{ steps.set_version.outputs.VERSION_NAME }}.apk
           mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/app-release-${{ steps.set_version.outputs.VERSION_NAME }}.aab
+
+      - name: Get APK and AAB info
+        id: artifact_info
+        run: |
+          if [ "${{ matrix.artifact }}" == "apk" ]; then
+            FILE=app/build/outputs/apk/release/app-release-aligned.apk
+          else
+            FILE=app/build/outputs/bundle/release/app-release-aligned.aab
+          fi
+          echo "artifact_size=$(du -h $FILE | cut -f1)" >> $GITHUB_OUTPUT
+          echo "artifact_sha256=$(sha256sum $FILE | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
       - name: Update GitHub Release with versioned filenames
         uses: softprops/action-gh-release@v1
@@ -104,6 +115,8 @@ jobs:
           name: "Release v${{ github.run_number }}"
           body: |
             Automated release for build ${{ github.run_number }}.
+            APK Size: ${{ steps.artifact_info.outputs.artifact_size }}
+            APK SHA256: ${{ steps.artifact_info.outputs.artifact_sha256 }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -125,6 +138,7 @@ jobs:
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
           echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
           echo "app_icon_url=$APP_ICON_URL" >> $GITHUB_OUTPUT
+          echo "app_banner_icon_url=$APP_BANNER_ICON_URL" >> $GITHUB_OUTPUT
           
       - name: Prepare download page
         run: |
@@ -132,8 +146,8 @@ jobs:
           sed -i "s|{{APK_URL}}|${{ steps.get_release.outputs.apk_url }}|g" index.html
           sed -i "s|{{VERSION}}|${{ steps.get_release.outputs.version }}|g" index.html
           sed -i "s|{{RELEASE_DATE}}|${{ steps.get_release.outputs.release_date }}|g" index.html
-          sed -i "s|{{APK_SIZE}}|${{ steps.apkinfo.outputs.apk_size }}|g" index.html
-          sed -i "s|{{APK_SHA256}}|${{ steps.apkinfo.outputs.apk_sha256 }}|g" index.html
+          sed -i "s|{{APK_SIZE}}|${{ steps.artifact_info.outputs.artifact_size }}|g" index.html
+          sed -i "s|{{APK_SHA256}}|${{ steps.artifact_info.outputs.artifact_sha256 }}|g" index.html
           sed -i "s|{{APP_ICON_URL}}|${{ steps.get_release.outputs.app_icon_url }}|g" index.html
           sed -i "s|{{APP_BANNER_ICON_URL}}|${{ steps.get_release.outputs.app_banner_icon_url }}|g" index.html
           sed -i "s|{{CHANGELOG}}|${{ steps.get_release.outputs.changelog }}|g" index.html
@@ -147,7 +161,6 @@ jobs:
           publish_dir: ./
           publish_branch: gh-pages
           keep_files: false
-          cname: app.nomercy.tv
           user_name: github-actions[bot]
           user_email: github-actions[bot]@users.noreply.github.com
           force_orphan: true
