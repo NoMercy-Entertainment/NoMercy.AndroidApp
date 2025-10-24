@@ -51,6 +51,7 @@ jobs:
             ./gradlew assembleRelease --stacktrace
           else
             ./gradlew bundleRelease --stacktrace
+          fi
 
       - name: Zipalign ${{ matrix.artifact }}
         run: |
