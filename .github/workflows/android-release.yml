@@ -28,7 +28,13 @@ jobs:
       - name: Set Android versionCode and versionName
         run: |
           VERSION_CODE=${{ github.run_number }}
-          VERSION_NAME="1.0.${{ github.run_number }}"
+          DATE=$(date +"%Y%m%d")
+          EXTRA_VERSION=$(git tag --list "v${DATE}-*" | wc -l)
+          if [ "$EXTRA_VERSION" -gt 0 ]; then
+            VERSION_NAME="${DATE}-$((EXTRA_VERSION + 1))"
+          else
+            VERSION_NAME="${DATE}"
+          fi
           sed -i "s/versionCode = [0-9]\+/versionCode = $VERSION_CODE/" app/build.gradle.kts
           sed -i "s/versionName = \".*\"/versionName = \"$VERSION_NAME\"/" app/build.gradle.kts
 
@@ -70,11 +76,23 @@ jobs:
           echo "apk_size=$(du -h $APK_FILE | cut -f1)" >> $GITHUB_OUTPUT
           echo "apk_sha256=$(sha256sum $APK_FILE | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
+      - name: Build Android Release AAB
+        run: |
+          chmod +x ./gradlew
+          ./gradlew bundleRelease --stacktrace
+
+      - name: List AAB outputs
+        run: |
+          echo "Listing AABs in app/build/outputs/bundle/"
+          find app/build/outputs/bundle/ -type f -name "*.aab" || true
+
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: app/build/outputs/apk/release/app-release-aligned.apk
+          files: |
+            app/build/outputs/apk/release/app-release-aligned.apk
+            app/build/outputs/bundle/release/app-release.aab
           tag_name: v${{ github.run_number }}
           name: "Release v${{ github.run_number }}"
           body: |
