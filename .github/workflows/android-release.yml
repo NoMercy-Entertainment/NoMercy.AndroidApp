@@ -65,10 +65,11 @@ jobs:
             zipalign -v 4 \
               app/build/outputs/apk/release/app-release-unsigned.apk \
               app/build/outputs/apk/release/app-release-aligned.apk
-          else
+          elif [ "${{ matrix.artifact }}" == "aab" ]; then
             zipalign -v 4 \
               app/build/outputs/bundle/release/app-release.aab \
               app/build/outputs/bundle/release/app-release-aligned.aab
+          fi
 
       - name: Sign ${{ matrix.artifact }}
         env:
@@ -79,6 +80,7 @@ jobs:
           else
             jarsigner -verbose -keystore keystore.jks -storepass $KEYSTORE_PASSWORD \
               app/build/outputs/bundle/release/app-release-aligned.aab ${{ secrets.KEY_ALIAS }}
+          fi
 
       - name: Verify ${{ matrix.artifact }}
         run: |
@@ -86,6 +88,7 @@ jobs:
             apksigner verify app/build/outputs/apk/release/app-release-aligned.apk
           else
             jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release-aligned.aab
+          fi
 
       - name: Get latest release info
         id: get_release
