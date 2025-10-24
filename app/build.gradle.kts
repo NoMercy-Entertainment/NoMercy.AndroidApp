@@ -12,9 +12,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "tv.nomercy.app2"
-        minSdk = 31
-        targetSdk = 34
+        applicationId = "tv.nomercy.app"
+        minSdk = 28
+        targetSdk = 30
         versionCode = 1
         versionName = "1.0"
 
