@@ -26,6 +26,7 @@ jobs:
           java-version: '21'
 
       - name: Set Android versionCode and versionName
+        id: set_version
         run: |
           VERSION_CODE=${{ github.run_number }}
           DATE=$(date +"%Y%m%d")
@@ -35,6 +36,8 @@ jobs:
           else
             VERSION_NAME="${DATE}"
           fi
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
           sed -i "s/versionCode = [0-9]\+/versionCode = $VERSION_CODE/" app/build.gradle.kts
           sed -i "s/versionName = \".*\"/versionName = \"$VERSION_NAME\"/" app/build.gradle.kts
 
@@ -88,16 +91,15 @@ jobs:
 
       - name: Append version to APK and AAB filenames
         run: |
-          VERSION_NAME=$(grep -oP 'versionName = \"\K[^"]+' app/build.gradle.kts)
-          mv app/build/outputs/apk/release/app-release-aligned.apk app/build/outputs/apk/release/app-release-aligned-${VERSION_NAME}.apk
-          mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/app-release-${VERSION_NAME}.aab
+          mv app/build/outputs/apk/release/app-release-aligned.apk app/build/outputs/apk/release/app-release-aligned-${{ steps.set_version.outputs.VERSION_NAME }}.apk
+          mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/app-release-${{ steps.set_version.outputs.VERSION_NAME }}.aab
 
       - name: Update GitHub Release with versioned filenames
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            app/build/outputs/apk/release/app-release-aligned-${VERSION_NAME}.apk
-            app/build/outputs/bundle/release/app-release-${VERSION_NAME}.aab
+            app/build/outputs/apk/release/app-release-aligned-${{ steps.set_version.outputs.VERSION_NAME }}.apk
+            app/build/outputs/bundle/release/app-release-${{ steps.set_version.outputs.VERSION_NAME }}.aab
           tag_name: v${{ github.run_number }}
           name: "Release v${{ github.run_number }}"
           body: |
