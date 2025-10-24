@@ -90,29 +90,31 @@ jobs:
       - name: Decode keystore and create jks
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
-      - name: Zipalign ${{ matrix.artifact }}
-        run: |
-          sudo apt-get update && sudo apt-get install -y zipalign apksigner
-
-          if [ "${{ matrix.artifact }}" == "apk" ]; then
-            zipalign -v 4 \
-              app/build/outputs/apk/release/app-release-unsigned.apk \
-              app/build/outputs/apk/release/app-release-aligned.apk
-          elif [ "${{ matrix.artifact }}" == "aab" ]; then
-            zipalign -v 4 \
-              app/build/outputs/bundle/release/app-release.aab \
-              app/build/outputs/bundle/release/app-release-aligned.aab
-          fi
-
       - name: Sign ${{ matrix.artifact }}
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           if [ "${{ matrix.artifact }}" == "apk" ]; then
-            apksigner sign --ks keystore.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} app/build/outputs/apk/release/app-release-aligned.apk
+            sudo apt-get update && sudo apt-get install -y zipalign apksigner
+            apksigner sign --ks keystore.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:$KEYSTORE_PASSWORD \
+              app/build/outputs/apk/release/app-release-unsigned.apk
           else
             jarsigner -verbose -keystore keystore.jks -storepass $KEYSTORE_PASSWORD \
-              app/build/outputs/bundle/release/app-release-aligned.aab ${{ secrets.KEY_ALIAS }}
+              app/build/outputs/bundle/release/app-release.aab ${{ secrets.KEY_ALIAS }}
+          fi
+
+      - name: Zipalign ${{ matrix.artifact }}
+        run: |
+          if [ "${{ matrix.artifact }}" == "apk" ]; then
+            sudo apt-get update && sudo apt-get install -y zipalign
+            zipalign -v 4 \
+              app/build/outputs/apk/release/app-release-unsigned.apk \
+              app/build/outputs/apk/release/app-release-aligned.apk
+          elif [ "${{ matrix.artifact }}" == "aab" ]; then
+            sudo apt-get update && sudo apt-get install -y zipalign
+            zipalign -v 4 \
+              app/build/outputs/bundle/release/app-release.aab \
+              app/build/outputs/bundle/release/app-release-aligned.aab
           fi
 
       - name: Verify ${{ matrix.artifact }}
