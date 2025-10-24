@@ -57,6 +57,9 @@ jobs:
           else
             ./gradlew bundleRelease --stacktrace
           fi
+          
+      - name: Decode keystore and create jks
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
       - name: Zipalign ${{ matrix.artifact }}
         run: |
