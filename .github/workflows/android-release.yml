@@ -86,13 +86,18 @@ jobs:
           echo "Listing AABs in app/build/outputs/bundle/"
           find app/build/outputs/bundle/ -type f -name "*.aab" || true
 
-      - name: Create GitHub Release
-        id: create_release
+      - name: Append version to APK and AAB filenames
+        run: |
+          VERSION_NAME=$(grep -oP 'versionName = \"\K[^"]+' app/build.gradle.kts)
+          mv app/build/outputs/apk/release/app-release-aligned.apk app/build/outputs/apk/release/app-release-aligned-${VERSION_NAME}.apk
+          mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/app-release-${VERSION_NAME}.aab
+
+      - name: Update GitHub Release with versioned filenames
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            app/build/outputs/apk/release/app-release-aligned.apk
-            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/apk/release/app-release-aligned-${VERSION_NAME}.apk
+            app/build/outputs/bundle/release/app-release-${VERSION_NAME}.aab
           tag_name: v${{ github.run_number }}
           name: "Release v${{ github.run_number }}"
           body: |
@@ -111,25 +116,27 @@ jobs:
           # Extract release body and convert to HTML list items for changelog
           CHANGELOG=$(echo "$LATEST_JSON" | jq -r '.body' | awk 'NF' | sed 's/^/- /' | sed ':a;N;$!ba;s/\n/\n/g' | sed 's/^-/<li>/;s/$/<\/li>/')
           # Set app icon URL (update this to your actual icon location if needed)
-          APP_ICON_URL="https://raw.githubusercontent.com/NoMercy-Entertainment/NoMercyMediaServer/master/src/NoMercy.Server/Assets/logo.png"
+          APP_BANNER_ICON_URL="https://raw.githubusercontent.com/NoMercy-Entertainment/NoMercyMediaServer/master/src/NoMercy.Server/Assets/logo.png"
+          APP_ICON_URL="https://raw.githubusercontent.com/NoMercy-Entertainment/NoMercyMediaServer/master/src/NoMercy.Server/Assets/Linux/icon.png"
           echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
           echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
           echo "app_icon_url=$APP_ICON_URL" >> $GITHUB_OUTPUT
-
+          
       - name: Prepare download page
         run: |
-          cp download.html download_publish.html
-          sed -i "s|{{APK_URL}}|${{ steps.get_release.outputs.apk_url }}|g" download_publish.html
-          sed -i "s|{{VERSION}}|${{ steps.get_release.outputs.version }}|g" download_publish.html
-          sed -i "s|{{RELEASE_DATE}}|${{ steps.get_release.outputs.release_date }}|g" download_publish.html
-          sed -i "s|{{APK_SIZE}}|${{ steps.apkinfo.outputs.apk_size }}|g" download_publish.html
-          sed -i "s|{{APK_SHA256}}|${{ steps.apkinfo.outputs.apk_sha256 }}|g" download_publish.html
-          sed -i "s|{{APP_ICON_URL}}|${{ steps.get_release.outputs.app_icon_url }}|g" download_publish.html
-          sed -i "s|{{CHANGELOG}}|${{ steps.get_release.outputs.changelog }}|g" download_publish.html
-          # Only keep the processed download_publish.html for deployment
-          find . -maxdepth 1 ! -name 'download_publish.html' ! -name '.' -exec rm -rf {} +
+          cp download.html index.html
+          sed -i "s|{{APK_URL}}|${{ steps.get_release.outputs.apk_url }}|g" index.html
+          sed -i "s|{{VERSION}}|${{ steps.get_release.outputs.version }}|g" index.html
+          sed -i "s|{{RELEASE_DATE}}|${{ steps.get_release.outputs.release_date }}|g" index.html
+          sed -i "s|{{APK_SIZE}}|${{ steps.apkinfo.outputs.apk_size }}|g" index.html
+          sed -i "s|{{APK_SHA256}}|${{ steps.apkinfo.outputs.apk_sha256 }}|g" index.html
+          sed -i "s|{{APP_ICON_URL}}|${{ steps.get_release.outputs.app_icon_url }}|g" index.html
+          sed -i "s|{{APP_BANNER_ICON_URL}}|${{ steps.get_release.outputs.app_banner_icon_url }}|g" index.html
+          sed -i "s|{{CHANGELOG}}|${{ steps.get_release.outputs.changelog }}|g" index.html
+          # Only keep the processed index.html for deployment
+          find . -maxdepth 1 ! -name 'index.html' ! -name '.' -exec rm -rf {} +
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
