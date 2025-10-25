@@ -49,7 +49,7 @@ class AppConfigStore(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    private val _useAutoThemeColors = MutableStateFlow(false)
+    private val _useAutoThemeColors = MutableStateFlow(true)
     val useAutoThemeColors = _useAutoThemeColors.asStateFlow()
 
     private var _isInitialized = false
