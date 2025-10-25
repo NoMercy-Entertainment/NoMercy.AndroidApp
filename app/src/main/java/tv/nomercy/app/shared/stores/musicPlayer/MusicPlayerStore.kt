@@ -371,7 +371,8 @@ class MusicPlayerStore(
         try {
             currentPlayer?.pause()
             currentPlayer?.reset()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("MusicPlayerStore", "Error resetting current player after crossfade: ${e.message}")
         }
 
         val temp = currentPlayer
@@ -400,7 +401,8 @@ class MusicPlayerStore(
             try {
                 nextPlayer?.stop()
                 nextPlayer?.reset()
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.w("MusicPlayerStore", "Error stopping/resetting next player during prepareSource: ${e.message}")
             }
         }
 
@@ -427,13 +429,12 @@ class MusicPlayerStore(
                 config.baseUrl.removeSuffix("/") + sourcePath
             }
 
-
             val dataSource = AuthenticatedMediaDataSource(fullUrl, config.accessToken)
             currentPlayer?.setDataSource(dataSource)
             currentPlayer?.prepareAsync()
 
-
             applyVolume()
+
         } catch (e: IOException) {
             Log.e("MusicPlayerStore", "IOException: ${e.message}", e)
             _error.value = "Failed to load audio: ${e.message}"
@@ -450,19 +451,13 @@ class MusicPlayerStore(
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
-
         if (mp == currentPlayer) {
             _playerState.value = PlayerState.READY // Set state to READY so play() can start playback
             play()
-        } else {
         }
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
-
-        val duration = try { mp?.duration ?: 0 } catch (_: Exception) { 0 }
-        val position = try { mp?.currentPosition ?: 0 } catch (_: Exception) { 0 }
-
         if (mp != currentPlayer) {
             return
         }
@@ -721,7 +716,6 @@ class MusicPlayerStore(
     }
 
     fun next() {
-
         if (isFading) {
             completeCrossFade()
         } else {
@@ -741,7 +735,6 @@ class MusicPlayerStore(
      * - Otherwise go to previous track.
      */
     fun previous() {
-        Log.d("MusicPlayerStore", "previous() called")
         val currentPosition = getPosition()
         val threeSecondsMs = 3000L
 
@@ -778,27 +771,6 @@ class MusicPlayerStore(
 
     fun setRepeat(repeatMode: RepeatState) {
         queue.setRepeat(repeatMode)
-    }
-
-    fun seekForward() {
-        val newPosition = min(getPosition() + 15000, getDuration())
-        seekTo(newPosition)
-    }
-
-    fun seekBackward() {
-        val newPosition = max(getPosition() - 15000, 0)
-        seekTo(newPosition)
-    }
-
-    object MusicPlayerStoreHolder {
-        @SuppressLint("StaticFieldLeak")
-        private var instance: MusicPlayerStore? = null
-        fun getInstance(context: Context, config: MusicPlayerConfig): MusicPlayerStore {
-            if (instance == null) {
-                instance = MusicPlayerStore(context.applicationContext, config)
-            }
-            return instance!!
-        }
     }
 
     fun openFullPlayer() {

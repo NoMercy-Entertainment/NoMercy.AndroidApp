@@ -13,8 +13,8 @@ android {
 
     defaultConfig {
         applicationId = "tv.nomercy.app"
-        minSdk = 28
-        targetSdk = 33
+        minSdk = 29
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 

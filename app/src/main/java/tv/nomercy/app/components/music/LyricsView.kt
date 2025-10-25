@@ -76,10 +76,10 @@ fun rememberLyricStyle(): LyricStyle {
         )
     } else {
         LyricStyle(
-            fontSize = 20.sp,
-            lineHeight = 24.sp,
-            iconSize = 20.dp,
-            minHeight = 48.dp
+            fontSize = 18.sp,
+            lineHeight = 20.sp,
+            iconSize = 18.dp,
+            minHeight = 40.dp
         )
     }
 }

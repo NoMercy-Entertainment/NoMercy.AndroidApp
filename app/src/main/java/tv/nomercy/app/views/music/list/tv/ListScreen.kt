@@ -93,10 +93,14 @@ fun ListScreen(
         viewModel.selectList(type, id)
     }
 
-    val fallbackColor = MaterialTheme.colorScheme.primary
     val palette = listData?.colorPalette?.cover ?: listData?.colorPalette?.image
-    val backgroundColor = remember(palette) {
-        pickPaletteColor(palette, 80, fallbackColor = fallbackColor)
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
+    val fallbackColor = MaterialTheme.colorScheme.primary
+    val backgroundColor: Color = remember(palette) {
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(palette, fallbackColor = fallbackColor)
     }
     val key = remember { UUID.randomUUID() }
 

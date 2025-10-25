@@ -21,6 +21,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -109,8 +110,11 @@ fun TvHomeScreen(navController: NavHostController) {
         debouncedSelectedCard.value = activeCardState.value ?: firstItem
     }
 
-    val primary = MaterialTheme.colorScheme.primary
     val isTv = isTv()
+
+    val fallbackColor = MaterialTheme.colorScheme.primary
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
     val focusColor by remember {
         derivedStateOf {
             val posterPalette = if (isTv) {
@@ -118,7 +122,8 @@ fun TvHomeScreen(navController: NavHostController) {
             } else {
                 debouncedSelectedCard.value?.colorPalette?.poster
             }
-            pickPaletteColor(posterPalette, fallbackColor = primary)
+            if (!useAutoThemeColors) fallbackColor
+            else pickPaletteColor(posterPalette, fallbackColor = fallbackColor)
         }
     }
 

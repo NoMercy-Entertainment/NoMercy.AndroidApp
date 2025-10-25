@@ -73,28 +73,33 @@ fun NMMusicHomeCard(
     val wrapper = component.props as? NMMusicHomeCardProps ?: return
     val data = wrapper.data ?: return
 
-    val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
+    val context = LocalContext.current
+
+    val serverConfigStore = GlobalStores.getServerConfigStore(context)
     serverConfigStore.currentServer.collectAsState()
 
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
     val fallbackColor = MaterialTheme.colorScheme.primary
-    val ringColor = remember(data.colorPalette?.cover) {
+    val focusColor = remember(data.colorPalette?.cover) {
         pickPaletteColor(data.colorPalette?.cover, fallbackColor = fallbackColor)
     }
 
     val backgroundGradient = if (data.type != "playlists") {
         Brush.verticalGradient(
             colors = listOf(
-                Color(0xFF021C37).copy(alpha = 0.08f),
-                Color(0xFF05294D).copy(alpha = 0.03f)
+                focusColor.copy(alpha = 0.08f),
+                focusColor.copy(alpha = 0.03f)
             )
         )
     } else {
         Brush.horizontalGradient(
             colors = listOf(
-                ringColor.copy(alpha = 0.20f),
-                ringColor.copy(alpha = 0.15f),
-                ringColor.copy(alpha = 0.10f),
-                ringColor.copy(alpha = 0.05f),
+                focusColor.copy(alpha = 0.20f),
+                focusColor.copy(alpha = 0.15f),
+                focusColor.copy(alpha = 0.10f),
+                focusColor.copy(alpha = 0.05f),
             )
         )
     }
@@ -154,12 +159,12 @@ fun NMMusicHomeCard(
             .then(if (itemFocusRequester != null) Modifier.focusRequester(itemFocusRequester) else Modifier)
             .then(
                 if (isTvPlatform) Modifier
-                    .border(borderWidth, ringColor.copy(alpha = if (isActive) 1f else 0.5f), RoundedCornerShape(20.dp))
                     .focusable(interactionSource = interaction)
                     .hoverable(interactionSource = interaction)
                     .semantics { role = Role.Button }
+                else if (useAutoThemeColors) Modifier
+                    .border(borderWidth, focusColor, RoundedCornerShape(20.dp))
                 else Modifier
-                    .border(borderWidth, ringColor, RoundedCornerShape(20.dp))
             )
             .onPreviewKeyEvent { event ->
                 if (event.nativeKeyEvent.action == AndroidKeyEvent.ACTION_DOWN) {

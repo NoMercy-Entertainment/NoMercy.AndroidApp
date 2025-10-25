@@ -1,9 +1,11 @@
 package tv.nomercy.app.shared.stores
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.api.services.DomainApiService
 import tv.nomercy.app.shared.models.AppConfig
 import tv.nomercy.app.shared.models.Message
@@ -47,6 +49,8 @@ class AppConfigStore(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private val _useAutoThemeColors = MutableStateFlow(false)
+    val useAutoThemeColors = _useAutoThemeColors.asStateFlow()
 
     private var _isInitialized = false
     val isInitialized: Boolean get() = _isInitialized
@@ -68,7 +72,8 @@ class AppConfigStore(
             }
 
             val response = domainApiService.getAppConfig()
-            val appConfig = response.body()?.data ?: return Result.failure(Exception("No config data"))
+            val appConfig = response.body()?.data ?:
+                return Result.failure(Exception(response.errorBody() ?.string() ?: "Unknown error"))
 
             updateStateFromAppConfig(appConfig)
             _isInitialized = true

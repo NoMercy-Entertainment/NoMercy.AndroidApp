@@ -39,14 +39,12 @@ import tv.nomercy.app.shared.stores.GlobalStores.getServerConfigStore
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.models.PlaylistItem
-import kotlin.math.max
-import kotlin.math.min
 
 class MusicPlayerService : Service() {
 
     private lateinit var mediaSession: MediaSessionCompat
-    private val CHANNEL_ID = "music_player_channel"
-    private val NOTIFICATION_ID = 1
+    private val _channelId = "music_player_channel"
+    private val _notificationId = 1
 
     private lateinit var playerStore: MusicPlayerStore
 
@@ -214,7 +212,7 @@ class MusicPlayerService : Service() {
         val ffIntent = pendingServiceIntent(ACTION_FAST_FORWARD, requestCode = 4)
         val rwIntent = pendingServiceIntent(ACTION_REWIND, requestCode = 5)
 
-        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, _channelId)
             .setContentTitle(title)
             .setContentText(artist)
             .setSmallIcon(R.drawable.ic_mediasession_icon)
@@ -255,10 +253,9 @@ class MusicPlayerService : Service() {
             val notification = createNotificationWithArtSync()
             val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             if (!isForegroundServiceActive()) {
-                @Suppress("DEPRECATION")
-                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+                startForeground(_notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
             } else {
-                manager.notify(NOTIFICATION_ID, notification)
+                manager.notify(_notificationId, notification)
             }
         }
     }
@@ -334,11 +331,7 @@ class MusicPlayerService : Service() {
     private fun isForegroundServiceActive(): Boolean {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                manager.activeNotifications.any { it.id == NOTIFICATION_ID }
-            } else {
-                false
-            }
+            manager.activeNotifications.any { it.id == _notificationId }
         } catch (t: Throwable) {
             Log.w(TAG, "Failed to check active notifications", t)
             false
@@ -346,19 +339,17 @@ class MusicPlayerService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            val existing = manager.getNotificationChannel(CHANNEL_ID)
-            if (existing == null) {
-                val channel = NotificationChannel(
-                    CHANNEL_ID,
-                    "Music Player",
-                    NotificationManager.IMPORTANCE_LOW
-                ).apply {
-                    description = "Media playback controls"
-                }
-                manager.createNotificationChannel(channel)
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val existing = manager.getNotificationChannel(_channelId)
+        if (existing == null) {
+            val channel = NotificationChannel(
+                _channelId,
+                "Music Player",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Media playback controls"
             }
+            manager.createNotificationChannel(channel)
         }
     }
 

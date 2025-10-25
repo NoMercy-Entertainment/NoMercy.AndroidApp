@@ -40,11 +40,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -74,6 +76,7 @@ import tv.nomercy.app.shared.utils.pickPaletteColor
 @Composable
 fun FullPlayerScreen() {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)
 
     val currentSong by musicPlayerStore.currentSong.collectAsState()
@@ -119,29 +122,25 @@ fun FullPlayerScreen() {
     val scrollState = rememberScrollState()
 
     ModalBottomSheet(
-        onDismissRequest = { musicPlayerStore.closeFullPlayer() },
+        onDismissRequest = {
+            coroutineScope.launch {
+                sheetState.hide()
+                musicPlayerStore.closeFullPlayer()
+            }
+        },
         sheetState = sheetState,
-        containerColor = Color.Black,
         dragHandle = null,
         shape = RectangleShape,
-        scrimColor = Color.Transparent,
+        scrimColor = focusColor,
     ) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            focusColor.copy(alpha = 0.7f),
-                            focusColor.copy(alpha = 0.3f)
-                        )
-                    )
-                )
+                .background(Color.Black)
                 .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
             val collapsedLyricsHeight = 400.dp
-            val expandedLyricsHeight = minHeight - MaterialTheme.typography.titleMedium.fontSize.value.dp - 30.dp
+            val expandedLyricsHeight = minHeight - MaterialTheme.typography.titleMedium.fontSize.value.dp - 20.dp
 
             val lyricsHeight by animateDpAsState(
                 targetValue = if (lyricsExpanded) expandedLyricsHeight else collapsedLyricsHeight,
@@ -151,13 +150,23 @@ fun FullPlayerScreen() {
 
             Column(
                 modifier = Modifier
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                focusColor.copy(alpha = 0.7f),
+                                focusColor.copy(alpha = 0.3f)
+                            )
+                        )
+                    )
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(expandedLyricsHeight)
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 24.dp)
+                        .height(expandedLyricsHeight - 40.dp)
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -166,7 +175,7 @@ fun FullPlayerScreen() {
                     ) {
                         TopRow(
                             onDismiss = {
-                                CoroutineScope(Dispatchers.Main).launch {
+                                coroutineScope.launch {
                                     sheetState.hide()
                                     musicPlayerStore.closeFullPlayer()
                                 }
@@ -224,8 +233,8 @@ fun FullPlayerScreen() {
                     onToggleExpand = {
                         lyricsExpanded = !lyricsExpanded
                         CoroutineScope(Dispatchers.Main).launch {
-                            delay(40L)
-                            bringIntoViewRequester.bringIntoView()
+                            delay(100)
+                            bringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 500000f))
                         }
                     },
                     activeColor = focusColor,
@@ -233,6 +242,7 @@ fun FullPlayerScreen() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
+                        .padding(horizontal = 16.dp)
                         .bringIntoViewRequester(bringIntoViewRequester)
                 )
             }

@@ -44,7 +44,7 @@ fun WatchScreen(type: String?, id: String?, navController: NavHostController) {
 
     val url = remember(type, id, serverBaseUrl, playlistUrl) {
         buildString {
-            append("https://dev.nomercy.tv/player-embed?")
+            append("https://nomercy.tv/player-embed?")
             append("serverBaseUrl=$serverBaseUrl")
             append("&playlistUrl=$playlistUrl")
             append("&accessToken=$accessToken")

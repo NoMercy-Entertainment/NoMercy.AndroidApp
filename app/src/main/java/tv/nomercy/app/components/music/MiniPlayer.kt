@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -52,23 +53,23 @@ fun MiniPlayer(
     isOpen: Boolean
 ) {
     val context = LocalContext.current
-    val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)
 
-    val currentSong = musicPlayerStore.currentSong.collectAsState().value
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
+    val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)
+    val currentSong by musicPlayerStore.currentSong.collectAsState()
+    val timeState by musicPlayerStore.timeState.collectAsState()
 
     if(currentSong == null) {
         // No song is playing, don't show the mini player
         return
     }
 
-    val percentage = musicPlayerStore.timeState.collectAsState().value.percentage
-
-    val useAutoThemeColors = true // TODO: from settings
-
     val fallbackColor = MaterialTheme.colorScheme.primary
-    val palette = currentSong.colorPalette?.cover
+    val palette = currentSong?.colorPalette?.cover
     val focusColor = remember(palette, useAutoThemeColors) {
-        if (!useAutoThemeColors) Color(0xFF444444) // fallback
+        if (!useAutoThemeColors) fallbackColor
         else pickPaletteColor(palette, dark = 20, light = 160, fallbackColor)
     }
 
@@ -119,8 +120,8 @@ fun MiniPlayer(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CoverImage(
-                        cover = currentSong.cover,
-                        name = currentSong.name,
+                        cover = currentSong?.cover,
+                        name = currentSong?.name,
                         modifier = Modifier
                             .size(40.dp)
                             .aspectRatio(1f)
@@ -134,7 +135,7 @@ fun MiniPlayer(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = currentSong.name,
+                            text = currentSong?.name.orEmpty(),
                             style = MaterialTheme.typography.bodyMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -143,7 +144,7 @@ fun MiniPlayer(
                         Marquee {
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 TrackLinksArtists(
-                                    artists = currentSong.artistTrack,
+                                    artists = currentSong?.artistTrack ?: emptyList(),
                                     navController = navController
                                 )
                             }
@@ -156,7 +157,7 @@ fun MiniPlayer(
                     horizontalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
 //                DeviceButton()
-                    MediaLikeButton(favorite = currentSong.favorite, color = focusColor)
+                    MediaLikeButton(favorite = currentSong?.favorite, color = focusColor)
 
                     PlaybackButton()
                 }
@@ -174,7 +175,7 @@ fun MiniPlayer(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .fillMaxWidth(fraction = percentage)
+                    .fillMaxWidth(fraction = timeState.percentage)
                     .height(1.dp)
                     .background(
                         Brush.horizontalGradient(
@@ -187,7 +188,7 @@ fun MiniPlayer(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .offset {
-                        IntOffset((containerWidth.floatValue * percentage).toInt(), 0)
+                        IntOffset((containerWidth.floatValue * timeState.percentage).toInt(), 0)
                     }
                     .size(width = 1.dp, height = 1.dp)
                     .background(Color(0xFFF1EEFE))

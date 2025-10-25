@@ -25,6 +25,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -67,23 +68,29 @@ fun MobileHomeScreen(
 
     val listState = rememberLazyListState()
 
-    val themeOverrideManager = LocalThemeOverrideManager.current
-
     val posterPalette = homeData.firstOrNull()?.props.let {
         when (it) {
             is NMHomeCardWrapper -> it.data?.colorPalette?.poster
             else -> null
         }
     }
+    
+    val themeOverrideManager = LocalThemeOverrideManager.current
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
     val fallbackColor = MaterialTheme.colorScheme.primary
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = fallbackColor) }
+    val focusColor: Color = remember(posterPalette) {
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(posterPalette, fallbackColor = fallbackColor)
+    }
     val key = remember { UUID.randomUUID() }
 
     DisposableEffect(focusColor) {
         themeOverrideManager.add(key, focusColor)
 
         onDispose {
-            themeOverrideManager.remove(key)
+//            themeOverrideManager.remove(key)
         }
     }
 

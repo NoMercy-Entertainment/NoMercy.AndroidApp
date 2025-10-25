@@ -13,8 +13,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
+import tv.nomercy.app.BuildConfig
 import tv.nomercy.app.MainActivity
 import tv.nomercy.app.components.DisposableWebView
+import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.SystemUiController
 
@@ -45,9 +47,14 @@ fun WatchScreen(type: String?, id: String?, navController: NavHostController) {
     val serverBaseUrl = currentServer.value?.serverBaseUrl
     val playlistUrl = serverApiUrl?.let { "$it$type/$id/watch" }
 
+    var prefix = getSuffix().replace("-", "")
+    if(prefix != "") {
+        prefix += "."
+    }
+
     val url = remember(type, id, serverBaseUrl, playlistUrl) {
         buildString {
-            append("https://dev.nomercy.tv/player-embed?")
+            append("https://${prefix}nomercy.tv/player-embed?")
             append("serverBaseUrl=$serverBaseUrl")
             append("&playlistUrl=$playlistUrl")
             append("&accessToken=$accessToken")

@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +44,10 @@ fun MobileMainScaffold(
     )
 
     var isMiniPlayerVisible by remember { mutableStateOf(true) }
+
+    val context = LocalContext.current
+    val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)
+    val isFullPlayerOpen by musicPlayerStore.isFullPlayerOpen.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -87,7 +92,7 @@ fun MobileMainScaffold(
             )
 
             AnimatedVisibility(
-                visible = !isImmersive && isMiniPlayerVisible,
+                visible = isFullPlayerOpen && isMiniPlayerVisible,
                 enter = slideInVertically(initialOffsetY = { it }),
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {

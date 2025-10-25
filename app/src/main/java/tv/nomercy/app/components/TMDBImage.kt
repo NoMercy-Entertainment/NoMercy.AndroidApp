@@ -47,17 +47,4 @@ fun TMDBImage(
         ),
         contentScale = ContentScale.Crop
     )
-
-//    val painter = rememberAsyncImagePainter(imageUrl)
-//
-//    Image(
-//        painter = painter,
-//        contentDescription = title ?: "Image",
-//
-//        modifier = modifier.then(
-//            if (aspectRatio != null) Modifier
-//                .aspectFromType(aspectRatio) else Modifier
-//        ),
-//        contentScale = ContentScale.Crop
-//    )
 }

@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,14 +50,16 @@ fun TvMiniPlayer(
     navController: NavHostController,
     paletteColors: PaletteColors? = null
 ) {
-    val useAutoThemeColors = true // TODO: from settings
     val context = LocalContext.current
     val musicPlayerStore = GlobalStores.getMusicPlayerStore(context)
+
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
 
     val fallbackColor = MaterialTheme.colorScheme.primary
     val palette = paletteColors ?: song.colorPalette?.cover
     val backgroundColor = remember(palette, useAutoThemeColors) {
-        if (!useAutoThemeColors) Color(0xFF444444) // fallback
+        if (!useAutoThemeColors) fallbackColor // fallback
         else pickPaletteColor(palette, dark = 20, light = 160, fallbackColor)
     }
 

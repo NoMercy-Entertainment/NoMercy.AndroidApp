@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -54,6 +56,7 @@ import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMMusicCardProps
 import tv.nomercy.app.shared.models.NMMusicHomeCardProps
+import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
 import tv.nomercy.app.shared.ui.LocalFocusRightInRow
@@ -70,7 +73,6 @@ fun NMMusicCard(
     component: Component,
     modifier: Modifier = Modifier,
     navController: NavController,
-    aspectRatio: AspectRatio? = AspectRatio.Cover,
 ) {
     val data = when (val p = component.props) {
         is NMMusicCardProps -> p
@@ -78,11 +80,14 @@ fun NMMusicCard(
         else -> return
     }
 
+    val context = LocalContext.current
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
     val fallbackColor = MaterialTheme.colorScheme.primary
-    val focusColor by remember(data.colorPalette?.cover) {
-        derivedStateOf {
-            pickPaletteColor(data.colorPalette?.cover, fallbackColor = fallbackColor)
-        }
+    val focusColor: Color = remember(data.colorPalette) {
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(data.colorPalette?.cover, fallbackColor = fallbackColor)
     }
 
     val footText = remember(data) { buildFootText(data) }
@@ -112,6 +117,8 @@ fun NMMusicCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
+            .aspectFromType(AspectRatio.Poster)
+            .then(if (useAutoThemeColors) Modifier.paletteBackground(data.colorPalette?.cover) else Modifier)
             .clickable { navController.navigate(data.link) },
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -135,7 +142,9 @@ fun NMMusicCard(
                         .focusable(interactionSource = interactionSource)
                         .hoverable(interactionSource = interactionSource)
                         .semantics { role = Role.Button }
-                    else Modifier.border(borderWidth, focusColor, RoundedCornerShape(6.dp))
+                    else if (useAutoThemeColors) Modifier
+                        .border(borderWidth, focusColor, RoundedCornerShape(6.dp))
+                    else Modifier
                 )
                 .onPreviewKeyEvent { event ->
                     if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {

@@ -122,9 +122,15 @@ private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController
     val themeOverrideManager = LocalThemeOverrideManager.current
     val listState = rememberLazyListState()
 
-    val primary = MaterialTheme.colorScheme.primary
-    val posterPalette = infoData?.colorPalette?.poster
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = primary) }
+    val context = LocalContext.current
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
+    val fallbackColor = MaterialTheme.colorScheme.primary
+    val focusColor: Color = remember(infoData?.colorPalette) {
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(infoData?.colorPalette?.poster, fallbackColor = fallbackColor)
+    }
     val key = remember { UUID.randomUUID() }
 
     DisposableEffect(focusColor) {
@@ -242,13 +248,20 @@ private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController
                     visibleCards = 2
                 )
 
+                val sortedCast = infoData?.cast?.sortByFilteredAlphabetized(
+                    keySelector = { it.name },
+                    valueSelector = { it.character },
+                    sortSelector = { it.name },
+                    filterSelector = { it.profile != null }
+                ) ?: emptyList()
+
                 GenericCarousel(
                     title = stringResource(R.string.cast),
-                    items = infoData?.cast?.map { it.toCarouselItem() } ?: emptyList(),
+                    items = sortedCast.map { it.toCarouselItem() },
                     navController = navController,
                 )
 
-                val sorted = infoData?.crew?.sortByFilteredAlphabetized(
+                val sortedCrew = infoData?.crew?.sortByFilteredAlphabetized(
                     keySelector = { it.name },
                     valueSelector = { it.knownForDepartment },
                     sortSelector = { it.name },
@@ -257,7 +270,7 @@ private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController
 
                 GenericCarousel(
                     title = stringResource(R.string.crew),
-                    items = sorted.map { it.toCarouselItem() },
+                    items = sortedCrew.map { it.toCarouselItem() },
                     navController = navController,
                 )
 
@@ -324,11 +337,11 @@ private fun InfoRow(infoData: InfoResponse?) {
             )
         }
 
-        InfoBlock(
-            data = infoData?.numberOfItems?.let {
-                infoData.haveItems.toString() + "/" + infoData.numberOfItems.toString()
-            },
-        )
+        if(infoData?.haveItems != null && infoData.numberOfItems != null) {
+            InfoBlock(
+                data = infoData.haveItems.toString() + " / " + infoData.numberOfItems.toString()
+            )
+        }
 
         if (infoData?.duration != null && infoData.duration > 0) {
             InfoBlock(

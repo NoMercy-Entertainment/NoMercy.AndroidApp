@@ -18,12 +18,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -37,8 +39,11 @@ import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCarouselProps
 import tv.nomercy.app.shared.models.NMGridProps
 import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
+import tv.nomercy.app.shared.utils.pickPaletteColor
 import tv.nomercy.app.views.music.start.shared.MusicStartViewModel
 import tv.nomercy.app.views.music.start.shared.MusicStartViewModelFactory
+import java.util.UUID
 
 @Composable
 fun MusicStartScreen(
@@ -60,6 +65,18 @@ fun MusicStartScreen(
     val isEmptyStable by viewModel.isEmptyStable.collectAsState()
 
     val listState = rememberLazyListState()
+
+    val themeOverrideManager = LocalThemeOverrideManager.current
+    val fallbackColor = MaterialTheme.colorScheme.primary
+    val key = remember { UUID.randomUUID() }
+
+    DisposableEffect(fallbackColor) {
+        themeOverrideManager.add(key, fallbackColor)
+
+        onDispose {
+            themeOverrideManager.remove(key)
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         errorMessage?.let {

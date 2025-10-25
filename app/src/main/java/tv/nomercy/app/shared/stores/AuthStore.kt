@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import net.openid.appauth.AuthState as AppAuthState
 import tv.nomercy.app.shared.api.services.UserInfo
+import androidx.core.content.edit
 
 /**
  * Pure Keycloak authentication store
@@ -90,7 +91,7 @@ class AuthStore(private val context: Context) {
      */
     fun saveAuthState(authState: AppAuthState) {
         val sharedPrefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-        sharedPrefs.edit().putString("auth_state", authState.jsonSerializeString()).apply()
+        sharedPrefs.edit { putString("auth_state", authState.jsonSerializeString()) }
     }
 
     /**
@@ -171,7 +172,7 @@ class AuthStore(private val context: Context) {
      */
     private fun clearTokensFromPrefs() {
         val sharedPrefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-        sharedPrefs.edit().clear().apply()
+        sharedPrefs.edit { clear() }
     }
 
     /**

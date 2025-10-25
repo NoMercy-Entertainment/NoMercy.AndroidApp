@@ -21,6 +21,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -104,10 +105,15 @@ fun MusicStartScreen(navController: NavController) {
         }
     }
 
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
+    val fallbackColor = MaterialTheme.colorScheme.primary
     val primary = MaterialTheme.colorScheme.primary
     val focusColor by remember {
         derivedStateOf {
-            pickPaletteColor(debouncedSelectedCard.value?.colorPalette?.cover, fallbackColor = primary)
+            if (!useAutoThemeColors) fallbackColor
+            else pickPaletteColor(debouncedSelectedCard.value?.colorPalette?.cover, fallbackColor = primary)
         }
     }
 

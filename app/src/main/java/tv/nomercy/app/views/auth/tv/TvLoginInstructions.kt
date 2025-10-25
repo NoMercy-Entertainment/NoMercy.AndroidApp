@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.utils.generateQrBitmap
 import kotlin.math.max
 
@@ -54,8 +55,13 @@ fun TvLoginInstructions(
         }
     }
 
+    var prefix = getSuffix().replace("-", "")
+    if(prefix != "") {
+        prefix += "."
+    }
+
     val qrBitmap = remember(userCode) {
-        val url = "https://dev.nomercy.tv/tv?code=$userCode"
+        val url = "https://${prefix}nomercy.tv/tv?code=$userCode"
         generateQrBitmap(url, size = 1024)
     }
 

@@ -22,6 +22,7 @@ import org.json.JSONObject
 import tv.nomercy.app.shared.api.DeviceAuthClient
 import tv.nomercy.app.shared.api.DeviceAuthResponse
 import tv.nomercy.app.shared.api.KeycloakConfig
+import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.api.TokenResponse
 import tv.nomercy.app.shared.stores.AuthStore
 import kotlin.coroutines.resume
@@ -34,7 +35,7 @@ class AuthService(
     private val refreshMutex = Mutex()
     private var authState: AuthState? = null
     private val deviceAuthClient = DeviceAuthClient(
-        authUrl = "https://auth-dev.nomercy.tv", // Replace with your auth URL
+        authUrl = "https://auth${getSuffix()}.nomercy.tv", // Replace with your auth URL
         clientId = "nomercy-ui" // Replace with your client ID
     )
 

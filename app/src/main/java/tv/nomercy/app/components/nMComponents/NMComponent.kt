@@ -33,7 +33,7 @@ fun NMComponent(
                 "NMHomeCard" -> NMHomeCard(component, modifier, navController, aspectRatio)
                 "NMCard" -> NMCard(component, modifier, navController, aspectRatio)
                 "NMContainer" -> NMContainer(component, modifier, navController)
-                "NMMusicCard" -> NMMusicCard(component, modifier, navController, aspectRatio)
+                "NMMusicCard" -> NMMusicCard(component, modifier, navController)
                 "NMMusicHomeCard" -> NMMusicHomeCard(
                     component,
                     modifier,

@@ -53,6 +53,9 @@ import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import android.view.KeyEvent
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
 import tv.nomercy.app.shared.ui.LocalFocusRightInRow
@@ -60,6 +63,7 @@ import tv.nomercy.app.shared.ui.LocalOnActiveInRow
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import tv.nomercy.app.shared.stores.GlobalStores
 
 @Composable
 fun NMCard(
@@ -71,11 +75,14 @@ fun NMCard(
     val wrapper = component.props as? NMCardWrapper ?: return
     val data = wrapper.data ?: return
 
+    val context = LocalContext.current
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
     val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor: Color = remember(data.colorPalette) {
-        val palette = data.colorPalette?.poster
-        val color = pickPaletteColor(palette, fallbackColor = fallbackColor)
-        color
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(data.colorPalette?.poster, fallbackColor = fallbackColor)
     }
 
     // TV: add animated hover/focus border growth (default 1.dp)
@@ -126,15 +133,20 @@ fun NMCard(
             .fillMaxSize()
             .aspectFromType(aspectRatio)
             .graphicsLayer { if (isTvPlatform) { scaleX = scale; scaleY = scale } }
-            .then(if (itemFocusRequester != null) Modifier.focusRequester(itemFocusRequester) else Modifier)
+            .then(
+                if (itemFocusRequester != null) Modifier
+                    .focusRequester(itemFocusRequester)
+                else Modifier
+            )
             .then(
                 if (isTvPlatform) Modifier
                     .border(borderWidth, focusColor.copy(alpha = if (isActive) 1f else 0.5f), RoundedCornerShape(6.dp))
                     .focusable(interactionSource = interaction)
                     .hoverable(interactionSource = interaction)
                     .semantics { role = Role.Button }
-                else Modifier
+                else if (useAutoThemeColors) Modifier
                     .border(borderWidth, focusColor, RoundedCornerShape(6.dp))
+                else Modifier
             )
             .onPreviewKeyEvent { event ->
                 if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
@@ -179,7 +191,7 @@ fun NMCard(
         }
         Box(modifier = Modifier
             .fillMaxSize()
-            .paletteBackground(data.colorPalette?.poster)
+            .then(if (useAutoThemeColors) Modifier.paletteBackground(data.colorPalette?.poster) else Modifier)
         ) {
             TMDBImage(
                 path = data.poster,

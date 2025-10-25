@@ -30,6 +30,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,6 +67,7 @@ import tv.nomercy.app.components.TMDBImage
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMHomeCardProps
 import tv.nomercy.app.shared.models.NMHomeCardWrapper
+import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.isTv
@@ -82,9 +86,16 @@ fun NMHomeCard(
     val wrapper = component.props as? NMHomeCardWrapper ?: return
     val data = wrapper.data ?: return
 
+    val context = LocalContext.current
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
     val fallbackColor = MaterialTheme.colorScheme.primary
     val posterPalette = if (aspectRatio == null) data.colorPalette?.poster else data.colorPalette?.backdrop
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = fallbackColor) }
+    val focusColor = remember(posterPalette) {
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(posterPalette, fallbackColor = fallbackColor)
+    }
 
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -130,7 +141,7 @@ fun NMHomeCard(
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
-            .paletteBackground(posterPalette)
+            .then(if (useAutoThemeColors) Modifier.paletteBackground(posterPalette) else Modifier)
             .background(if (isTv()) Color.Black else Color.Transparent),
             contentAlignment = Alignment.BottomEnd,
         ) {

@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -66,6 +68,7 @@ import tv.nomercy.app.shared.models.Image
 import tv.nomercy.app.shared.models.PaletteColors
 import tv.nomercy.app.shared.models.Person
 import tv.nomercy.app.shared.models.Related
+import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
 import tv.nomercy.app.shared.ui.LocalFocusRightInRow
@@ -81,6 +84,7 @@ interface CarouselItem {
     val id: Long
     val imagePath: String?
     val title: String?
+    val subTitle: String?
     val link: String?
     val aspectRatio: AspectRatio
     val colorPalette: ColorPalettes?
@@ -94,6 +98,7 @@ data class CarouselData(
     override val id: Long,
     override val imagePath: String?,
     override val title: String?,
+    override val subTitle: String? = null,
     override val link: String?,
     override val aspectRatio: AspectRatio,
     override val colorPalette: ColorPalettes? = null,
@@ -110,7 +115,8 @@ fun Person.toCarouselItem() = CarouselData(
     link = link,
     aspectRatio = AspectRatio.Poster,
     mediaType = "person",
-    colorPalette = colorPalette
+    colorPalette = colorPalette,
+    subTitle = character ?: job
 )
 
 fun Related.toCarouselItem() = CarouselData(
@@ -166,9 +172,20 @@ fun GenericCarousel(
             else -> colorPalette?.profile ?: colorPalette?.still
         }
 
+        val context = LocalContext.current
+
+        val serverConfigStore = GlobalStores.getServerConfigStore(context)
+        serverConfigStore.currentServer.collectAsState()
+
+        val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+        val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
         val palette = item.paletteForType()
-        val primary = MaterialTheme.colorScheme.primary
-        val focusColor = remember(palette) { pickPaletteColor(palette, fallbackColor = primary) }
+        val fallbackColor = MaterialTheme.colorScheme.primary
+        val focusColor = remember(palette) {
+            if (!useAutoThemeColors) fallbackColor
+            else pickPaletteColor(palette, fallbackColor = fallbackColor)
+        }
 
         val interaction = remember { MutableInteractionSource() }
         var isFocused by remember { mutableStateOf(false) }
@@ -203,7 +220,6 @@ fun GenericCarousel(
                 modifier = modifier
                     .width(width)
                     .clip(RoundedCornerShape(6.dp))
-                    .border(1.dp, focusColor, RoundedCornerShape(6.dp))
                     .graphicsLayer { if (isTvPlatform) { scaleX = scale; scaleY = scale } }
                     .then(if (itemFocusRequester != null) Modifier.focusRequester(itemFocusRequester) else Modifier)
                     .then(
@@ -230,6 +246,7 @@ fun GenericCarousel(
                                 .fillMaxWidth()
                                 .aspectFromType(item.aspectRatio)
                                 .paletteBackground(palette)
+//                                .then(if (useAutoThemeColors) Modifier.paletteBackground(palette) else Modifier)
                         ) {
                             TMDBImage(
                                 path = item.imagePath,
@@ -261,21 +278,30 @@ fun GenericCarousel(
                         }
                     }
 
-                    item.title?.let { title ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f))
-                                .padding(horizontal = 8.dp, vertical = 6.dp),
-                            contentAlignment = Alignment.BottomStart,
-                        ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f))
+                    ) {
+                        item.title?.let { title ->
                             Text(
                                 text = "$index - $title",
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.dp.value.sp),
                                 fontWeight = FontWeight.Medium,
-                                maxLines = 2,
-                                minLines = 2,
+                                maxLines = if(item.subTitle == null) 2 else 1,
+                                minLines = if(item.subTitle == null) 2 else 1,
                                 overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                         item.subTitle?.let { subTitle ->
+                            Text(
+                                text = subTitle.replace("(voice)",""),
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.dp.value.sp),
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                minLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             )
                         }
                     }
@@ -317,24 +343,36 @@ fun GenericCarousel(
                             .padding(start = 0.dp, top = 16.dp)
                     )
 
-                    item.title?.let { title ->
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f))
-                                .align(Alignment.BottomStart)
-                        ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f))
+                            .align(Alignment.BottomStart)
+                    ) {
+                        item.title?.let { title ->
                             Text(
                                 text = title,
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.dp.value.sp),
                                 fontWeight = FontWeight.Medium,
-                                maxLines = 2,
-                                minLines = 2,
+                                maxLines = if(item.subTitle == null) 2 else 1,
+                                minLines = if(item.subTitle == null) 2 else 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            )
+                        }
+                        item.subTitle?.let { subTitle ->
+                            Text(
+                                text = subTitle.replace("(voice)",""),
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.dp.value.sp),
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                minLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             )
                         }
                     }
+
                 }
             }
         }

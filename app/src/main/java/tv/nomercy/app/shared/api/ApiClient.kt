@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import retrofit2.Retrofit
+import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.api.services.AuthService
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.ComponentData
@@ -129,7 +130,6 @@ open class BaseApiClient(
         return retrofit.create(T::class.java)
     }
 }
-
 /**
  * Domain API client for NoMercy TV API
  */
@@ -139,7 +139,7 @@ class DomainApiClient(
     authStore: AuthStore, // Accept shared AuthStore
     timeout: Long = 30L
 ) : BaseApiClient(
-    baseUrl = "https://api-dev.nomercy.tv/v1/", // Will be made configurable later
+    baseUrl = "https://api${getSuffix()}.nomercy.tv/v1/", // Will be made configurable later
     context = context,
     authService = authService,
     authStore = authStore, // Use shared AuthStore

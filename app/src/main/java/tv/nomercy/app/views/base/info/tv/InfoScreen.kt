@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -111,9 +112,15 @@ fun InfoScreen(type: String, id: String, navController: NavHostController) {
 private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
     val themeOverrideManager = LocalThemeOverrideManager.current
 
-    val primary = MaterialTheme.colorScheme.primary
-    val posterPalette = infoData?.colorPalette?.poster
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = primary) }
+    val context = LocalContext.current
+    val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
+    val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
+
+    val fallbackColor = MaterialTheme.colorScheme.primary
+    val focusColor: Color = remember(infoData?.colorPalette) {
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(infoData?.colorPalette?.poster, fallbackColor = fallbackColor)
+    }
     val key = remember { UUID.randomUUID() }
 
     DisposableEffect(focusColor) {
