@@ -1,0 +1,1 @@
+// Moved to views/base/collections/mobile/CollectionScreen.kt

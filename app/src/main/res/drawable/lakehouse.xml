@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:width="24dp"
+    android:height="24dp">
+    <path
+        android:pathData="M5.5 13V8.8c0 -0.783 0 -1.175 0.136 -1.525a2 2 0 0 1 0.166 -0.331C6 6.625 6.313 6.39 6.94 5.92l0.4 -0.3c0.92 -0.69 1.381 -1.036 1.903 -1.103a2 2 0 0 1 0.514 0c0.522 0.067 0.982 0.412 1.903 1.103l0.4 0.3c0.627 0.47 0.94 0.705 1.138 1.024a2 2 0 0 1 0.166 0.331c0.136 0.35 0.136 0.742 0.136 1.525V13m-8 0h3m-3 0h-1m9 0h-3m3 0h5m-10 0h2m-2 0v-2a1 1 0 0 1 1 -1v0a1 1 0 0 1 1 1v2m8 -9c-0.5 1.5 -0.5 2.5 -2 3m2 -3v3m0 -3c0.5 1.5 0.5 2.5 2 3m-2 6V7m0 6h1m-1 -6c-0.5 1.5 -0.5 2.5 -2 3m2 -3c0.5 1.5 0.5 2.5 2 3m-16 6l0.938 0.5a1.99 1.99 0 0 0 1.875 0v0a1.99 1.99 0 0 1 1.875 0v0a1.99 1.99 0 0 0 1.874 0v0a1.99 1.99 0 0 1 1.876 0v0a1.99 1.99 0 0 0 1.874 0v0a1.99 1.99 0 0 1 1.876 0v0a1.99 1.99 0 0 0 1.875 0l0.937 -0.5m-15 3l0.938 0.5a1.99 1.99 0 0 0 1.875 0v0a1.99 1.99 0 0 1 1.875 0v0a1.99 1.99 0 0 0 1.874 0v0a1.99 1.99 0 0 1 1.876 0v0a1.99 1.99 0 0 0 1.874 0v0a1.99 1.99 0 0 1 1.876 0v0a1.99 1.99 0 0 0 1.875 0l0.937 -0.5"
+        android:strokeColor="@color/currentColor"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
