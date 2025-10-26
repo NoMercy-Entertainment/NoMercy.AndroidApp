@@ -53,7 +53,9 @@ fun BottomNavigationBarButton(
                 showPresenceDot = false,
                 borderWidth = if (isSelected) 2.dp else 0.dp,
                 borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                modifier = Modifier.then(if (isSelected) Modifier.rotate(12f) else Modifier)
+                modifier = Modifier
+                    .size(28.dp)
+                    .then(if (isSelected) Modifier.rotate(12f) else Modifier)
             )
         }
         else {

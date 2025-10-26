@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
-import tv.nomercy.app.BuildConfig
 import tv.nomercy.app.MainActivity
 import tv.nomercy.app.components.DisposableWebView
 import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
@@ -64,13 +63,13 @@ fun WatchScreen(type: String?, id: String?, navController: NavHostController) {
     Box(modifier = Modifier.fillMaxSize()) {
         DisposableWebView(
             url = url,
+            modifier = Modifier.fillMaxSize(),
             onBackEvent = {
                 navController.popBackStack()
             },
             onPageFinished = { url -> Log.d("WebView", "Finished: $url") },
             onDispose = {
             },
-            modifier = Modifier.fillMaxSize(),
         )
     }
 }

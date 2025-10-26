@@ -26,7 +26,8 @@ fun DisposableWebView(
     modifier: Modifier = Modifier,
     onBackEvent: () -> Unit = {},
     onPageFinished: (String?) -> Unit = {},
-    onDispose: () -> Unit = {}
+    onDispose: () -> Unit = {},
+    onWebViewCreated: (WebView) -> Unit = {}
 ) {
     val context = LocalContext.current
     val webView = remember { WebView(context) }
@@ -70,7 +71,6 @@ fun DisposableWebView(
                 override fun onPageFinished(view: WebView, url: String?) {
                     super.onPageFinished(view, url)
                     injectHistoryListener(view)
-                    injectMediaSessionPolyfill(view)
                     onPageFinished(url)
                 }
             }
@@ -87,6 +87,9 @@ fun DisposableWebView(
                 }
             }, "Android")
         }
+
+        // Notify caller about created WebView
+        onWebViewCreated(webView)
 
         webView.loadUrl(url)
 

@@ -229,7 +229,7 @@ fun GenericCarousel(
                             .hoverable(interactionSource = interaction)
                             .semantics { role = Role.Button }
                         else Modifier
-                            .border(borderWidth, focusColor, RoundedCornerShape(6.dp))
+                            .border(borderWidth, Color.DarkGray, RoundedCornerShape(6.dp))
                     )
                     .clickable { item.link?.let { navController.navigate(it) } },
                 contentAlignment = Alignment.TopStart,
@@ -290,7 +290,8 @@ fun GenericCarousel(
                                 fontWeight = FontWeight.Medium,
                                 maxLines = if(item.subTitle == null) 2 else 1,
                                 minLines = if(item.subTitle == null) 2 else 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             )
                         }
                          item.subTitle?.let { subTitle ->
@@ -312,8 +313,20 @@ fun GenericCarousel(
             Card(
                 modifier = modifier
                     .width(width)
+                    .clip(RoundedCornerShape(6.dp))
+                    .graphicsLayer { if (isTvPlatform) { scaleX = scale; scaleY = scale } }
+                    .then(if (itemFocusRequester != null) Modifier.focusRequester(itemFocusRequester) else Modifier)
+                    .then(
+                        if (isTvPlatform) Modifier
+                            .border(borderWidth, focusColor.copy(alpha = if (isActive) 1f else 0.5f), RoundedCornerShape(6.dp))
+                            .focusable(interactionSource = interaction)
+                            .hoverable(interactionSource = interaction)
+                            .semantics { role = Role.Button }
+                        else Modifier
+                            .border(borderWidth, Color.DarkGray, RoundedCornerShape(6.dp))
+                    )
+                    .clickable { item.link?.let { navController.navigate(it) } }
                     .aspectFromType(item.aspectRatio),
-                border = BorderStroke(1.dp, focusColor),
                 shape = RoundedCornerShape(6.dp),
                 onClick = {
                     item.link?.let { navController.navigate(it) }
