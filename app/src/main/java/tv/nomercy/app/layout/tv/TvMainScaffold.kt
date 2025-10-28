@@ -12,9 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,7 +20,6 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIconName
-import tv.nomercy.app.components.music.FullPlayerScreen
 import tv.nomercy.app.components.music.FullPlayerScreenTV
 import tv.nomercy.app.layout.mobile.AppNavItem
 import tv.nomercy.app.shared.routes.TvNavHost

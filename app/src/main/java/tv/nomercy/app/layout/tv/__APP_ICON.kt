@@ -1,8 +1,9 @@
-package tv.nomercy.app.components.brand
+package tv.nomercy.app.layout.tv
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import tv.nomercy.app.layout.tv.app_icon.IcLauncherForeground
+import tv.nomercy.app.layout.tv.app_icon.IcLauncherMonochrome
 import kotlin.collections.List as ____KtList
 
 object APP_ICON
@@ -15,6 +16,6 @@ val APP_ICON.AllIcons: ____KtList<ImageVector>
     if (__AllIcons != null) {
       return __AllIcons!!
     }
-    __AllIcons= listOf(IcLauncherForeground,IcLauncherMonochrome)
+    __AllIcons= listOf(IcLauncherForeground, IcLauncherMonochrome)
     return __AllIcons!!
   }

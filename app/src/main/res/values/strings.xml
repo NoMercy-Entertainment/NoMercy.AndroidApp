@@ -40,6 +40,27 @@
         <item quantity="one">sec</item>
         <item quantity="other">sec</item>
     </plurals>
+
+<!--    Search -->
+    <string name="greeting_morning">Good Morning</string>
+    <string name="greeting_afternoon">Good Afternoon</string>
+    <string name="greeting_evening">Good Evening</string>
+    <string name="greeting_night">Good Night</string>
+
+    <string name="prompt_video">What would you like to see?</string>
+    <string name="prompt_music">What would you like to listen to?</string>
+    <string name="placeholder_video">Movie, show or person…</string>
+    <string name="placeholder_music">Song, album or artist…</string>
+<!--    Search end -->
+    
+<!--    Theme -->
+    <string name="section_device_name">Device name</string>
+    <string name="section_language">Display language</string>
+    <string name="section_screensaver_delay">Screensaver delay</string>
+    <string name="section_color_scheme">Scheme</string>
+    <string name="section_theme">Theme</string>
+<!--    Theme end-->
+
     <string name="watch">Watch</string>
     <string name="watch_trailer">Watch trailer</string>
     <string name="collection">Collection</string>

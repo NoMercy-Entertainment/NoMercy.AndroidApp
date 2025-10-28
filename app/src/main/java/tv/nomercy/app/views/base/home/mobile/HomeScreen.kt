@@ -90,7 +90,7 @@ fun MobileHomeScreen(
         themeOverrideManager.add(key, focusColor)
 
         onDispose {
-//            themeOverrideManager.remove(key)
+            themeOverrideManager.remove(key)
         }
     }
 

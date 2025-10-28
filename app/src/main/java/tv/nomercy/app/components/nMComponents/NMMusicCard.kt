@@ -118,7 +118,6 @@ fun NMMusicCard(
             .fillMaxWidth()
             .padding(top = 8.dp)
             .aspectFromType(AspectRatio.Poster)
-            .then(if (useAutoThemeColors) Modifier.paletteBackground(data.colorPalette?.cover) else Modifier)
             .clickable { navController.navigate(data.link) },
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -128,6 +127,7 @@ fun NMMusicCard(
                 .fillMaxSize()
                 .weight(2f)
                 .clip(RoundedCornerShape(6.dp))
+                .then(if (useAutoThemeColors) Modifier.paletteBackground(data.colorPalette?.cover) else Modifier)
                 .aspectFromType(AspectRatio.Cover)
                 .graphicsLayer {
                     if (isTvPlatform) {

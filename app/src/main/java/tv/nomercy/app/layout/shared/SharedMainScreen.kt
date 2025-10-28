@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,6 +33,7 @@ import tv.nomercy.app.shared.stores.AppConfigStore
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.views.auth.tv.TvLoginScreen
 import tv.nomercy.app.layout.tv.TvMainScaffold
+import tv.nomercy.app.shared.stores.updateLocale
 
 @Composable
 fun SharedMainScreen(
@@ -39,7 +42,8 @@ fun SharedMainScreen(
     appConfigStore: AppConfigStore,
     isImmersiveState: Boolean,
 ) {
-    val serverConfigStore = GlobalStores.getServerConfigStore(LocalContext.current)
+    val context = LocalContext.current
+    val serverConfigStore = GlobalStores.getServerConfigStore(context)
     val authState by authViewModel.authState.collectAsState()
 
     val selectServerViewModel: SelectServerViewModel = viewModel(
@@ -97,9 +101,21 @@ fun SharedMainScreen(
                     onSetupComplete = { isSetupComplete = true }
                 )
             } else {
-                when (platform) {
-                    Platform.Mobile -> MobileMainScaffold(isImmersive = isImmersiveState)
-                    Platform.TV -> TvMainScaffold(isImmersive = isImmersiveState)
+                val languageTrigger = remember { mutableIntStateOf(0) }
+
+                val store = GlobalStores.getAppSettingsStore(context)
+                val language by store.language.collectAsState(initial = "English")
+
+                LaunchedEffect(language) {
+                    context.updateLocale(language)
+                    languageTrigger.intValue++
+                }
+
+                key(languageTrigger.intValue) {
+                    when (platform) {
+                        Platform.Mobile -> MobileMainScaffold(isImmersive = isImmersiveState)
+                        Platform.TV -> TvMainScaffold(isImmersive = isImmersiveState)
+                    }
                 }
             }
         }

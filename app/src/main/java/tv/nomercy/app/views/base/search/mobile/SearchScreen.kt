@@ -1,91 +1,338 @@
 package tv.nomercy.app.views.base.search.mobile
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import tv.nomercy.app.R
+import tv.nomercy.app.components.PosterBackground
+import java.time.LocalTime
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen(navController: NavHostController) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("All") }
-    val filters = listOf("All", "Movies", "TV Shows", "Music", "People")
+    var selectedFilter by remember { mutableStateOf(SearchType.Video) }
+
+    val imeVisible = WindowInsets.isImeVisible
+    val hasResults = searchQuery.isNotBlank()
+
+    val positionState = when {
+        imeVisible -> SearchBarPosition.Open
+        hasResults && !imeVisible -> SearchBarPosition.Contents
+        else -> SearchBarPosition.Closed
+    }
+
+    val screenHeightDp = LocalWindowInfo.current.containerSize.height.dp
+    val searchBarHeight = 60.dp
+
+    val searchBarOffset = when (positionState) {
+        SearchBarPosition.Closed -> screenHeightDp / 8.1f + 1.dp
+        SearchBarPosition.Open -> screenHeightDp / 6.1f + 1.dp
+        SearchBarPosition.Contents -> screenHeightDp / 3.6f - 5.dp
+    }
+
+    val padding = when (positionState) {
+        SearchBarPosition.Closed -> 16.dp
+        SearchBarPosition.Open -> 0.dp
+        SearchBarPosition.Contents -> 0.dp
+    }
+
+    val clampedOffset = searchBarOffset.coerceAtMost(screenHeightDp - searchBarHeight - 16.dp)
+    val animatedOffset by animateDpAsState(targetValue = clampedOffset, label = "SearchBarOffset")
+
+    PosterBackground(
+        visible = searchQuery.isBlank()
+    )
+
+    Box(
+        modifier = Modifier
+            .imePadding()
+            .fillMaxSize()
+    ) {
+
+        GreetingHeader(
+            searchQuery = searchQuery,
+            selectedFilter = selectedFilter
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .offset(y = animatedOffset)
+        ) {
+            SearchBarWithToggle(
+                searchQuery = searchQuery,
+                positionState = positionState,
+                onQueryChange = { searchQuery = it },
+                selectedType = selectedFilter,
+                onTypeChange = { type ->
+                    selectedFilter = when (type) {
+                        SearchType.Music -> SearchType.Music
+                        SearchType.Video -> SearchType.Video
+                    }
+                },
+            )
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+//            .padding(bottom = 96.dp)
             .padding(16.dp)
     ) {
-        // Search Bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search movies, shows, music...") },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.searchmagnifyingglass),
-                    contentDescription = "Clear"
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+enum class SearchBarPosition { Closed, Open, Contents }
+enum class SearchType { Video, Music }
+
+@Composable
+fun SearchBarWithToggle(
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    selectedType: SearchType,
+    onTypeChange: (SearchType) -> Unit,
+    modifier: Modifier = Modifier,
+    positionState: SearchBarPosition
+) {
+    val transition = updateTransition(targetState = selectedType, label = "ToggleTransition")
+    val indicatorOffset by transition.animateDp(label = "IndicatorOffset") { type ->
+        when (type) {
+            SearchType.Video -> 2.dp
+            SearchType.Music -> 54.dp
+        }
+    }
+
+    val placeholder = when (selectedType) {
+        SearchType.Video -> stringResource(R.string.placeholder_video)
+        SearchType.Music -> stringResource(R.string.placeholder_music)
+    }
+
+    val radius = when (positionState) {
+        SearchBarPosition.Closed -> 16.dp
+        SearchBarPosition.Open -> 0.dp
+        SearchBarPosition.Contents -> 0.dp
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .clip(shape = RoundedCornerShape(radius))
+            .background(color = MaterialTheme.colorScheme.surface)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(radius)
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(width = 120.dp)
+                    .fillMaxHeight()
+                    .padding(6.dp)
+                    .clip(shape = RoundedCornerShape(10.dp))
+                    .background(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+                    .zIndex(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .offset(x = indicatorOffset)
+                        .fillMaxHeight()
+                        .width(52.dp)
+                        .padding(horizontal = 2.dp, vertical = 4.dp)
+                        .clip(shape = RoundedCornerShape(7.dp))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.90f))
+                        .align(Alignment.CenterStart)
                 )
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(
-                        onClick = { searchQuery = "" }
+                        onClick = { onTypeChange(SearchType.Video) },
+                        modifier = Modifier
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.cross),
-                            contentDescription = "Clear"
+                            painter = painterResource(R.drawable.filmmedia),
+                            contentDescription = "Video",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(
+                        onClick = { onTypeChange(SearchType.Music) },
+                        modifier = Modifier
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.notedouble),
+                            contentDescription = "Music",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            },
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Filter Chips
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(filters) { filter ->
-                FilterChip(
-                    onClick = { selectedFilter = filter },
-                    label = { Text(filter) },
-                    selected = selectedFilter == filter
-                )
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        if (searchQuery.isEmpty()) {
-            // Show popular/trending content when no search
-            PopularContent()
-        } else {
-            // Show search results
-            SearchResults(query = searchQuery, filter = selectedFilter)
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onQueryChange,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Search,
+                    keyboardType = KeyboardType.Text
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                    }
+                ),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = 0.7f
+                    ),
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = 0.7f
+                    )
+                )
+            )
         }
     }
 }
+
+@Composable
+fun GreetingHeader(
+    searchQuery: String,
+    selectedFilter: SearchType,
+) {
+    AnimatedVisibility(
+        visible = searchQuery.isBlank(),
+        enter = slideInVertically(initialOffsetY = { -it }),
+        exit = slideOutVertically(targetOffsetY = { -it })
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 64.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = greetingString(),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(
+                id = if (selectedFilter == SearchType.Video) R.string.prompt_video else R.string.prompt_music),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+
+@Composable
+fun greetingString(): String {
+    val hour = LocalTime.now().hour
+    val resId = when (hour) {
+        in 6..11 -> R.string.greeting_morning
+        in 12..17 -> R.string.greeting_afternoon
+        in 18..23 -> R.string.greeting_evening
+        else -> R.string.greeting_night
+    }
+    return stringResource(id = resId)
+}
+
 
 @Composable
 private fun PopularContent() {
@@ -480,3 +727,4 @@ private fun SearchResultCard(
         }
     }
 }
+

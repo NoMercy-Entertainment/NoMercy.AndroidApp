@@ -9,7 +9,11 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -17,12 +21,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import tv.nomercy.app.shared.auth.HandleAuthResponse
 import tv.nomercy.app.shared.layout.SharedMainScreen
 import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.stores.updateLocale
 import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
 import tv.nomercy.app.shared.ui.NoMercyTheme
 import tv.nomercy.app.shared.ui.SystemUiController
@@ -88,6 +96,12 @@ class MainActivity : ComponentActivity() {
 
             val themeOverrideManager = remember { ThemeOverrideManager() }
 
+            val store = GlobalStores.getAppSettingsStore(this)
+            val language by store.language.collectAsState(initial = "English")
+            LaunchedEffect(language) {
+                context.updateLocale(language)
+            }
+
             CompositionLocalProvider(
                 LocalActivity provides this,
                 LocalThemeOverrideManager provides themeOverrideManager
@@ -109,12 +123,12 @@ class MainActivity : ComponentActivity() {
                         authLauncher.launch(intent)
                     }
 
-                    SharedMainScreen(
-                        platform = if (isTvDevice) Platform.TV else Platform.Mobile,
-                        authViewModel = authViewModel,
-                        appConfigStore = appConfigStore,
-                        isImmersiveState = isImmersiveState,
-                    )
+                        SharedMainScreen(
+                            platform = if (isTvDevice) Platform.TV else Platform.Mobile,
+                            authViewModel = authViewModel,
+                            appConfigStore = appConfigStore,
+                            isImmersiveState = isImmersiveState,
+                        )
 
 //                    if (!isReady.value) {
 //                        ThemedSplashScreen()

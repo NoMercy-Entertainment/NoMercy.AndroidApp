@@ -40,6 +40,27 @@
         <item quantity="one">sec</item>
         <item quantity="other">sec</item>
     </plurals>
+
+<!--    Search -->
+    <string name="greeting_morning">Goedemorgen</string>
+    <string name="greeting_afternoon">Goedemiddag</string>
+    <string name="greeting_evening">Goedenavond</string>
+    <string name="greeting_night">Goedenacht</string>
+
+    <string name="prompt_video">Wat zou je graag willen zien?</string>
+    <string name="prompt_music">Wat zou je graag willen luisteren?</string>
+    <string name="placeholder_video">Film, serie of persoon…</string>
+    <string name="placeholder_music">Liedje, album of artiest…</string>
+<!--    Search end-->
+
+<!--    Theme -->
+    <string name="section_device_name">Apparaat naam</string>
+    <string name="section_language">Weergave taal</string>
+    <string name="section_screensaver_delay">Schermbeveiliging vertraging</string>
+    <string name="section_color_scheme">Schema</string>
+        <string name="section_theme">Thema</string>
+<!--    Theme end-->
+
     <string name="watch">Afspelen</string>
     <string name="watch_trailer">Bekijk trailer</string>
     <string name="collection">Collectie</string>

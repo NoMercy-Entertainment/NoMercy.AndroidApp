@@ -2,6 +2,7 @@ package tv.nomercy.app.shared.stores
 
 import android.content.Context
 import android.os.Build
+import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -10,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Locale
 
 enum class ColorScheme {
     LIGHT, DARK, SYSTEM
@@ -37,11 +39,15 @@ class AppSettingsStore(context: Context) {
     }
 
     val language: Flow<String> = dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.LANGUAGE] ?: "Nederlands"
+        preferences[PreferencesKeys.LANGUAGE] ?: "English"
     }
 
-    suspend fun setLanguage(language: String) {
-        dataStore.edit { it[PreferencesKeys.LANGUAGE] = language }
+    suspend fun setLanguage(language: String, context: Context) {
+        dataStore.edit {
+            it[PreferencesKeys.LANGUAGE] = language
+
+            context.updateLocale(language)
+        }
     }
 
     val screensaverDelay: Flow<Int> = dataStore.data.map { preferences ->
@@ -59,4 +65,18 @@ class AppSettingsStore(context: Context) {
     suspend fun setColorScheme(scheme: ColorScheme) {
         dataStore.edit { it[PreferencesKeys.COLOR_SCHEME] = scheme.name }
     }
+}
+
+val supportedLocales = mapOf(
+    "English" to Locale.ENGLISH,
+    "Nederlands" to Locale.forLanguageTag("nl")
+)
+
+fun Context.updateLocale(language: String) {
+    val locale = supportedLocales[language] ?: Locale.ENGLISH
+
+    Locale.setDefault(locale)
+    val config = resources.configuration
+    config.setLocale(locale)
+    resources.updateConfiguration(config, resources.displayMetrics)
 }

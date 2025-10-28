@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "tv.nomercy.app"
-        minSdk = 29
+        minSdk = 33
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -128,6 +128,7 @@ dependencies {
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.ui.test)
+    implementation(libs.androidx.foundation)
 
     // Debug tools
     debugImplementation(libs.androidx.compose.ui.tooling)

@@ -2,6 +2,7 @@ package tv.nomercy.app.views.profile
 
 import android.os.Build
 import androidx.activity.compose.LocalActivity
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
@@ -37,11 +39,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import tv.nomercy.app.R
 import tv.nomercy.app.shared.stores.ColorScheme
 import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.shared.stores.supportedLocales
 import tv.nomercy.app.shared.ui.ThemeName
 
 @Composable
@@ -63,9 +68,9 @@ fun AppSettingsScreen(onNavigateBack: () -> Unit) {
 }
 
 @Composable
-private fun SectionTitle(text: String) {
+private fun SectionTitle(@StringRes textRes: Int) {
     Text(
-        text = text,
+        text = stringResource(id = textRes),
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(bottom = 8.dp)
     )
@@ -78,7 +83,7 @@ private fun DeviceNameSetting() {
     val coroutineScope = rememberCoroutineScope()
 
     Column {
-        SectionTitle("Apparaat naam")
+        SectionTitle(R.string.section_device_name)
         OutlinedTextField(
             value = deviceName,
             onValueChange = { coroutineScope.launch { appSettingsStore.setDeviceName(it) } },
@@ -90,36 +95,41 @@ private fun DeviceNameSetting() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguageSetting() {
+    val context = LocalContext.current
+
     val appSettingsStore = GlobalStores.getAppSettingsStore(LocalContext.current)
-    val selectedLanguage by appSettingsStore.language.collectAsState(initial = "Nederlands")
+    val selectedLanguage by appSettingsStore.language.collectAsState(initial = "English")
+
     val coroutineScope = rememberCoroutineScope()
-    val languages = listOf("Nederlands", "English")
+
     var expanded by remember { mutableStateOf(false) }
 
     Column {
-        SectionTitle("Weergave taal")
+        SectionTitle(R.string.section_language)
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded }
         ) {
+            val fillMaxWidth = Modifier
+                .fillMaxWidth()
             OutlinedTextField(
                 value = selectedLanguage,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor()
+                modifier = fillMaxWidth.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true)
             )
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                languages.forEach { language ->
+                supportedLocales.forEach { language ->
                     DropdownMenuItem(
-                        text = { Text(language) },
+                        text = { Text(text = language.value.displayLanguage) },
                         onClick = {
-                            coroutineScope.launch { appSettingsStore.setLanguage(language) }
+                            coroutineScope.launch {
+                                appSettingsStore.setLanguage(language.key, context)
+                            }
                             expanded = false
                         }
                     )
@@ -136,7 +146,7 @@ private fun ScreensaverDelaySetting() {
     val coroutineScope = rememberCoroutineScope()
 
     Column {
-        SectionTitle("Schermbeveiliging vertraging")
+        SectionTitle(R.string.section_screensaver_delay)
         OutlinedTextField(
             value = delay.toString(),
             onValueChange = { coroutineScope.launch { appSettingsStore.setScreensaverDelay(it.toIntOrNull() ?: 0) } },
@@ -153,7 +163,7 @@ private fun ColorSchemeSetting() {
     val coroutineScope = rememberCoroutineScope()
 
     Column {
-        SectionTitle("Scheme")
+        SectionTitle(R.string.section_color_scheme)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ThemeDot(Color.White, currentScheme == ColorScheme.LIGHT) { coroutineScope.launch { appSettingsStore.setColorScheme(ColorScheme.LIGHT) } }
             ThemeDot(Color.Black, currentScheme == ColorScheme.DARK) { coroutineScope.launch { appSettingsStore.setColorScheme(ColorScheme.DARK) } }
@@ -197,7 +207,7 @@ private fun ThemeColorsSetting() {
     }
 
     Column {
-        SectionTitle("Thema")
+        SectionTitle(R.string.section_theme)
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
