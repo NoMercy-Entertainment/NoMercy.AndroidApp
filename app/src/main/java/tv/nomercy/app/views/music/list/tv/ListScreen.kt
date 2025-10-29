@@ -55,7 +55,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import tv.nomercy.app.components.CoverImage
+import tv.nomercy.app.components.images.CoverImage
 import tv.nomercy.app.components.ShimmerTrackRow
 import tv.nomercy.app.components.music.BigPlayButton
 import tv.nomercy.app.components.music.MediaLikeButton

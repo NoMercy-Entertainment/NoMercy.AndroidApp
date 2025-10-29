@@ -48,7 +48,7 @@ import tv.nomercy.app.components.SeasonCarousel
 import tv.nomercy.app.components.ShimmerBox
 import tv.nomercy.app.components.ShimmerPill
 import tv.nomercy.app.components.SplitTitleText
-import tv.nomercy.app.components.TMDBImage
+import tv.nomercy.app.components.images.TMDBImage
 import tv.nomercy.app.components.toCarouselItem
 import tv.nomercy.app.shared.models.InfoResponse
 import tv.nomercy.app.shared.stores.GlobalStores

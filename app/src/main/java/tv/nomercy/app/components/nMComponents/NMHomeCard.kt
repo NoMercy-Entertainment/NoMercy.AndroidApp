@@ -63,7 +63,7 @@ import tv.nomercy.app.components.GradientBlurOverlay
 import tv.nomercy.app.components.LinkButton
 import tv.nomercy.app.components.OverlayGradient
 import tv.nomercy.app.components.SplitTitleText
-import tv.nomercy.app.components.TMDBImage
+import tv.nomercy.app.components.images.TMDBImage
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMHomeCardProps
 import tv.nomercy.app.shared.models.NMHomeCardWrapper

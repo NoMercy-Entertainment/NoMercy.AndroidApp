@@ -77,7 +77,7 @@ import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIcon
 import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.components.PosterBackground
-import tv.nomercy.app.components.brand.AppLogoSquare
+import tv.nomercy.app.components.images.AppLogoSquare
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.components.nMComponents.hasContent
 import tv.nomercy.app.shared.models.SearchResultElement

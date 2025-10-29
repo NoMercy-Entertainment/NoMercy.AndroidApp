@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -50,7 +49,7 @@ import tv.nomercy.app.components.music.BigPlayButton
 import tv.nomercy.app.components.music.MediaLikeButton
 import tv.nomercy.app.components.music.ShareButton
 import tv.nomercy.app.components.music.TrackRow
-import tv.nomercy.app.components.CoverImage
+import tv.nomercy.app.components.images.CoverImage
 import tv.nomercy.app.shared.models.MusicList
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.views.music.list.shared.ListViewModel

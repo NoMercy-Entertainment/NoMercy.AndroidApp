@@ -6,7 +6,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <!-- Declare TV leanback feature (not required so phones remain supported) -->
@@ -25,7 +24,6 @@
         android:banner="@mipmap/ic_banner"
         android:supportsRtl="true"
         android:hardwareAccelerated="true"
-        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.App.Starting">
 
         <activity

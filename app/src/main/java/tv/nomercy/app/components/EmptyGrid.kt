@@ -18,7 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import tv.nomercy.app.components.TMDBImage
+import tv.nomercy.app.components.images.TMDBImage
 import tv.nomercy.app.shared.utils.AspectRatio
 
 @Composable

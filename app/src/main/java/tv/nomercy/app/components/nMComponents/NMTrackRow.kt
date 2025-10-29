@@ -29,7 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import tv.nomercy.app.R
-import tv.nomercy.app.components.CoverImage
+import tv.nomercy.app.components.images.CoverImage
 import tv.nomercy.app.components.DropdownMenuButton
 import tv.nomercy.app.components.Marquee
 import tv.nomercy.app.components.music.MediaLikeButton

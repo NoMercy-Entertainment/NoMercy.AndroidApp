@@ -1,4 +1,4 @@
-package tv.nomercy.app.components.brand
+package tv.nomercy.app.components.images
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -8,7 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import tv.nomercy.app.layout.tv.app_icon.IcLauncherForeground
 
 /**
  * App logo component that renders the theme-aware launcher foreground vector.

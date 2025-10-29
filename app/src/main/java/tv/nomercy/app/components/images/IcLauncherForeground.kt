@@ -1,10 +1,11 @@
-package tv.nomercy.app.layout.tv.app_icon
+package tv.nomercy.app.components.images
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -20,24 +21,25 @@ import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlin.Unit
 
 val IcLauncherForeground: ImageVector
     @Composable
     get() {
-        val activeBrush = Brush.horizontalGradient(
-            listOf(
-                MaterialTheme.colorScheme.primary,
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+        val primaryColor = MaterialTheme.colorScheme.primary
+        val activeBrush = remember(primaryColor) {
+            Brush.horizontalGradient(
+                listOf(
+                    primaryColor,
+                    primaryColor.copy(alpha = 0.8f)
+                )
             )
-        )
+        }
 
-        val icLauncherForeground = Builder(
-            name = "IcLauncherForeground", defaultWidth = 1024.0.dp,
-            defaultHeight = 1024.0.dp, viewportWidth = 1024.0f, viewportHeight =
-                1024.0f
-        )
-            .apply {
+        return Builder(
+                name = "IcLauncherForeground", defaultWidth = 1024.0.dp,
+                defaultHeight = 1024.0.dp, viewportWidth = 1024.0f, viewportHeight = 1024.0f
+            ).apply {
+
                 group {
                     path(
                         fill = activeBrush,
@@ -711,10 +713,7 @@ val IcLauncherForeground: ImageVector
                         close()
                     }
                 }
-            }
-            .build()
-
-        return icLauncherForeground
+        }.build()
     }
 
 @Preview

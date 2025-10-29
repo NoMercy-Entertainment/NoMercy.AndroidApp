@@ -1,6 +1,7 @@
 package tv.nomercy.app.shared.stores
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import tv.nomercy.app.shared.models.Notification
 import tv.nomercy.app.shared.models.Server
 import tv.nomercy.app.shared.models.UserProfile
 import tv.nomercy.app.shared.ui.ThemeName
+import kotlin.or
 
 class AppConfigStore(
     private val context: Context,
@@ -71,7 +73,7 @@ class AppConfigStore(
         return try {
             val hasValidAuth = authStore.isAuthenticated.value && authStore.accessToken.value != null
             if (!hasValidAuth && !authStore.loadSavedTokens()) {
-                return Result.failure(Exception("No authentication token available. Please log in first."))
+                return Result.failure(Exception("Redirecting to login..."))
             }
 
             val response = domainApiService.getAppConfig()

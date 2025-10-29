@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import tv.nomercy.app.components.images.TMDBImage
 import tv.nomercy.app.components.nMComponents.CompletionOverlay
 import tv.nomercy.app.components.nMComponents.OverlayProps
 import tv.nomercy.app.shared.models.ColorPalettes

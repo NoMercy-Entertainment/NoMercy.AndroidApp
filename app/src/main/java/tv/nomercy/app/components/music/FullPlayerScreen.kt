@@ -66,7 +66,7 @@ import kotlinx.coroutines.launch
 import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIcon
 import tv.nomercy.app.components.MoooomIconName
-import tv.nomercy.app.components.CoverImage
+import tv.nomercy.app.components.images.CoverImage
 import tv.nomercy.app.shared.models.PlaylistItem
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.pickPaletteColor

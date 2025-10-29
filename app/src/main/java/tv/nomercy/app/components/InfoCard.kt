@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import tv.nomercy.app.R
-import tv.nomercy.app.components.TMDBImage
+import tv.nomercy.app.components.images.TMDBImage
 import tv.nomercy.app.shared.models.InfoResponse
 import tv.nomercy.app.shared.models.PaletteColors
 import tv.nomercy.app.shared.utils.AspectRatio

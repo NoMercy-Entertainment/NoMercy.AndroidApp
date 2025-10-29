@@ -52,9 +52,7 @@ fun getPerceivedBrightness(color: String): Int {
     val r = rgb["red"]!!.toInt()
     val g = rgb["green"]!!.toInt()
     val b = rgb["blue"]!!.toInt()
-    val result = floor((0.2126 * r) + (0.7152 * g) + (0.0722 * b)).toInt()
-    Log.d("getPerceivedBrightness", "result: $result")
-    return result
+    return floor((0.2126 * r) + (0.7152 * g) + (0.0722 * b)).toInt()
 }
 
 fun getPerceivedBrightness(color: Color): Int {

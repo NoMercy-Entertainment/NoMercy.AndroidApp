@@ -1,5 +1,7 @@
 package tv.nomercy.app.views.setup.selectServer.mobile
 
+import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -16,6 +18,7 @@ import tv.nomercy.app.shared.stores.ServerConfigStore
  * ViewModel for handling app setup flow independent of authentication
  */
 class SelectServerViewModel(
+    private val context: Context,
     private val appConfigStore: AppConfigStore,
     private val serverConfigStore: ServerConfigStore
 ) : ViewModel() {
@@ -34,6 +37,12 @@ class SelectServerViewModel(
         observeSetupRequirements()
     }
 
+    private fun navigateToLogin() {
+        val intent = Intent(context, net.openid.appauth.RedirectUriReceiverActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        context.startActivity(intent)
+    }
+
     /**
      * Check what setup steps are needed
      */
@@ -49,6 +58,7 @@ class SelectServerViewModel(
                     determineSetupState()
                 },
                 onFailure = { exception ->
+                    navigateToLogin()
                     _setupState.value = SetupState.Error("Failed to load configuration: ${exception.message}")
                 }
             )
@@ -186,13 +196,14 @@ sealed class SetupState {
 }
 
 class SetupViewModelFactory(
+    private val context: Context,
     private val appConfigStore: AppConfigStore,
     private val serverConfigStore: ServerConfigStore
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SelectServerViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return SelectServerViewModel(appConfigStore, serverConfigStore) as T
+            return SelectServerViewModel(context, appConfigStore, serverConfigStore) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

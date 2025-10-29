@@ -1,4 +1,4 @@
-package tv.nomercy.app.layout.tv.app_icon
+package tv.nomercy.app.components.images
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

@@ -1,6 +1,5 @@
-package tv.nomercy.app.components
+package tv.nomercy.app.components.images
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -14,7 +13,6 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.disk.DiskCache
 import coil3.disk.directory
-import tv.nomercy.app.components.brand.AppLogoSquare
 import tv.nomercy.app.components.nMComponents.resolveImageUrl
 import tv.nomercy.app.shared.models.NMMusicCardProps
 import tv.nomercy.app.shared.stores.GlobalStores

@@ -47,7 +47,7 @@ fun SharedMainScreen(
     val authState by authViewModel.authState.collectAsState()
 
     val selectServerViewModel: SelectServerViewModel = viewModel(
-        factory = SetupViewModelFactory(appConfigStore, serverConfigStore)
+        factory = SetupViewModelFactory(context, appConfigStore, serverConfigStore)
     )
 
     var isSetupComplete by remember { mutableStateOf(false) }
@@ -71,6 +71,7 @@ fun SharedMainScreen(
                 if (authState is AuthState.Unauthenticated) {
                     isSetupComplete = false
                     appConfigStore.clearData()
+                    authViewModel.login()
                 }
             }
 

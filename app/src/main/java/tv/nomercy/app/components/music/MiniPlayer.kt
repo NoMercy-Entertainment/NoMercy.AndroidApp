@@ -39,7 +39,7 @@ import androidx.navigation.NavHostController
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.rememberSwipeableState
 import tv.nomercy.app.components.Marquee
-import tv.nomercy.app.components.CoverImage
+import tv.nomercy.app.components.images.CoverImage
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.pickPaletteColor
 import kotlin.math.abs

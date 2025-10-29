@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import tv.nomercy.app.components.TMDBImage
+import tv.nomercy.app.components.images.TMDBImage
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.utils.AspectRatio

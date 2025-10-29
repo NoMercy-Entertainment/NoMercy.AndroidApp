@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +36,7 @@ import tv.nomercy.app.views.base.auth.shared.AuthViewModel
 import tv.nomercy.app.views.base.auth.shared.AuthViewModelFactory
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.utils.aspectFromType
+import kotlin.hashCode
 
 /**
  * Generic profile image component that can be reused across mobile and TV.
@@ -57,21 +59,25 @@ fun ProfileImage(
     val appConfigStore = GlobalStores.getAppConfigStore(context)
     val userProfile by appConfigStore.userProfile.collectAsState()
 
-    val resolvedAvatarUrl = avatarOverrideUrl
-        ?: userProfile?.avatarUrl?.takeIf { it.isNotBlank() }
-        ?: userInfo?.avatarUrl?.takeIf { it.isNotBlank() }
-        ?: userInfo?.email?.let { email ->
-            "https://www.gravatar.com/avatar/${email.hashCode()}?d=retro&s=128"
-        }
+    val resolvedAvatarUrl = remember(avatarOverrideUrl, userProfile, userInfo) {
+        avatarOverrideUrl
+            ?: userProfile?.avatarUrl?.takeIf { it.isNotBlank() }
+            ?: userInfo?.avatarUrl?.takeIf { it.isNotBlank() }
+            ?: userInfo?.email?.let { email ->
+                "https://www.gravatar.com/avatar/${email.hashCode()}?d=retro&s=128"
+            }
+    }
 
-    val imageLoader = ImageLoader.Builder(context)
-        .diskCache {
-            DiskCache.Builder()
-                .directory(context.cacheDir.resolve("image_cache"))
-                .maxSizePercent(0.02)
-                .build()
-        }
-        .build()
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(context.cacheDir.resolve("image_cache"))
+                    .maxSizePercent(0.02)
+                    .build()
+            }
+            .build()
+    }
 
     Box(
         modifier = modifier
