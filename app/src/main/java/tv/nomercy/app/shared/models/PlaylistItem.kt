@@ -4,20 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BasePlaylistItem(
-    val id: String,
-    val name: String,
-    val cover: String?,
-    val path: String,
-    val disc: Int,
-    val track: Int,
-    @SerialName("album_track")
-    val albumTrack: List<Album>,
-    @SerialName("artist_track")
-    val artistTrack: List<Artist>,
-)
-
-@Serializable
 data class PlaylistItem(
     val id: String,
     val name: String,

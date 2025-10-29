@@ -59,7 +59,6 @@ fun CoverImage(cover: String?, name: String?, modifier: Modifier) {
             modifier = modifier
                 .shadow(
                     elevation = 4.dp,
-                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
                 ),
             contentScale = ContentScale.Crop
         )

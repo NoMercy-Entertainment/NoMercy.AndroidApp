@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.models.NMMusicHomeCardProps
-import tv.nomercy.app.shared.models.NMGridProps
+import tv.nomercy.app.shared.models.NMGridWrapper
+import tv.nomercy.app.shared.models.NMMusicHomeCardWrapper
 import tv.nomercy.app.shared.stores.CardsStore
 
 class CardsViewModel(
@@ -61,27 +62,26 @@ class CardsViewModel(
                 .collect { (components, loading) ->
                     if (!loading) {
                         _hasIndexableContent.value = components.any { component ->
-                            val gridProps = component.props as? NMGridProps
+                            val gridProps = component.props as? NMGridWrapper
                             component.component == "NMGrid" &&
                                     gridProps != null &&
                                     gridProps.items.any { item ->
-                                        val cardProps = item.props as? NMMusicHomeCardProps
+                                        val cardProps = item.props as? NMMusicHomeCardWrapper
                                         item.component == "NMMusicCard" &&
-                                                cardProps != null &&
-                                                (cardProps.data?.name?.isNotBlank() == true)
+                                                cardProps != null && cardProps.data.name.isNotBlank()
                                     }
                         }
                     }
 
                     val containsAlbumOrArtist = components.any { component ->
-                        val gridProps = component.props as? NMGridProps
+                        val gridProps = component.props as? NMGridWrapper
                         component.component == "NMGrid" &&
                                 gridProps != null &&
                                 gridProps.items.any { item ->
-                                    val cardProps = item.props as? NMMusicHomeCardProps
+                                    val cardProps = item.props as? NMMusicHomeCardWrapper
                                     item.component == "NMMusicCard" &&
                                             cardProps != null &&
-                                            (cardProps.data?.type == "albums" || cardProps.data?.type == "artists")
+                                            (cardProps.data.type == "albums" || cardProps.data.type == "artists")
                                 }
                     }
 
@@ -90,9 +90,9 @@ class CardsViewModel(
                     } else {
                         components
                             .filter { it.component == "NMGrid" }
-                            .flatMap { (it.props as? NMGridProps)?.items ?: emptyList() }
+                            .flatMap { (it.props as? NMGridWrapper)?.items ?: emptyList() }
                             .filter { it.component == "NMMusicCard" }
-                            .mapNotNull { (it.props as? NMMusicHomeCardProps)?.data?.name }
+                            .mapNotNull { (it.props as? NMMusicHomeCardWrapper)?.data?.name }
                             .mapNotNull { name ->
                                 val trimmed = name.trim()
                                 val firstChar = trimmed.firstOrNull { it.isLetterOrDigit() }

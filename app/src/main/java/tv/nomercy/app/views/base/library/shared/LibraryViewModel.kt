@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.models.Library
 import tv.nomercy.app.shared.models.NMCardWrapper
-import tv.nomercy.app.shared.models.NMGridProps
+import tv.nomercy.app.shared.models.NMGridWrapper
 import tv.nomercy.app.shared.stores.LibraryStore
 
 class LibrariesViewModel(
@@ -69,7 +69,7 @@ class LibrariesViewModel(
 
                 // Compute whether there is indexable content directly from components (use for fallback)
                 val detectedIndexableContent = components.any { component ->
-                    val gridProps = component.props as? NMGridProps
+                    val gridProps = component.props as? NMGridWrapper
                     component.component == "NMGrid" &&
                             gridProps != null &&
                             gridProps.items.any { item ->
@@ -89,7 +89,7 @@ class LibrariesViewModel(
                 }
 
                 val containsMovie = components.any { component ->
-                    val gridProps = component.props as? NMGridProps
+                    val gridProps = component.props as? NMGridWrapper
                     component.component == "NMGrid" &&
                             gridProps != null &&
                             gridProps.items.any { item ->
@@ -108,7 +108,7 @@ class LibrariesViewModel(
                 } else {
                     components
                         .filter { it.component == "NMGrid" }
-                        .flatMap { (it.props as? NMGridProps)?.items ?: emptyList() }
+                        .flatMap { (it.props as? NMGridWrapper)?.items ?: emptyList() }
                         .filter { it.component == "NMCard" }
                         .mapNotNull { (it.props as? NMCardWrapper)?.data?.titleSort ?: (it.props as? NMCardWrapper)?.title }
                         .mapNotNull { sortTitle ->
@@ -183,7 +183,7 @@ class LibrariesViewModel(
             // Scroll-based navigation for non-paginated libraries
             viewModelScope.launch {
                 val gridComponent = currentLibrary.value.firstOrNull { it.component == "NMGrid" }
-                val gridProps = gridComponent?.props as? NMGridProps
+                val gridProps = gridComponent?.props as? NMGridWrapper
                 val gridItems = gridProps?.items
                 val itemIndex = gridItems?.indexOfFirst {
                     val cardWrapper = it.props as? NMCardWrapper

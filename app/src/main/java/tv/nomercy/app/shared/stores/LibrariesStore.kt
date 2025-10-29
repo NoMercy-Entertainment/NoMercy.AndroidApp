@@ -7,7 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.repositories.LibrariesRepository
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.NMCardProps
 
 class LibrariesStore(
     context: Context,

@@ -22,7 +22,7 @@ fun BottomNavigationBar(
 ) {
 
     Surface(
-        color = MaterialTheme.colorScheme.surfaceDim,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 30.dp,
         modifier = modifier
             .fillMaxWidth()

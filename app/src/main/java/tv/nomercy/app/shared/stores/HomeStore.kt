@@ -5,10 +5,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import tv.nomercy.app.shared.repositories.HomeRepository
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.NMCardProps
 
 class HomeStore(
     context: Context,

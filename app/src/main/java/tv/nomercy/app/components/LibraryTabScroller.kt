@@ -7,12 +7,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.views.base.library.shared.LibrariesViewModel
 
 @Composable
-fun LibraryTabScroller(viewModel: LibrariesViewModel, currentLink: String? = null, navController: NavController, cb: ((selectedTab: TabItem?) -> Unit)? = null) {
+fun LibraryTabScroller(viewModel: LibrariesViewModel, currentLink: String? = null, navController: NavHostController, cb: ((selectedTab: TabItem?) -> Unit)? = null) {
 
     val libraries by viewModel.libraries.collectAsState()
 

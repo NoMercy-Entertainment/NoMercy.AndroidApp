@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tv.nomercy.app.components.BackdropImageWithOverlay
@@ -46,9 +46,9 @@ import tv.nomercy.app.components.VideoMusicHeroSection
 import tv.nomercy.app.components.LoadingIndicator
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.NMCarouselProps
+import tv.nomercy.app.shared.models.NMCarouselWrapper
 import tv.nomercy.app.shared.models.NMMusicCardProps
-import tv.nomercy.app.shared.models.NMMusicHomeCardProps
+import tv.nomercy.app.shared.models.NMMusicCardWrapper
 import tv.nomercy.app.shared.stores.AuthStore
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalNavbarFocusBridge
@@ -62,13 +62,12 @@ import tv.nomercy.app.shared.ui.LocalRowIndex
 import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
 import tv.nomercy.app.shared.ui.RowFocusController
 import tv.nomercy.app.shared.utils.pickPaletteColor
-import tv.nomercy.app.views.base.home.mobile.hasContent
 import tv.nomercy.app.views.music.start.shared.MusicStartViewModel
 import tv.nomercy.app.views.music.start.shared.MusicStartViewModelFactory
 import java.util.UUID
 
 @Composable
-fun MusicStartScreen(navController: NavController) {
+fun MusicStartScreen(navController: NavHostController) {
     val context = LocalContext.current
     val authStore = remember { GlobalStores.getAuthStore(context) }
     val viewModel: MusicStartViewModel = viewModel(
@@ -83,11 +82,10 @@ fun MusicStartScreen(navController: NavController) {
     val isEmptyStable by viewModel.isEmptyStable.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
-    val filteredData = remember(musicStartData) { musicStartData.filter(::hasContent) }
 
-    val firstItem = remember(filteredData) {
-        ((filteredData.firstOrNull()?.props as? NMCarouselProps)
-            ?.items?.firstOrNull()?.props as? NMMusicHomeCardProps)
+    val firstItem = remember(musicStartData) {
+        ((musicStartData.firstOrNull()?.props as? NMCarouselWrapper)
+            ?.items?.firstOrNull()?.props as? NMMusicCardWrapper)
         ?.data
     }
 
@@ -97,7 +95,7 @@ fun MusicStartScreen(navController: NavController) {
     val activeCardState = remember { mutableStateOf<NMMusicCardProps?>(null) }
     val debouncedSelectedCard = remember { mutableStateOf(firstItem) }
 
-    LaunchedEffect(filteredData) { activeCardState.value = null }
+    LaunchedEffect(musicStartData) { activeCardState.value = null }
 
     LaunchedEffect(firstItem) {
         if (activeCardState.value == null) {
@@ -159,12 +157,11 @@ fun MusicStartScreen(navController: NavController) {
                         modifier = Modifier.fillMaxSize(),
                         text = "No content available in this library."
                     )
-                    filteredData.isNotEmpty() -> ContentList(
-                        filteredData = filteredData,
+                    musicStartData.isNotEmpty() -> ContentList(
+                        componentList = musicStartData,
                         navController = navController,
                         listState = listState,
                         activeCardState = activeCardState,
-                        firstItem = firstItem,
                         authStore = authStore
                     )
                 }
@@ -175,29 +172,28 @@ fun MusicStartScreen(navController: NavController) {
 
 @Composable
 fun ContentList(
-    filteredData: List<Component>,
-    navController: NavController,
+    componentList: List<Component>,
+    navController: NavHostController,
     listState: LazyListState,
     activeCardState: MutableState<NMMusicCardProps?>,
-    firstItem: NMMusicCardProps?,
     authStore: AuthStore
 ) {
     val rowControllers = remember { mutableMapOf<Int, RowFocusController>() }
     val topAlignOffsetPx = with(LocalDensity.current) { 0.dp.roundToPx() }
-    val router = remember(filteredData, rowControllers.size) {
-        ColumnFocusRouter(listState, rowControllers, filteredData, topAlignOffsetPx)
+    val router = remember(componentList, rowControllers.size) {
+        ColumnFocusRouter(listState, rowControllers, componentList, topAlignOffsetPx)
     }
 
     val navbarBridge = LocalNavbarFocusBridge.current
     val initialFocusRequested = remember { mutableStateOf(false) }
 
-    LaunchedEffect(filteredData) {
+    LaunchedEffect(componentList) {
         initialFocusRequested.value = false
     }
 
-    LaunchedEffect(filteredData, rowControllers.size) {
+    LaunchedEffect(componentList, rowControllers.size) {
         navbarBridge.focusFirstInContent = suspend { router.focusFirstInContent() }
-        if (!initialFocusRequested.value && filteredData.isNotEmpty()) {
+        if (!initialFocusRequested.value && componentList.isNotEmpty()) {
             router.requestInitialFocus()
             initialFocusRequested.value = true
         }
@@ -215,7 +211,7 @@ fun ContentList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         flingBehavior = snapFling,
     ) {
-        itemsIndexed(filteredData, key = { index, item -> item.id }) { rowIndex, component ->
+        itemsIndexed(componentList, key = { index, item -> item.id }) { rowIndex, component ->
             CompositionLocalProvider(
                 LocalOnActiveCardChange2 provides { card -> activeCardState.value = card },
                 LocalOnActiveRowInColumn provides suspend { router.alignRow(rowIndex) },

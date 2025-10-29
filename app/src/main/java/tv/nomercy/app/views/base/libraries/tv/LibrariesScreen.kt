@@ -37,6 +37,7 @@ import tv.nomercy.app.components.EmptyGrid
 import tv.nomercy.app.components.ErrorMessage
 import tv.nomercy.app.components.LoadingIndicator
 import tv.nomercy.app.components.nMComponents.NMComponent
+import tv.nomercy.app.components.nMComponents.hasContent
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMHomeCardWrapper
 import tv.nomercy.app.shared.stores.GlobalStores
@@ -52,7 +53,6 @@ import tv.nomercy.app.shared.ui.RowFocusController
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.pickPaletteColor
-import tv.nomercy.app.views.base.home.mobile.hasContent
 import tv.nomercy.app.views.base.libraries.shared.LibrariesViewModel
 import tv.nomercy.app.views.base.libraries.shared.LibrariesViewModelFactory
 import java.util.UUID
@@ -70,11 +70,10 @@ fun LibrariesScreen(navController: NavHostController) {
     val isEmptyStable by viewModel.isEmptyStable.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
-    val filteredData = remember(librariesData) { librariesData.filter(::hasContent) }
 
     val isTv = isTv()
-    val posterPalette = remember(filteredData) {
-        (filteredData.firstOrNull()?.props as? NMHomeCardWrapper)?.let {
+    val posterPalette = remember(librariesData) {
+        (librariesData.firstOrNull()?.props as? NMHomeCardWrapper)?.let {
             if (isTv) it.data?.colorPalette?.backdrop else it.data?.colorPalette?.poster
         }
     }
@@ -92,8 +91,8 @@ fun LibrariesScreen(navController: NavHostController) {
 
 
     val rowControllers = remember { mutableMapOf<Int, RowFocusController>() }
-    val router = remember(filteredData, rowControllers.size) {
-        ColumnFocusRouter(listState, rowControllers, filteredData)
+    val router = remember(librariesData, rowControllers.size) {
+        ColumnFocusRouter(listState, rowControllers, librariesData)
     }
 
     DisposableEffect(focusColor) {
@@ -112,7 +111,7 @@ fun LibrariesScreen(navController: NavHostController) {
             return@Column
         }
 
-        FocusRoutingSetup(filteredData, listState)
+        FocusRoutingSetup(librariesData, listState)
 
         Box(modifier = Modifier.fillMaxSize().padding(top = 72.dp)) {
             LazyColumn(
@@ -126,8 +125,8 @@ fun LibrariesScreen(navController: NavHostController) {
                 ),
             ) {
                 when {
-                    filteredData.isNotEmpty() -> {
-                        itemsIndexed(filteredData, key = { index, item -> item.id }) { rowIndex, component ->
+                    librariesData.isNotEmpty() -> {
+                        itemsIndexed(librariesData, key = { index, item -> item.id }) { rowIndex, component ->
                             CompositionLocalProvider(
                                 LocalOnActiveRowInColumn provides suspend { router.alignRow(rowIndex) },
                                 LocalRowIndex provides rowIndex,

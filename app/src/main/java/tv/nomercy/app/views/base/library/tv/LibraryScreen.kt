@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.collectLatest
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.components.EmptyGrid
@@ -31,12 +31,12 @@ import tv.nomercy.app.components.Indexer
 import tv.nomercy.app.components.LibraryTabScroller
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.NMCardWrapper
-import tv.nomercy.app.shared.models.NMGridProps
+import tv.nomercy.app.shared.models.NMGridWrapper
 import tv.nomercy.app.views.base.library.shared.LibrariesViewModel
 import tv.nomercy.app.views.base.library.shared.LibrariesViewModelFactory
 
 @Composable
-fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = null) {
+fun LibraryScreen(navController: NavHostController, libraryId: Any?, letter: Any? = null) {
     val viewModel: LibrariesViewModel = viewModel(
         factory = LibrariesViewModelFactory(
             libraryStore = GlobalStores.getLibraryStore(LocalContext.current),
@@ -66,7 +66,7 @@ fun LibraryScreen(navController: NavController, libraryId: Any?, letter: Any? = 
         snapshotFlow { lazyGridState.layoutInfo.visibleItemsInfo.firstOrNull()?.index }
             .collectLatest { visibleIndex ->
                 val gridComponent = currentLibrary.firstOrNull { it.component == "NMGrid" }
-                val gridProps = gridComponent?.props as? NMGridProps
+                val gridProps = gridComponent?.props as? NMGridWrapper
 
                 // look forward from the visible index to find the first NMCard with a usable title
                 var chosenChar: Char? = null

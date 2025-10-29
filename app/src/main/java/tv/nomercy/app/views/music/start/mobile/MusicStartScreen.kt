@@ -25,29 +25,27 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.components.EmptyGrid
 import tv.nomercy.app.components.Indexer
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.NMCarouselProps
-import tv.nomercy.app.shared.models.NMGridProps
+import tv.nomercy.app.shared.models.NMCarouselWrapper
+import tv.nomercy.app.shared.models.NMGridWrapper
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
-import tv.nomercy.app.shared.utils.pickPaletteColor
 import tv.nomercy.app.views.music.start.shared.MusicStartViewModel
 import tv.nomercy.app.views.music.start.shared.MusicStartViewModelFactory
 import java.util.UUID
 
 @Composable
 fun MusicStartScreen(
-    navController: NavController,
+    navController: NavHostController,
 ) {
     val context = LocalContext.current
     val factory = remember {
@@ -162,8 +160,8 @@ fun MusicStartScreen(
 
 private fun hasContent(component: Component): Boolean {
     return when (val props = component.props ) {
-        is NMCarouselProps -> props.items.isNotEmpty()
-        is NMGridProps -> props.items.isNotEmpty()
+        is NMCarouselWrapper -> props.items.isNotEmpty()
+        is NMGridWrapper -> props.items.isNotEmpty()
         else -> true
     }
 }

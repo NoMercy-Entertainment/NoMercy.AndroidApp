@@ -59,7 +59,9 @@ fun CardsScreen(
         viewModel.selectCard(type, char)
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
         errorMessage?.let {
             Card(
                 modifier = Modifier

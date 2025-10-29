@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import tv.nomercy.app.R
 import tv.nomercy.app.components.GradientBlurOverlay
@@ -80,7 +80,7 @@ import tv.nomercy.app.shared.utils.pickPaletteColor
 fun NMHomeCard(
     component: Component,
     modifier: Modifier,
-    navController: NavController,
+    navController: NavHostController,
     aspectRatio: AspectRatio? = null,
 ) {
     val wrapper = component.props as? NMHomeCardWrapper ?: return
@@ -164,7 +164,7 @@ fun NMHomeCard(
 
 @Composable
 fun MobileButtons(
-    navController: NavController,
+    navController: NavHostController,
     data: NMHomeCardProps,
     focusColor: Color,
 ) {
@@ -267,7 +267,7 @@ fun MobileButtons(
 
 @Composable
 fun TvButtons(
-    navController: NavController,
+    navController: NavHostController,
     data: NMHomeCardProps,
     bringIntoViewRequester: BringIntoViewRequester,
 ) {
@@ -309,7 +309,7 @@ fun TvButtons(
 
 @Composable
 fun NMHomeCardLeftColumn(
-    navController: NavController,
+    navController: NavHostController,
     data: NMHomeCardProps,
     modifier: Modifier = Modifier,
     bringIntoViewRequester: BringIntoViewRequester,

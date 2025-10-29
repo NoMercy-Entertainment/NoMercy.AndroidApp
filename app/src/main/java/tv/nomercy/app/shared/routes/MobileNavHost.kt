@@ -35,7 +35,7 @@ fun MobileNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    NavHost(navController = navController, startDestination = "/home", modifier = modifier) {
+    NavHost(navController = navController, startDestination = "/search", modifier = modifier) {
 
         composable("/home") { MobileHomeScreen(navController) }
         composable("/search") { SearchScreen(navController) }

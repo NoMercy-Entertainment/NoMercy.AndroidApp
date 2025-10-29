@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCardWrapper
@@ -41,7 +41,7 @@ import tv.nomercy.app.shared.utils.aspectFromType
 fun NMGenreCard(
     component: Component,
     modifier: Modifier,
-    navController: NavController,
+    navController: NavHostController,
     index: Int = 0
 ) {
     val wrapper = component.props as? NMCardWrapper ?: return

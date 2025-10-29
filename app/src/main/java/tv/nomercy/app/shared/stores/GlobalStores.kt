@@ -28,6 +28,7 @@ object GlobalStores {
     @Volatile private var appSettingsStoreInstance: AppSettingsStore? = null
     @Volatile private var cardStoreInstance: CardsStore? = null
     @Volatile private var listStoreInstance: ListStore? = null
+    @Volatile private var searchStoreInstance: SearchStore? = null
     @SuppressLint("StaticFieldLeak")
     @Volatile private var musicPlayerStoreInstance: MusicPlayerStore? = null
 
@@ -106,7 +107,20 @@ object GlobalStores {
         }
     }
 
+    fun getSearchStore(context: Context): SearchStore {
+        val authStore = getAuthStore(context)
+        val serverConfigStore = getServerConfigStore(context)
 
+        return searchStoreInstance ?: synchronized(this) {
+            searchStoreInstance ?: SearchStore(
+                context.applicationContext,
+                authStore,
+                serverConfigStore
+            ).also {
+                searchStoreInstance = it
+            }
+        }
+    }
 
     fun getHomeStore(context: Context): HomeStore {
         val authStore = getAuthStore(context)

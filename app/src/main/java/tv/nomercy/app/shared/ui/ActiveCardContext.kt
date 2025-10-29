@@ -3,7 +3,10 @@ package tv.nomercy.app.shared.ui
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.focus.FocusRequester
 import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.models.NMMusicCardProps
+import tv.nomercy.app.shared.models.NMMusicHomeCardProps
+import tv.nomercy.app.shared.models.NMMusicHomeCardWrapper
 
 /**
  * Notifies listeners when a generic card becomes active on TV (focused/hovered).

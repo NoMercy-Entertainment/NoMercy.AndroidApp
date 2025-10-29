@@ -48,14 +48,16 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import tv.nomercy.app.R
 import tv.nomercy.app.components.CoverImage
 import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMMusicCardProps
+import tv.nomercy.app.shared.models.NMMusicCardWrapper
 import tv.nomercy.app.shared.models.NMMusicHomeCardProps
+import tv.nomercy.app.shared.models.NMMusicHomeCardWrapper
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
@@ -72,13 +74,11 @@ import tv.nomercy.app.shared.utils.pickPaletteColor
 fun NMMusicCard(
     component: Component,
     modifier: Modifier = Modifier,
-    navController: NavController,
+    navController: NavHostController,
 ) {
-    val data = when (val p = component.props) {
-        is NMMusicCardProps -> p
-        is NMMusicHomeCardProps -> p.data ?: return
-        else -> return
-    }
+
+    val wrapper = component.props as? NMMusicCardWrapper ?: return
+    val data = wrapper.data
 
     val context = LocalContext.current
     val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
@@ -238,6 +238,28 @@ fun MusicCardImage(data: NMMusicCardProps, modifier: Modifier) {
 }
 
 @Composable
+fun MusicHomeCardImage(data: NMMusicHomeCardProps, modifier: Modifier) {
+
+    val newData = NMMusicCardProps(
+        id = data.id,
+        type = data.type,
+        name = data.name,
+        link = data.link,
+        cover = data.cover,
+        colorPalette = data.colorPalette,
+//        tracks = data.tracks,
+//        year = data.year
+    )
+
+    when (data.type) {
+        "artists", "albums", "release_groups" -> AlbumBackdrop(newData, modifier)
+//        "artists" -> ArtistBackdrop(newData, currentServer, modifier)
+        "playlists" -> PlaylistBackdrop(newData, modifier)
+        else -> DefaultBackdrop(newData, modifier)
+    }
+}
+
+@Composable
 fun DefaultBackdrop(data: NMMusicCardProps, modifier: Modifier) {
 
 }
@@ -248,7 +270,6 @@ fun AlbumBackdrop(data: NMMusicCardProps, modifier: Modifier) {
         modifier = modifier
             .fillMaxSize()
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp))
     ) {
         CoverImage(
             data = data,
@@ -264,7 +285,6 @@ fun ArtistBackdrop(data: NMMusicCardProps, modifier: Modifier) {
         modifier = modifier
             .fillMaxSize()
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp))
             .padding(8.dp)
     ) {
         CoverImage(
@@ -284,14 +304,12 @@ fun PlaylistBackdrop(data: NMMusicCardProps, modifier: Modifier) {
                 .align(Alignment.TopCenter)
                 .size(180.dp)
                 .paletteBackground(data.colorPalette?.cover)
-                .clip(RoundedCornerShape(12.dp))
         )
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .size(200.dp)
                 .background(Color(0xFFAA88FF).copy(alpha = 0.8f))
-                .clip(RoundedCornerShape(16.dp))
         )
         CoverImage(
             data = data,

@@ -47,10 +47,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.focus.focusRequester
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.models.Component
+import tv.nomercy.app.shared.models.NMMusicCardWrapper
 import tv.nomercy.app.shared.models.NMMusicHomeCardProps
+import tv.nomercy.app.shared.models.NMMusicHomeCardWrapper
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
@@ -67,11 +69,11 @@ import android.view.KeyEvent as AndroidKeyEvent
 fun NMMusicHomeCard(
     component: Component,
     modifier: Modifier,
-    navController: NavController,
+    navController: NavHostController,
     aspectRatio: AspectRatio? = null,
 ) {
-    val wrapper = component.props as? NMMusicHomeCardProps ?: return
-    val data = wrapper.data ?: return
+    val wrapper = component.props as? NMMusicHomeCardWrapper ?: return
+    val data = wrapper.data
 
     val context = LocalContext.current
 
@@ -134,14 +136,14 @@ fun NMMusicHomeCard(
     ).value
 
     // Notify screen and parent row when this item becomes active
-    val onActiveCardChange2 = LocalOnActiveCardChange2.current
-    val onActiveInRow = LocalOnActiveInRow.current
-    LaunchedEffect(isActive) {
-        if (isActive) {
-            onActiveCardChange2(wrapper.data)
-            onActiveInRow()
-        }
-    }
+//    val onActiveCardChange2 = LocalOnActiveCardChange2.current
+//    val onActiveInRow = LocalOnActiveInRow.current
+//    LaunchedEffect(isActive) {
+//        if (isActive) {
+//            onActiveCardChange2(data)
+//            onActiveInRow()
+//        }
+//    }
 
     val itemFocusRequester = LocalCurrentItemFocusRequester.current
     val focusLeftInRow = LocalFocusLeftInRow.current
@@ -176,7 +178,7 @@ fun NMMusicHomeCard(
                     }
                 } else false
             }
-            .clickable { data.link?.let { navController.navigate(it) } }
+            .clickable { data.link.let { navController.navigate(it) } }
             .padding(12.dp)
     ) {
         Row(
@@ -193,7 +195,7 @@ fun NMMusicHomeCard(
                     .background(Color(0xFFDfeffe).copy(alpha = 0.14f)),
                 contentAlignment = Alignment.Center
             ) {
-                MusicCardImage(
+                MusicHomeCardImage(
                     data = data,
                     modifier = Modifier
                         .fillMaxWidth()

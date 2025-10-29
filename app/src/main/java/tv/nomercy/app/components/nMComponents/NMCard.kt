@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import tv.nomercy.app.components.TMDBImage
@@ -54,7 +53,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import android.view.KeyEvent
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
@@ -63,13 +61,14 @@ import tv.nomercy.app.shared.ui.LocalOnActiveInRow
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.navigation.NavHostController
 import tv.nomercy.app.shared.stores.GlobalStores
 
 @Composable
 fun NMCard(
     component: Component,
     modifier: Modifier,
-    navController: NavController,
+    navController: NavHostController,
     aspectRatio: AspectRatio? = null,
 ) {
     val wrapper = component.props as? NMCardWrapper ?: return

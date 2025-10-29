@@ -9,9 +9,7 @@ import kotlinx.coroutines.withContext
 import tv.nomercy.app.shared.api.ServerApiClient
 import tv.nomercy.app.shared.api.services.AuthService
 import tv.nomercy.app.shared.api.services.ServerApiService
-import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.InfoResponse
-import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.stores.AuthStore
 
 class InfoRepository(

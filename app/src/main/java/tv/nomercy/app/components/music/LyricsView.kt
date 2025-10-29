@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -46,6 +47,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
+import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIcon
 import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.shared.models.PlaylistItem
@@ -76,10 +78,10 @@ fun rememberLyricStyle(): LyricStyle {
         )
     } else {
         LyricStyle(
-            fontSize = 18.sp,
-            lineHeight = 20.sp,
-            iconSize = 18.dp,
-            minHeight = 40.dp
+            fontSize = 20.sp,
+            lineHeight = 22.sp,
+            iconSize = 20.dp,
+            minHeight = 46.dp
         )
     }
 }
@@ -195,10 +197,20 @@ fun LyricsView(
             modifier = modifier
                 .fillMaxSize()
                 .onGloballyPositioned { viewportHeight = it.size.height },
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.TopStart
         ) {
             if (loadedLyrics.isNullOrEmpty()) {
-                Text("No lyrics available", color = Color.Black, fontSize = 18.sp)
+                Text(
+                    text = stringResource(R.string.no_lyrics_available),
+                    color = Color.White,
+                    fontSize = style.fontSize,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = style.lineHeight,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 1,
+                    maxLines = 2
+                )
             } else {
                 LazyColumn(
                     state = listState,

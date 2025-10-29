@@ -55,6 +55,9 @@ class AppConfigStore(
     private var _isInitialized = false
     val isInitialized: Boolean get() = _isInitialized
 
+    val tmdbApiKey : String
+        get() = "ed3bf860adef0537783e4abee86d65af"
+
     fun getTheme(): Flow<ThemeName> = themeDataStore.getTheme
 
     suspend fun setTheme(themeName: ThemeName) {

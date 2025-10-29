@@ -18,12 +18,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
@@ -103,7 +101,7 @@ fun PosterBackground(
                         state = rememberScrollState(((2850 / 2) - floor(cardWidth * 1.3)).toInt()),
                         enabled = false
                     )
-                    .padding(top = 240.dp),
+                    .padding(top = 0.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 val total = images.size
@@ -173,11 +171,9 @@ private fun calculateTranslation(index: Int, total: Int): Float {
     return -((distance.toFloat() / maxDistance).pow(2)) * factor * maxDistance
 }
 
-@Composable
-fun NoiseOverlay(modifier: Modifier = Modifier) {
-    val shader = remember {
-        RuntimeShader(
-            """
+private val staticNoiseShader by lazy {
+    RuntimeShader(
+        """
             uniform float2 resolution;
             half4 main(float2 fragCoord) {
                 float2 uv = fragCoord / resolution;
@@ -212,18 +208,20 @@ fun NoiseOverlay(modifier: Modifier = Modifier) {
                 return half4(color, glow * 0.8);
             }
             """.trimIndent()
-        )
+    ).apply {
+        setFloatUniform("resolution", 2850f, 2850f)
     }
+}
 
+private val frozenNoiseBrush by lazy {
+    ShaderBrush(staticNoiseShader)
+}
+
+@Composable
+fun NoiseOverlay(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .drawWithCache {
-                val shaderBrush = ShaderBrush(shader)
-                shader.setFloatUniform("resolution", size.width, size.height)
-                onDrawBehind {
-                    drawRect(shaderBrush)
-                }
-            }
+            .background(frozenNoiseBrush)
     )
 }

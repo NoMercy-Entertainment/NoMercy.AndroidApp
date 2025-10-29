@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.shared.models.Season
 import tv.nomercy.app.shared.utils.AspectRatio
@@ -37,7 +37,7 @@ import tv.nomercy.app.shared.utils.isTv
 @Composable
 fun SeasonCarousel(
     seasons: List<Season>,
-    navController: NavController,
+    navController: NavHostController,
     modifier: Modifier = Modifier,
     visibleCards: Int = 3,
 ) {

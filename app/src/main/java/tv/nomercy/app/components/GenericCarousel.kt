@@ -1,11 +1,9 @@
 package tv.nomercy.app.components
 
-import android.view.KeyEvent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,7 +36,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +43,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -57,9 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import kotlinx.coroutines.launch
-import tv.nomercy.app.components.TMDBImage
+import androidx.navigation.NavHostController
 import tv.nomercy.app.components.nMComponents.CompletionOverlay
 import tv.nomercy.app.components.nMComponents.OverlayProps
 import tv.nomercy.app.shared.models.ColorPalettes
@@ -70,10 +64,6 @@ import tv.nomercy.app.shared.models.Person
 import tv.nomercy.app.shared.models.Related
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
-import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
-import tv.nomercy.app.shared.ui.LocalFocusRightInRow
-import tv.nomercy.app.shared.ui.LocalOnActiveCardChange
-import tv.nomercy.app.shared.ui.LocalOnActiveInRow
 import tv.nomercy.app.shared.utils.AspectRatio
 import tv.nomercy.app.shared.utils.aspectFromType
 import tv.nomercy.app.shared.utils.isTv
@@ -156,7 +146,7 @@ fun Episode.toCarouselItem() = CarouselData(
 fun GenericCarousel(
     title: String,
     items: List<CarouselItem>,
-    navController: NavController,
+    navController: NavHostController,
     modifier: Modifier = Modifier,
     moreLink: String? = null,
     moreLinkText: String? = null,

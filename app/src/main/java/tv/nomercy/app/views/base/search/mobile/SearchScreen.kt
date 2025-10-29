@@ -2,22 +2,24 @@ package tv.nomercy.app.views.base.search.mobile
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,32 +31,34 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,21 +66,48 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
 import tv.nomercy.app.R
+import tv.nomercy.app.components.MoooomIcon
+import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.components.PosterBackground
+import tv.nomercy.app.components.brand.AppLogoSquare
+import tv.nomercy.app.components.nMComponents.NMComponent
+import tv.nomercy.app.components.nMComponents.hasContent
+import tv.nomercy.app.shared.models.SearchResultElement
+import tv.nomercy.app.shared.stores.GlobalStores
+import tv.nomercy.app.views.base.search.shared.SearchBarPosition
+import tv.nomercy.app.views.base.search.shared.SearchType
+import tv.nomercy.app.views.base.search.shared.SearchViewModel
+import tv.nomercy.app.views.base.search.shared.SearchViewModelFactory
 import java.time.LocalTime
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 fun SearchScreen(navController: NavHostController) {
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf(SearchType.Video) }
+
+    val context = LocalContext.current
+    val viewModel: SearchViewModel = viewModel(
+        factory = SearchViewModelFactory(
+            searchStore = GlobalStores.getSearchStore(context),
+        )
+    )
+
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.error.collectAsState()
+    val musicResults by viewModel.musicResults.collectAsStateWithLifecycle()
+    val videoResults by viewModel.videoResults.collectAsStateWithLifecycle()
+    val searchType by viewModel.searchType.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     val imeVisible = WindowInsets.isImeVisible
-    val hasResults = searchQuery.isNotBlank()
+    val hasResults = musicResults.isNotEmpty() || videoResults.isNotEmpty()
 
     val positionState = when {
         imeVisible -> SearchBarPosition.Open
@@ -84,73 +115,167 @@ fun SearchScreen(navController: NavHostController) {
         else -> SearchBarPosition.Closed
     }
 
-    val screenHeightDp = LocalWindowInfo.current.containerSize.height.dp
-    val searchBarHeight = 60.dp
-
-    val searchBarOffset = when (positionState) {
-        SearchBarPosition.Closed -> screenHeightDp / 8.1f + 1.dp
-        SearchBarPosition.Open -> screenHeightDp / 6.1f + 1.dp
-        SearchBarPosition.Contents -> screenHeightDp / 3.6f - 5.dp
+    val contentAlignment = when (positionState) {
+        SearchBarPosition.Closed -> Alignment.Center
+        SearchBarPosition.Open -> Alignment.BottomCenter
+        SearchBarPosition.Contents -> Alignment.BottomCenter
     }
 
     val padding = when (positionState) {
-        SearchBarPosition.Closed -> 16.dp
-        SearchBarPosition.Open -> 0.dp
-        SearchBarPosition.Contents -> 0.dp
+        SearchBarPosition.Closed -> PaddingValues(top = 300.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+        SearchBarPosition.Open -> PaddingValues(0.dp)
+        SearchBarPosition.Contents -> PaddingValues(0.dp)
     }
 
-    val clampedOffset = searchBarOffset.coerceAtMost(screenHeightDp - searchBarHeight - 16.dp)
-    val animatedOffset by animateDpAsState(targetValue = clampedOffset, label = "SearchBarOffset")
+    val paddingBottom = when (positionState) {
+        SearchBarPosition.Closed -> 0.dp
+        SearchBarPosition.Open -> 58.dp
+        SearchBarPosition.Contents -> 58.dp
+    }
 
-    PosterBackground(
-        visible = searchQuery.isBlank()
-    )
+    val listState = rememberLazyListState()
 
-    Box(
-        modifier = Modifier
-            .imePadding()
-            .fillMaxSize()
-    ) {
+    Scaffold { contentPadding ->
 
-        GreetingHeader(
-            searchQuery = searchQuery,
-            selectedFilter = selectedFilter
+        PosterBackground(
+            visible = searchQuery.isBlank()
         )
 
         Box(
             modifier = Modifier
+                .consumeWindowInsets(
+                    paddingValues = PaddingValues(
+                        top = contentPadding.calculateTopPadding(),
+                        start = contentPadding.calculateStartPadding(LayoutDirection.Ltr),
+                        end = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
+                        bottom = contentPadding.calculateBottomPadding() + 52.dp
+                    )
+                )
+                .imePadding()
                 .fillMaxSize()
-                .padding(padding)
-                .offset(y = animatedOffset)
         ) {
-            SearchBarWithToggle(
+
+            GreetingHeader(
                 searchQuery = searchQuery,
-                positionState = positionState,
-                onQueryChange = { searchQuery = it },
-                selectedType = selectedFilter,
-                onTypeChange = { type ->
-                    selectedFilter = when (type) {
-                        SearchType.Music -> SearchType.Music
-                        SearchType.Video -> SearchType.Video
-                    }
-                },
+                selectedFilter = searchType
             )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .zIndex(1f),
+                contentAlignment = contentAlignment
+            ) {
+                SearchBarWithToggle(
+                    searchQuery = searchQuery,
+                    positionState = positionState,
+                    onQueryChange = { viewModel.onSearchQueryChanged(it) },
+                    selectedType = searchType,
+                    onTypeChange = { type -> viewModel.onSearchTypeChanged(type) },
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(0f)
+                    .padding(bottom = paddingBottom)
+                    .padding(horizontal = 16.dp)
+            ) {
+
+                errorMessage?.let {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(onClick = {
+                                //                        viewModel.clearError()
+                                //                        viewModel.refresh()
+                            }) {
+                                Text(stringResource(R.string.try_again))
+                            }
+                        }
+                    }
+                }
+
+                when {
+                    searchType == SearchType.Music && musicResults.isNotEmpty() -> {
+                        val filteredData =
+                            musicResults.filter { component -> hasContent(component) }
+
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(filteredData, key = { it.id }) { component ->
+                                key(component.id) {
+                                    NMComponent(
+                                        components = listOf(component),
+                                        navController = navController,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    searchType == SearchType.Video && videoResults.isNotEmpty() -> {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                top = 20.dp,
+                                bottom = 20.dp
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            items(videoResults, key = { it.id }) { data ->
+                                key(data.id) {
+                                    SearchResultCard(
+                                        item = data,
+                                        onClick = { route -> navController.navigate(route) },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    isLoading -> {
+                        // Only show loading if we don't have data
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+            }
         }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-//            .padding(bottom = 96.dp)
-            .padding(16.dp)
-    ) {
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-enum class SearchBarPosition { Closed, Open, Contents }
-enum class SearchType { Video, Music }
 
 @Composable
 fun SearchBarWithToggle(
@@ -299,7 +424,7 @@ fun GreetingHeader(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 64.dp),
+                .padding(top = 92.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -333,398 +458,135 @@ fun greetingString(): String {
     return stringResource(id = resId)
 }
 
-
 @Composable
-private fun PopularContent() {
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+fun SearchResultCard(
+    item: SearchResultElement,
+    onClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val imageBaseUrl = "https://image.tmdb.org/t/p/original"
+    val title = item.name ?: item.title ?: ""
+    val year = item.releaseDate ?: item.firstAirDate
+    val parsedYear = year?.take(4)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick("/${item.mediaType}/${item.id}") }
+            .background(Color.Black)
     ) {
-        item {
-            SearchSection(title = "Trending Now") {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(6) { index ->
-                        TrendingCard(
-                            title = "Trending ${index + 1}",
-                            type = if (index % 2 == 0) "Movie" else "TV Show",
-                            trending = "#${index + 1}"
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            SearchSection(title = "Popular Genres") {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.height(200.dp)
-                ) {
-                    items(8) { index ->
-                        GenreCard(
-                            name = when (index) {
-                                0 -> "Action"
-                                1 -> "Comedy"
-                                2 -> "Drama"
-                                3 -> "Sci-Fi"
-                                4 -> "Horror"
-                                5 -> "Romance"
-                                6 -> "Thriller"
-                                else -> "Documentary"
-                            },
-                            count = "${(index + 1) * 15} items"
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            SearchSection(title = "Recent Searches") {
-                LazyColumn(
-                    modifier = Modifier.height(200.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(5) { index ->
-                        RecentSearchItem(
-                            query = when (index) {
-                                0 -> "Breaking Bad"
-                                1 -> "Marvel"
-                                2 -> "The Beatles"
-                                3 -> "Christopher Nolan"
-                                else -> "Search ${index + 1}"
-                            },
-                            type = when (index) {
-                                0 -> "TV Show"
-                                1 -> "Movies"
-                                2 -> "Music"
-                                3 -> "Director"
-                                else -> "Mixed"
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SearchResults(query: String, filter: String) {
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Text(
-                text = "Results for \"$query\"",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+        // Backdrop image
+        item.backdropPath?.let { path ->
+            AsyncImage(
+                model = "$imageBaseUrl$path",
+                contentDescription = title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(RoundedCornerShape(12.dp))
             )
         }
 
-        when (filter) {
-            "All" -> {
-                item {
-                    SearchSection(title = "Movies") {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(4) { index ->
-                                SearchResultCard(
-                                    title = "$query Movie ${index + 1}",
-                                    subtitle = "202${index + 0}",
-                                    type = "Movie"
-                                )
-                            }
-                        }
-                    }
-                }
-
-                item {
-                    SearchSection(title = "TV Shows") {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(3) { index ->
-                                SearchResultCard(
-                                    title = "$query Series ${index + 1}",
-                                    subtitle = "${index + 1} Seasons",
-                                    type = "TV Show"
-                                )
-                            }
-                        }
-                    }
-                }
-
-                item {
-                    SearchSection(title = "Music") {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(2) { index ->
-                                SearchResultCard(
-                                    title = "$query Album ${index + 1}",
-                                    subtitle = "Artist ${index + 1}",
-                                    type = "Music"
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            else -> {
-                item {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(120.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.height(600.dp)
-                    ) {
-                        items(12) { index ->
-                            SearchResultCard(
-                                title = "$query $filter ${index + 1}",
-                                subtitle = if (filter == "Movies") "202${index % 5}"
-                                         else if (filter == "TV Shows") "${index + 1} Seasons"
-                                         else if (filter == "Music") "Artist ${index + 1}"
-                                         else "Actor/Director",
-                                type = filter
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SearchSection(
-    title: String,
-    content: @Composable () -> Unit
-) {
-    Column {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
+        // Gradient overlay
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.8f),
+                            Color.Black.copy(alpha = 0.6f),
+                            Color.Transparent
+                        ),
+                        startX = 0f,
+                        endX = 1000f
+                    )
+                )
         )
-        content()
-    }
-}
 
-@Composable
-private fun TrendingCard(
-    title: String,
-    type: String,
-    trending: String
-) {
-    Card(
-        modifier = Modifier
-            .width(140.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = LocalIndication.current
-            ) { /* Handle click */ },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Poster/profile image
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .fillMaxSize()
+                    .weight(1f)
+                    .aspectRatio(2f / 3f)
+                    .background(Color.Black)
+                    .clip(RoundedCornerShape(4.dp))
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.collection),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.Center),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(8.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(
-                        text = trending,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimary
+                val posterUrl = item.posterPath ?: item.profilePath
+                if (posterUrl != null) {
+                    AsyncImage(
+                        model = "$imageBaseUrl$posterUrl",
+                        contentDescription = title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                else {
+                    AppLogoSquare(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .align(Alignment.Center)
                     )
                 }
             }
 
+            // Text column
             Column(
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = type,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun GenreCard(
-    name: String,
-    count: String
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = LocalIndication.current
-            ) { /* Handle click */ },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.align(Alignment.CenterStart)
-            ) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = count,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecentSearchItem(
-    query: String,
-    type: String
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = LocalIndication.current
-            ) { /* Handle click */ }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.clock),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = query,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = type,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SearchResultCard(
-    title: String,
-    subtitle: String,
-    type: String
-) {
-    Card(
-        modifier = Modifier
-            .width(120.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = LocalIndication.current
-            ) { /* Handle click */ },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column {
-            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(if (type == "Music") 120.dp else 180.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Icon(
-                    painter = painterResource(
-                        when (type) {
-                            "Music" -> R.drawable.lyrics
-                            "People" -> R.drawable.user
-                            else -> R.drawable.collection
-                        }
-                    ),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.Center),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Column(
-                modifier = Modifier.padding(8.dp)
+                    .fillMaxSize()
+                    .weight(3f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 2,
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White),
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val icon = when (item.mediaType) {
+                        "tv" -> MoooomIconName.Tv
+                        "movie" -> MoooomIconName.FilmMedia
+                        "person" -> MoooomIconName.Person
+                        else -> MoooomIconName.Collection1
+                    }
+
+                    MoooomIcon(
+                        icon = icon,
+                        contentDescription = "Devices",
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp)
+                    )
+
+                    parsedYear?.let {
+                        Text(
+                            text = "($it)",
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
+                        )
+                    }
+                }
+
+                item.overview?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White),
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }
 }
-

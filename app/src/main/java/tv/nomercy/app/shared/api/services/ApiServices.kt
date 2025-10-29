@@ -132,6 +132,11 @@ interface ServerApiService {
     ): Response<ApiResponse<List<Component>>>
 
 
+    @GET("music/search")
+    suspend fun searchMusic(
+        @Query("query") query: String
+    ): Response<ResponseBody>
+
 }
 
 /**

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tv.nomercy.app.shared.models.NMCardProps
+import tv.nomercy.app.shared.models.NMCardWrapper
 import tv.nomercy.app.shared.models.NMMusicCardProps
 
 @Composable

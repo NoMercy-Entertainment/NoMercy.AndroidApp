@@ -7,18 +7,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.NMContainerProps
+import tv.nomercy.app.shared.models.NMContainerWrapper
 
 @Composable
 fun NMContainer(
     component: Component,
     modifier: Modifier,
-    navController: NavController,
+    navController: NavHostController,
 ) {
-    val props = component.props as? NMContainerProps ?: return
-    if (props.items.isEmpty()) return
+    val props = component.props as? NMContainerWrapper ?: return
 
     val spacing = 16.dp
 

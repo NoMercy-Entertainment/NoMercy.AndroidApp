@@ -47,7 +47,7 @@ import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.models.NMCardWrapper
-import tv.nomercy.app.shared.models.NMCarouselProps
+import tv.nomercy.app.shared.models.NMCarouselWrapper
 import tv.nomercy.app.shared.stores.AuthStore
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalNavbarFocusBridge
@@ -62,7 +62,6 @@ import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
 import tv.nomercy.app.shared.ui.RowFocusController
 import tv.nomercy.app.shared.utils.isTv
 import tv.nomercy.app.shared.utils.pickPaletteColor
-import tv.nomercy.app.views.base.home.mobile.hasContent
 import tv.nomercy.app.views.base.home.shared.HomeViewModel
 import tv.nomercy.app.views.base.home.shared.HomeViewModelFactory
 import java.util.UUID
@@ -83,10 +82,9 @@ fun TvHomeScreen(navController: NavHostController) {
     val isEmptyStable by viewModel.isEmptyStable.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
-    val filteredData = remember(homeData) { homeData.filter(::hasContent) }
 
-    val firstItem = remember(filteredData) {
-        ((filteredData.firstOrNull()?.props as? NMCarouselProps)
+    val firstItem = remember(homeData) {
+        ((homeData.firstOrNull()?.props as? NMCarouselWrapper)
             ?.items?.firstOrNull()?.props as? NMCardWrapper)
         ?.data
     }
@@ -164,12 +162,11 @@ fun TvHomeScreen(navController: NavHostController) {
                         modifier = Modifier.fillMaxSize(),
                         text = "No content available in this library."
                     )
-                    filteredData.isNotEmpty() -> ContentList(
-                        filteredData = filteredData,
+                    homeData.isNotEmpty() -> ContentList(
+                        componentList = homeData,
                         navController = navController,
                         listState = listState,
                         activeCardState = activeCardState,
-                        firstItem = firstItem,
                         authStore = authStore
                     )
                 }
@@ -180,28 +177,27 @@ fun TvHomeScreen(navController: NavHostController) {
 
 @Composable
 private fun ContentList(
-    filteredData: List<Component>,
+    componentList: List<Component>,
     navController: NavHostController,
     listState: LazyListState,
     activeCardState: MutableState<NMCardProps?>,
-    firstItem: NMCardProps?,
     authStore: AuthStore
 ) {
     val rowControllers = remember { mutableMapOf<Int, RowFocusController>() }
-    val router = remember(filteredData, rowControllers.size) {
-        ColumnFocusRouter(listState, rowControllers, filteredData)
+    val router = remember(componentList, rowControllers.size) {
+        ColumnFocusRouter(listState, rowControllers, componentList)
     }
 
     val navbarBridge = LocalNavbarFocusBridge.current
     val initialFocusRequested = remember { mutableStateOf(false) }
 
-    LaunchedEffect(filteredData) {
+    LaunchedEffect(componentList) {
         initialFocusRequested.value = false
     }
 
-    LaunchedEffect(filteredData, rowControllers.size) {
+    LaunchedEffect(componentList, rowControllers.size) {
         navbarBridge.focusFirstInContent = suspend { router.focusFirstInContent() }
-        if (!initialFocusRequested.value && filteredData.isNotEmpty()) {
+        if (!initialFocusRequested.value && componentList.isNotEmpty()) {
             router.requestInitialFocus()
             initialFocusRequested.value = true
         }
@@ -219,7 +215,7 @@ private fun ContentList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         flingBehavior = snapFling,
     ) {
-        itemsIndexed(filteredData, key = { index, item -> item.id }) { rowIndex, component ->
+        itemsIndexed(componentList, key = { index, item -> item.id }) { rowIndex, component ->
             CompositionLocalProvider(
                 LocalOnActiveCardChange provides { card -> activeCardState.value = card },
                 LocalOnActiveRowInColumn provides suspend { router.alignRow(rowIndex) },

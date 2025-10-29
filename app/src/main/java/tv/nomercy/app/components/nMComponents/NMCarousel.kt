@@ -40,14 +40,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tv.nomercy.app.shared.models.Component
 import tv.nomercy.app.shared.models.NMCardProps
 import tv.nomercy.app.shared.models.NMCardWrapper
-import tv.nomercy.app.shared.models.NMCarouselProps
+import tv.nomercy.app.shared.models.NMCarouselWrapper
 import tv.nomercy.app.shared.ui.LocalCurrentItemFocusRequester
 import tv.nomercy.app.shared.ui.LocalFocusLeftInRow
 import tv.nomercy.app.shared.ui.LocalFocusRightInRow
@@ -213,11 +213,11 @@ private fun handleItemKey(
 fun NMCarousel(
     component: Component,
     modifier: Modifier = Modifier,
-    navController: NavController,
+    navController: NavHostController,
     visibleCards: Int = if (isTv()) 7 else 3,
     peekFraction: Float = if (isTv()) 0.7f else 0.25f,
 ) {
-    val props = component.props as? NMCarouselProps ?: return
+    val props = component.props as? NMCarouselWrapper ?: return
 
     Column(
         modifier = modifier

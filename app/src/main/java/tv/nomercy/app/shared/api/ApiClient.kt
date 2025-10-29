@@ -12,8 +12,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -23,12 +21,6 @@ import retrofit2.Retrofit
 import tv.nomercy.app.shared.api.KeycloakConfig.getSuffix
 import tv.nomercy.app.shared.api.services.AuthService
 import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.ComponentData
-import tv.nomercy.app.shared.models.NMCardProps
-import tv.nomercy.app.shared.models.NMHomeCardProps
-import tv.nomercy.app.shared.models.NMCarouselProps
-import tv.nomercy.app.shared.models.NMContainerProps
-import tv.nomercy.app.shared.models.NMGridProps
 import tv.nomercy.app.shared.stores.AuthStore
 import java.util.concurrent.TimeUnit
 

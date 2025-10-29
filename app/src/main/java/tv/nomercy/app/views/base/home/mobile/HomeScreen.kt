@@ -30,15 +30,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.components.EmptyGrid
 import tv.nomercy.app.components.nMComponents.NMComponent
-import tv.nomercy.app.shared.models.Component
-import tv.nomercy.app.shared.models.NMCardWrapper
-import tv.nomercy.app.shared.models.NMCarouselProps
-import tv.nomercy.app.shared.models.NMContainerProps
-import tv.nomercy.app.shared.models.NMGridProps
 import tv.nomercy.app.shared.models.NMHomeCardWrapper
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.shared.ui.LocalThemeOverrideManager
@@ -49,7 +44,7 @@ import java.util.UUID
 
 @Composable
 fun MobileHomeScreen(
-    navController: NavController,
+    navController: NavHostController,
 ) {
     val context = LocalContext.current
     val factory = remember {
@@ -129,8 +124,6 @@ fun MobileHomeScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             when {
                 homeData.isNotEmpty() -> {
-                    // Always show content if we have data
-                    val filteredData = homeData.filter { component -> hasContent(component) }
 
                     LazyColumn(
                         state = listState,
@@ -138,7 +131,7 @@ fun MobileHomeScreen(
                         contentPadding = PaddingValues(vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        items(filteredData, key = { it.id }) { component ->
+                        items(homeData, key = { it.id }) { component ->
                             key(component.id) {
                                 NMComponent(
                                     components = listOf(component),
@@ -169,16 +162,5 @@ fun MobileHomeScreen(
             }
 
         }
-    }
-}
-
-fun hasContent(component: Component): Boolean {
-    return when (val props = component.props ) {
-        is NMCarouselProps -> props.items.isNotEmpty()
-        is NMGridProps -> props.items.isNotEmpty()
-//        is NMContainerProps -> props.items.isNotEmpty()
-        is NMHomeCardWrapper -> props.data != null
-        is NMCardWrapper -> true
-        else -> false
     }
 }

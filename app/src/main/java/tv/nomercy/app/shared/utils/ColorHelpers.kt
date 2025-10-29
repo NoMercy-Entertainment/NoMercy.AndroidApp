@@ -1,10 +1,12 @@
 package tv.nomercy.app.shared.utils
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import tv.nomercy.app.shared.models.PaletteColors
+import kotlin.math.floor
 
-fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 160, fallbackColor: Color?): Color {
+fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 200, fallbackColor: Color?): Color {
     if (palette == null) {
         return fallbackColor ?: Color.Transparent
     }
@@ -50,7 +52,9 @@ fun getPerceivedBrightness(color: String): Int {
     val r = rgb["red"]!!.toInt()
     val g = rgb["green"]!!.toInt()
     val b = rgb["blue"]!!.toInt()
-    return ((r * 299) + (g * 587) + (b * 114)) / 1000
+    val result = floor((0.2126 * r) + (0.7152 * g) + (0.0722 * b)).toInt()
+    Log.d("getPerceivedBrightness", "result: $result")
+    return result
 }
 
 fun getPerceivedBrightness(color: Color): Int {
@@ -58,7 +62,7 @@ fun getPerceivedBrightness(color: Color): Int {
 }
 
 fun isColorDark(color: String, minBrightness: Int = 50): Boolean {
-    return getPerceivedBrightness(color) < minBrightness
+    return getPerceivedBrightness(color) <= minBrightness
 }
 fun isColorLight(color: String, maxBrightness: Int = 130): Boolean {
     return getPerceivedBrightness(color) >= maxBrightness
@@ -98,9 +102,4 @@ fun getColorFromPercent(pct: Int, scheme: List<PercentColor> = redToGreen): Colo
     val b = (lower.color.blue * pctLower + upper.color.blue * pctUpper)
 
     return Color(r, g, b)
-}
-
-fun isColorLight(color: Color): Boolean {
-    val lightness  = getPerceivedBrightness(color)
-    return lightness >= 130
 }
