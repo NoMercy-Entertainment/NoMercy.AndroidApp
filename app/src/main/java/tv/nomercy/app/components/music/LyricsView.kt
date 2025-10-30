@@ -7,6 +7,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -40,12 +42,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.json.JSONArray
 import org.json.JSONObject
 import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIcon
@@ -59,7 +59,6 @@ data class LyricStyle(
     val fontSize: TextUnit,
     val lineHeight: TextUnit,
     val iconSize: Dp,
-    val minHeight: Dp
 )
 
 data class LyricLine(
@@ -74,14 +73,12 @@ fun rememberLyricStyle(): LyricStyle {
             fontSize = 40.sp,
             lineHeight = 48.sp,
             iconSize = 40.dp,
-            minHeight = 96.dp
         )
     } else {
         LyricStyle(
-            fontSize = 20.sp,
-            lineHeight = 22.sp,
-            iconSize = 20.dp,
-            minHeight = 46.dp
+            fontSize = 26.sp,
+            lineHeight = 28.sp,
+            iconSize = 24.dp,
         )
     }
 }
@@ -103,8 +100,8 @@ fun LyricItem(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = style.minHeight)
-            .padding(vertical = 4.dp),
+//            .heightIn(min = style.minHeight)
+            .padding(vertical = 8.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         if (lyric.text.isNotEmpty()) {
@@ -165,8 +162,8 @@ fun LyricsView(
     var lastScrolledIndex by remember { mutableIntStateOf(-2) }
 
     LaunchedEffect(currentSong?.id) {
-        loadedLyrics = if (loadedLyrics == null) {
-            fetchLyrics(serverUrl ?: "", accessToken ?: "", currentSong)
+        loadedLyrics = if (loadedLyrics == null && serverUrl != null && accessToken != null && currentSong != null) {
+            fetchLyrics(serverUrl, accessToken!!, currentSong)
         } else lyrics
 
         coroutineScope.launch {
@@ -200,10 +197,10 @@ fun LyricsView(
             contentAlignment = Alignment.TopStart
         ) {
             if (loadedLyrics.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.heightIn(4.dp))
                 Text(
                     text = stringResource(R.string.no_lyrics_available),
                     color = Color.White,
-                    fontSize = style.fontSize,
                     fontWeight = FontWeight.Bold,
                     lineHeight = style.lineHeight,
                     textAlign = TextAlign.Start,
@@ -217,7 +214,8 @@ fun LyricsView(
                     modifier = Modifier
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
                 ) {
                     items(loadedLyrics?.size ?: 0) { idx ->
                         LyricItem(
@@ -225,6 +223,22 @@ fun LyricsView(
                             index = idx,
                             currentIndex = currentIndex,
                             style = style
+                        )
+                    }
+                    item {
+                        Spacer(modifier = Modifier.heightIn(52.dp))
+                    }
+                    item {
+                        Text(
+                            text = stringResource(R.string.end_of_lyrics),
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = style.lineHeight,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 1,
+                            maxLines = 2
                         )
                     }
                 }

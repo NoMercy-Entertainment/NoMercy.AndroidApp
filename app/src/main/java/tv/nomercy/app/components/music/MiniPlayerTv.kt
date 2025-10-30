@@ -59,8 +59,8 @@ fun TvMiniPlayer(
     val fallbackColor = MaterialTheme.colorScheme.primary
     val palette = paletteColors ?: song.colorPalette?.cover
     val backgroundColor = remember(palette, useAutoThemeColors) {
-        if (!useAutoThemeColors) fallbackColor // fallback
-        else pickPaletteColor(palette, dark = 20, light = 160, fallbackColor)
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(palette, dark = 20, light = 160) ?: fallbackColor
     }
 
     val interactionSource = remember { MutableInteractionSource() }

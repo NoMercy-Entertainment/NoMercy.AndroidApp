@@ -126,4 +126,5 @@
     <string name="seasons_episodes">Seasons &amp; episodes</string>
     <string name="add_to_watch_list">Add to watchlist</string>
     <string name="no_lyrics_available">No lyrics available</string>
+    <string name="end_of_lyrics">Lyrics provided by Musixmatch</string>
 </resources>

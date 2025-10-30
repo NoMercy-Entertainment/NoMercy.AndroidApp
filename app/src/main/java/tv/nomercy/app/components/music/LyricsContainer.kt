@@ -2,6 +2,8 @@
 
 package tv.nomercy.app.components.music
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -34,11 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONArray
 import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIcon
 import tv.nomercy.app.components.MoooomIconName
@@ -64,12 +62,18 @@ fun LyricsContainer(
     val density = LocalDensity.current
     val isTv = isTv()
 
+    val animatedLyricsRadius by animateDpAsState(
+        targetValue = if (isExpanded) 0.dp else 16.dp,
+        animationSpec = if (isExpanded) tween(durationMillis = 300, delayMillis = 300) else tween(durationMillis = 300),
+        label = "animatedLyricsRadius"
+    )
+
     Column(
         modifier = modifier
             .then(
                 if (height != null) Modifier.height(height) else Modifier
             )
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(animatedLyricsRadius))
             .background( if(isTv) Color.Transparent else activeColor.copy(alpha = 0.8f))
             .zIndex(2f)
     ) {
@@ -78,6 +82,14 @@ fun LyricsContainer(
             // build header modifier and attach bringIntoViewRequester if provided
             val headerModifier = remember(bringIntoViewRequester) {
                 var m = Modifier
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.2f),
+                                Color.Black.copy(alpha = 0.5f)
+                            )
+                        )
+                    )
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                 if (bringIntoViewRequester != null) m = m.bringIntoViewRequester(bringIntoViewRequester)
@@ -118,6 +130,14 @@ fun LyricsContainer(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0f),
+                            Color.Black.copy(alpha = 0.2f)
+                        )
+                    )
+                )
                 .then(if(isTv) Modifier.padding(top = 52.dp, bottom = 24.dp) else Modifier.padding(start = 16.dp, end = 16.dp))
 
                 .weight(1f)

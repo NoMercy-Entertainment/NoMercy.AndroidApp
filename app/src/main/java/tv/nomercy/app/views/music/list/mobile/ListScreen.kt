@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import tv.nomercy.app.components.SetThemeColor
 import tv.nomercy.app.components.ShimmerBox
 import tv.nomercy.app.components.ShimmerTrackRow
 import tv.nomercy.app.components.music.BigPlayButton
@@ -92,17 +93,9 @@ fun ListScreen(
     val fallbackColor = MaterialTheme.colorScheme.primary
     val backgroundColor: Color = remember(palette) {
         if (!useAutoThemeColors) fallbackColor
-        else pickPaletteColor(palette, fallbackColor = fallbackColor)
+        else pickPaletteColor(palette) ?:fallbackColor
     }
-    val key = remember { UUID.randomUUID() }
-
-    DisposableEffect(backgroundColor) {
-        themeOverrideManager.add(key, backgroundColor)
-
-        onDispose {
-            themeOverrideManager.remove(key)
-        }
-    }
+    SetThemeColor(color = backgroundColor)
 
     Box(
         modifier = Modifier

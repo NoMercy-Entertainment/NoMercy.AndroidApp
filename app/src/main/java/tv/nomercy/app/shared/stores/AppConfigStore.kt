@@ -60,7 +60,7 @@ class AppConfigStore(
     val tmdbApiKey : String
         get() = "ed3bf860adef0537783e4abee86d65af"
 
-    fun getTheme(): Flow<ThemeName> = themeDataStore.getTheme
+    fun getTheme() = themeDataStore.getTheme
 
     suspend fun setTheme(themeName: ThemeName) {
         themeDataStore.setTheme(themeName)

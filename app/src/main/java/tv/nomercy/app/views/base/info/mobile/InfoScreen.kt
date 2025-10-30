@@ -58,6 +58,7 @@ import tv.nomercy.app.shared.utils.pickPaletteColor
 import tv.nomercy.app.shared.utils.sortByFilteredAlphabetized
 import java.util.UUID
 import tv.nomercy.app.R
+import tv.nomercy.app.components.SetThemeColor
 import tv.nomercy.app.views.base.info.shared.InfoViewModel
 import tv.nomercy.app.views.base.info.shared.InfoViewModelFactory
 
@@ -129,17 +130,9 @@ private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController
     val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor: Color = remember(infoData?.colorPalette) {
         if (!useAutoThemeColors) fallbackColor
-        else pickPaletteColor(infoData?.colorPalette?.poster, fallbackColor = fallbackColor)
+        else pickPaletteColor(infoData?.colorPalette?.poster) ?:fallbackColor
     }
-    val key = remember { UUID.randomUUID() }
-
-    DisposableEffect(focusColor) {
-        themeOverrideManager.add(key, focusColor)
-
-        onDispose {
-            themeOverrideManager.remove(key)
-        }
-    }
+    SetThemeColor(color = focusColor)
 
     LazyColumn(
         state = listState,

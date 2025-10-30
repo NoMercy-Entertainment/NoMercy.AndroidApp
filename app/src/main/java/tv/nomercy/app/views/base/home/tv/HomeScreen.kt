@@ -121,7 +121,7 @@ fun TvHomeScreen(navController: NavHostController) {
                 debouncedSelectedCard.value?.colorPalette?.poster
             }
             if (!useAutoThemeColors) fallbackColor
-            else pickPaletteColor(posterPalette, fallbackColor = fallbackColor)
+            else pickPaletteColor(posterPalette) ?:fallbackColor
         }
     }
 

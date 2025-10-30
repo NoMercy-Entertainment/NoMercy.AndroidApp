@@ -84,7 +84,7 @@ fun FullPlayerScreenTV() {
     // derived stable value
     val focusColor = remember(currentSong) {
         currentSong?.colorPalette?.cover?.let {
-            pickPaletteColor(it, 20, 160, fallbackColor)
+            pickPaletteColor(it, 20, 160) ?: fallbackColor
         } ?: fallbackColor
     }
 

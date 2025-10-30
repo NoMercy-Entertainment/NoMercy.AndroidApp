@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.components.EmptyGrid
+import tv.nomercy.app.components.SetThemeColor
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.NMHomeCardWrapper
 import tv.nomercy.app.shared.stores.GlobalStores
@@ -70,24 +71,16 @@ fun MobileHomeScreen(
         }
     }
     
-    val themeOverrideManager = LocalThemeOverrideManager.current
     val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
     val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
 
     val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor: Color = remember(posterPalette) {
         if (!useAutoThemeColors) fallbackColor
-        else pickPaletteColor(posterPalette, fallbackColor = fallbackColor)
+        else pickPaletteColor(posterPalette) ?:fallbackColor
     }
-    val key = remember { UUID.randomUUID() }
 
-    DisposableEffect(focusColor) {
-        themeOverrideManager.add(key, focusColor)
-
-        onDispose {
-            themeOverrideManager.remove(key)
-        }
-    }
+    SetThemeColor(color = focusColor)
 
     Column(modifier = Modifier.fillMaxSize()) {
         errorMessage?.let {

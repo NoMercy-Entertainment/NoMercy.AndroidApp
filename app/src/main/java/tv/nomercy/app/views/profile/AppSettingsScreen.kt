@@ -172,6 +172,30 @@ private fun ColorSchemeSetting() {
     }
 }
 
+val themeColors = mapOf(
+    ThemeName.Tomato to Color(0xffe54d2e),
+    ThemeName.Red to Color(0xffe5484d),
+    ThemeName.Crimson to Color(0xffE93D82),
+    ThemeName.Pink to Color(0xffd6409f),
+    ThemeName.Purple to Color(0xff8e4ec6),
+    ThemeName.Indigo to Color(0xff3e63dd),
+    ThemeName.Blue to Color(0xff0091ff),
+    ThemeName.Cyan to Color(0xff05a2c2),
+    ThemeName.Teal to Color(0xff12a594),
+    ThemeName.Green to Color(0xff30a46c),
+    ThemeName.Grass to Color(0xff46a758),
+    ThemeName.Orange to Color(0xfff76808),
+    ThemeName.Brown to Color(0xffad7f58),
+    ThemeName.Sky to Color(0xff68ddfd),
+    ThemeName.Mint to Color(0xff70e1c8),
+    ThemeName.Yellow to Color(0xfff5d90a),
+    ThemeName.Amber to Color(0xffffb224),
+    ThemeName.Gray to Color(0xff8f8f8f),
+    ThemeName.Sand to Color(0xff90908c),
+    ThemeName.Gold to Color(0xff978365),
+    ThemeName.Slate to Color(0xff889096)
+)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ThemeColorsSetting() {
@@ -180,31 +204,6 @@ private fun ThemeColorsSetting() {
     val coroutineScope = rememberCoroutineScope()
     LocalActivity.current
 
-    val themeColors = remember {
-        mapOf(
-            ThemeName.Tomato to Color(0xffe54d2e),
-            ThemeName.Red to Color(0xffe5484d),
-            ThemeName.Crimson to Color(0xffE93D82),
-            ThemeName.Pink to Color(0xffd6409f),
-            ThemeName.Purple to Color(0xff8e4ec6),
-            ThemeName.Indigo to Color(0xff3e63dd),
-            ThemeName.Blue to Color(0xff0091ff),
-            ThemeName.Cyan to Color(0xff05a2c2),
-            ThemeName.Teal to Color(0xff12a594),
-            ThemeName.Green to Color(0xff30a46c),
-            ThemeName.Grass to Color(0xff46a758),
-            ThemeName.Orange to Color(0xfff76808),
-            ThemeName.Brown to Color(0xffad7f58),
-            ThemeName.Sky to Color(0xff68ddfd),
-            ThemeName.Mint to Color(0xff70e1c8),
-            ThemeName.Yellow to Color(0xfff5d90a),
-            ThemeName.Amber to Color(0xffffb224),
-            ThemeName.Gray to Color(0xff8f8f8f),
-            ThemeName.Sand to Color(0xff90908c),
-            ThemeName.Gold to Color(0xff978365),
-            ThemeName.Slate to Color(0xff889096)
-        )
-    }
 
     Column {
         SectionTitle(R.string.section_theme)

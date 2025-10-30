@@ -81,7 +81,7 @@ fun NMCard(
     val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor: Color = remember(data.colorPalette) {
         if (!useAutoThemeColors) fallbackColor
-        else pickPaletteColor(data.colorPalette?.poster, fallbackColor = fallbackColor)
+        else pickPaletteColor(data.colorPalette?.poster) ?: fallbackColor
     }
 
     // TV: add animated hover/focus border growth (default 1.dp)

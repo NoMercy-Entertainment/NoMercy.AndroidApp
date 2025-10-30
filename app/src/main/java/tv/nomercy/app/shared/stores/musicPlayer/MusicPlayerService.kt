@@ -12,7 +12,6 @@ import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
-import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -119,12 +118,19 @@ class MusicPlayerService : Service() {
         super.onDestroy()
     }
 
+    private fun stopServiceIfInactive() {
+        if (!playerStore.isPlaying.value) {
+            stopSelf()
+        }
+    }
+
     private fun startObservingPlayerState() {
-        observeJob?.cancel()
         observeJob = serviceScope.launch {
             playerStore.isPlaying.collectLatest { isPlaying ->
-                updateMediaSessionState(isPlaying, playerStore.currentSong.value)
-                updateNotificationAsync()
+                if (!isPlaying) {
+                    delay(5000) // Wait for 5 seconds before stopping the service
+                    stopServiceIfInactive()
+                }
             }
         }
 
@@ -320,11 +326,7 @@ class MusicPlayerService : Service() {
 
     private fun pendingServiceIntent(action: String, requestCode: Int): PendingIntent {
         val intent = Intent(this, MusicPlayerService::class.java).setAction(action)
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        val flags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         return PendingIntent.getService(this, requestCode, intent, flags)
     }
 

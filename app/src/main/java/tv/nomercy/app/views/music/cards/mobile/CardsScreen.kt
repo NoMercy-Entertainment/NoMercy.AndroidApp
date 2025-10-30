@@ -27,6 +27,7 @@ import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.components.EmptyGrid
 import tv.nomercy.app.components.Indexer
+import tv.nomercy.app.components.SetThemeColor
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.stores.GlobalStores
 import tv.nomercy.app.views.music.cards.shared.CardsViewModel
@@ -58,6 +59,8 @@ fun CardsScreen(
     LaunchedEffect(type, char) {
         viewModel.selectCard(type, char)
     }
+
+    SetThemeColor()
 
     Column(
         modifier = Modifier.fillMaxSize(),

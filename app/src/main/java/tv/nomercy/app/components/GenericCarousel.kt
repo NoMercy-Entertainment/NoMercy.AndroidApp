@@ -175,7 +175,7 @@ fun GenericCarousel(
         val fallbackColor = MaterialTheme.colorScheme.primary
         val focusColor = remember(palette) {
             if (!useAutoThemeColors) fallbackColor
-            else pickPaletteColor(palette, fallbackColor = fallbackColor)
+            else pickPaletteColor(palette) ?: fallbackColor
         }
 
         val interaction = remember { MutableInteractionSource() }

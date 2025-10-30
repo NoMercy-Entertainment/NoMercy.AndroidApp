@@ -42,6 +42,7 @@ import tv.nomercy.app.components.GenericCarousel
 import tv.nomercy.app.components.HeroRow
 import tv.nomercy.app.components.LinkButton
 import tv.nomercy.app.components.SeasonCarousel
+import tv.nomercy.app.components.SetThemeColor
 import tv.nomercy.app.components.toCarouselItem
 import tv.nomercy.app.shared.models.InfoResponse
 import tv.nomercy.app.shared.stores.GlobalStores
@@ -110,8 +111,6 @@ fun InfoScreen(type: String, id: String, navController: NavHostController) {
 
 @Composable
 private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController) {
-    val themeOverrideManager = LocalThemeOverrideManager.current
-
     val context = LocalContext.current
     val systemAppConfigStore = GlobalStores.getAppConfigStore(context)
     val useAutoThemeColors by systemAppConfigStore.useAutoThemeColors.collectAsState()
@@ -119,17 +118,9 @@ private fun InfoColumn(infoData: InfoResponse?, navController: NavHostController
     val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor: Color = remember(infoData?.colorPalette) {
         if (!useAutoThemeColors) fallbackColor
-        else pickPaletteColor(infoData?.colorPalette?.poster, fallbackColor = fallbackColor)
+        else pickPaletteColor(infoData?.colorPalette?.poster) ?:fallbackColor
     }
-    val key = remember { UUID.randomUUID() }
-
-    DisposableEffect(focusColor) {
-        themeOverrideManager.add(key, focusColor)
-
-        onDispose {
-            themeOverrideManager.remove(key)
-        }
-    }
+    SetThemeColor(color = focusColor)
 
     val listState = rememberLazyListState(0, 40)
     val scope = rememberCoroutineScope()

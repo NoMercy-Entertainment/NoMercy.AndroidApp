@@ -46,7 +46,7 @@ fun NMGrid(
             .scrollable(scrollState, orientation = Orientation.Vertical)
             .assertBoundedWidth(),
         contentPadding = PaddingValues(
-            top =  spacing / 2,
+            top =  spacing,
             end =  spacing / 2,
             bottom =  spacing,
             start = spacing,

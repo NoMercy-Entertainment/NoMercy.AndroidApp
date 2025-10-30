@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tv.nomercy.app.R
 import tv.nomercy.app.components.EmptyGrid
+import tv.nomercy.app.components.SetThemeColor
 import tv.nomercy.app.components.nMComponents.NMComponent
 import tv.nomercy.app.shared.models.NMHomeCardWrapper
 import tv.nomercy.app.shared.stores.GlobalStores
@@ -57,25 +58,15 @@ fun LibrariesScreen(navController: NavHostController) {
 
     val listState = rememberLazyListState()
 
-    val themeOverrideManager = LocalThemeOverrideManager.current
-
     val posterPalette = librariesData.firstOrNull()?.props.let {
         when (it) {
             is NMHomeCardWrapper -> it.data?.colorPalette?.poster
             else -> null
         }
     }
-    val primary = MaterialTheme.colorScheme.primary
-    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette, fallbackColor = primary) }
-    val key = remember { UUID.randomUUID() }
 
-    DisposableEffect(focusColor) {
-        themeOverrideManager.add(key, focusColor)
-
-        onDispose {
-            themeOverrideManager.remove(key)
-        }
-    }
+    val focusColor = remember(posterPalette) { pickPaletteColor(posterPalette) }
+    SetThemeColor(color = focusColor)
 
     Column(modifier = Modifier.fillMaxSize()) {
         errorMessage?.let {

@@ -113,7 +113,7 @@ fun FullPlayerScreen() {
     val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor = remember(currentSong) {
         currentSong?.colorPalette?.cover?.let { palette ->
-            pickPaletteColor(palette, fallbackColor = fallbackColor)
+            pickPaletteColor(palette) ?: fallbackColor
         } ?: fallbackColor
     }
 
@@ -140,12 +140,18 @@ fun FullPlayerScreen() {
                 .verticalScroll(scrollState)
         ) {
             val collapsedLyricsHeight = 400.dp
-            val expandedLyricsHeight = minHeight - MaterialTheme.typography.titleMedium.fontSize.value.dp - 20.dp
+            val expandedLyricsHeight = minHeight - MaterialTheme.typography.titleMedium.fontSize.value.dp + 20.dp
 
             val lyricsHeight by animateDpAsState(
                 targetValue = if (lyricsExpanded) expandedLyricsHeight else collapsedLyricsHeight,
                 animationSpec = tween(300),
                 label = "lyricsHeight"
+            )
+
+            val animatedLyricsPadding by animateDpAsState(
+                targetValue = if (lyricsExpanded) 0.dp else 24.dp,
+                animationSpec = if (lyricsExpanded) tween(durationMillis = 300, delayMillis = 300) else tween(durationMillis = 300),
+                label = "animatedLyricsPadding"
             )
 
             Column(
@@ -166,7 +172,7 @@ fun FullPlayerScreen() {
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                         .padding(horizontal = 24.dp)
-                        .height(expandedLyricsHeight - 40.dp)
+                        .height(expandedLyricsHeight - 80.dp)
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -241,8 +247,8 @@ fun FullPlayerScreen() {
                     bringIntoViewRequester = bringIntoViewRequester,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                        .padding(horizontal = 16.dp)
+                        .padding(bottom = animatedLyricsPadding)
+                        .padding(horizontal = animatedLyricsPadding)
                         .bringIntoViewRequester(bringIntoViewRequester)
                 )
             }

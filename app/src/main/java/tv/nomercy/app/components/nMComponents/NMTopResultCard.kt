@@ -50,7 +50,8 @@ fun NMTopResultCard(
 
     val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor = remember(data.colorPalette?.cover) {
-        pickPaletteColor(data.colorPalette?.cover, fallbackColor = fallbackColor)
+        if (!useAutoThemeColors) fallbackColor
+        else pickPaletteColor(data.colorPalette?.cover) ?:fallbackColor
     }
 
     Row(

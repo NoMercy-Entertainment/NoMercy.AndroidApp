@@ -78,10 +78,10 @@ fun LibrariesScreen(navController: NavHostController) {
         }
     }
 
-    val primary = MaterialTheme.colorScheme.primary
+    val fallbackColor = MaterialTheme.colorScheme.primary
     val focusColor by remember {
         derivedStateOf {
-            pickPaletteColor(posterPalette, fallbackColor = primary)
+            pickPaletteColor(posterPalette) ?:fallbackColor
         }
     }
 

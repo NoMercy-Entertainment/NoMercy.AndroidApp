@@ -6,9 +6,9 @@ import androidx.core.graphics.toColorInt
 import tv.nomercy.app.shared.models.PaletteColors
 import kotlin.math.floor
 
-fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 200, fallbackColor: Color?): Color {
+fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 200): Color? {
     if (palette == null) {
-        return fallbackColor ?: Color.Transparent
+        return null
     }
 
     if (palette.lightVibrant != null && !isColorLight(palette.lightVibrant, light) && !isColorDark(palette.lightVibrant, dark)) {
@@ -30,7 +30,7 @@ fun pickPaletteColor(palette: PaletteColors?, dark: Int = 60, light: Int = 200, 
         return palette.lightMuted.toColor()
     }
 
-    return fallbackColor ?: Color.Transparent
+    return null
 }
 
 fun String.toColor(): Color {

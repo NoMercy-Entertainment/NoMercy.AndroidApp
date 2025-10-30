@@ -125,4 +125,5 @@
     <string name="seasons_episodes">Seizoenen &amp; afleveringen</string>
     <string name="add_to_watch_list">Toevogen aan Kijklijst</string>
     <string name="no_lyrics_available">No lyrics available</string>
+    <string name="end_of_lyrics">Lyrics aangeboden door Musixmatch</string>
 </resources>

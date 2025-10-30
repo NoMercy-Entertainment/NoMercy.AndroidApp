@@ -94,7 +94,7 @@ fun NMHomeCard(
     val posterPalette = if (aspectRatio == null) data.colorPalette?.poster else data.colorPalette?.backdrop
     val focusColor = remember(posterPalette) {
         if (!useAutoThemeColors) fallbackColor
-        else pickPaletteColor(posterPalette, fallbackColor = fallbackColor)
+        else pickPaletteColor(posterPalette) ?: fallbackColor
     }
 
     val bringIntoViewRequester = remember { BringIntoViewRequester() }

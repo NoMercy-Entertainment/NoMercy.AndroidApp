@@ -55,6 +55,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import tv.nomercy.app.components.SetThemeColor
 import tv.nomercy.app.components.images.CoverImage
 import tv.nomercy.app.components.ShimmerTrackRow
 import tv.nomercy.app.components.music.BigPlayButton
@@ -78,7 +79,6 @@ fun ListScreen(
     navController: NavHostController
 ) {
     val scope = rememberCoroutineScope()
-    val themeOverrideManager = LocalThemeOverrideManager.current
     val context = LocalContext.current
     val viewModel: ListViewModel = viewModel(
         factory = ListViewModelFactory(
@@ -100,14 +100,9 @@ fun ListScreen(
     val fallbackColor = MaterialTheme.colorScheme.primary
     val backgroundColor: Color = remember(palette) {
         if (!useAutoThemeColors) fallbackColor
-        else pickPaletteColor(palette, fallbackColor = fallbackColor)
+        else pickPaletteColor(palette) ?:fallbackColor
     }
-    val key = remember { UUID.randomUUID() }
-
-    DisposableEffect(backgroundColor) {
-        themeOverrideManager.add(key, backgroundColor)
-        onDispose { themeOverrideManager.remove(key) }
-    }
+    SetThemeColor(color = backgroundColor)
 
     val scrollState = rememberLazyListState()
 

@@ -111,7 +111,7 @@ fun MusicStartScreen(navController: NavHostController) {
     val focusColor by remember {
         derivedStateOf {
             if (!useAutoThemeColors) fallbackColor
-            else pickPaletteColor(debouncedSelectedCard.value?.colorPalette?.cover, fallbackColor = primary)
+            else pickPaletteColor(debouncedSelectedCard.value?.colorPalette?.cover) ?:fallbackColor
         }
     }
 
