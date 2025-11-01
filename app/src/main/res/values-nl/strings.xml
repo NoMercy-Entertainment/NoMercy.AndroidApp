@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NoMercy TV 2</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notificaties</string>
+
+    <string name="title_search">Zoeken</string>
+    <string name="title_libraries">Bibliotheken</string>
+    <string name="title_music">Muziek</string>
+    <string name="title_profile">Profiel</string>
+    <string name="switch_server">Wissel server</string>
+
+    <plurals name="days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <plurals name="hours">
+        <item quantity="one">uur</item>
+        <item quantity="other">uur</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">minuut</item>
+        <item quantity="other">minuten</item>
+    </plurals>
+    <plurals name="seconds">
+        <item quantity="one">seconde</item>
+        <item quantity="other">seconden</item>
+    </plurals>
+
+    <plurals name="hrs">
+        <item quantity="one">uur</item>
+        <item quantity="other">uur</item>
+    </plurals>
+    <plurals name="min">
+        <item quantity="one">min</item>
+        <item quantity="other">min</item>
+    </plurals>
+    <plurals name="sec">
+        <item quantity="one">sec</item>
+        <item quantity="other">sec</item>
+    </plurals>
+
+<!--    Search -->
+    <string name="greeting_morning">Goedemorgen</string>
+    <string name="greeting_afternoon">Goedemiddag</string>
+    <string name="greeting_evening">Goedenavond</string>
+    <string name="greeting_night">Goedenacht</string>
+
+    <string name="prompt_video">Wat zou je graag willen zien?</string>
+    <string name="prompt_music">Wat zou je graag willen luisteren?</string>
+    <string name="placeholder_video">Film, serie of persoon…</string>
+    <string name="placeholder_music">Liedje, album of artiest…</string>
+<!--    Search end-->
+
+<!--    Theme -->
+    <string name="section_device_name">Apparaat naam</string>
+    <string name="section_language">Weergave taal</string>
+    <string name="section_screensaver_delay">Schermbeveiliging vertraging</string>
+    <string name="section_color_scheme">Schema</string>
+        <string name="section_theme">Thema</string>
+<!--    Theme end-->
+
+    <string name="watch">Afspelen</string>
+    <string name="watch_trailer">Bekijk trailer</string>
+    <string name="collection">Collectie</string>
+    <string name="genres">Genres</string>
+    <string name="cast">Cast</string>
+    <string name="crew">Crew</string>
+    <string name="posters">Posters</string>
+    <string name="backdrops">Backdrops</string>
+    <string name="continue_watching">Doorgaan met kijken</string>
+    <string name="latest_in">Laastste in %!</string>
+    <string name="view_all">Alles bekijken</string>
+    <string name="keywords">Sleutelwoorden</string>
+    <string name="read_more">"Lees meer "</string>
+    <string name="writer">Schrijver</string>
+    <string name="director">Regiseur</string>
+    <string name="season">Seizoen</string>
+    <string name="episode">Episode</string>
+    <string name="recommendations">Aanbevelingen</string>
+    <string name="similar">Vergelijkbaar</string>
+    <string name="collections">Collecties</string>
+    <string name="read_less">Lees minder</string>
+    <string name="try_again">Probeer opnieuw</string>
+    <string name="wb_sign_in">Welkom terug! Login met Keycloak om door te gaan.</string>
+    <string name="sign_in_with_keycloak">Login met Keycloak</string>
+    <string name="welcome">Welcome to NoMercy</string>
+    <string name="no_servers">No Servers Found</string>
+    <string name="no_servers_yet">You don\'t have access to any NoMercy servers yet. Please:</string>
+    <string name="setup_your_own_server">Installeer je eigen NoMercy server</string>
+    <string name="check_again">Probeer opnieuw</string>
+    <string name="details">Details</string>
+    <string name="lyrics">Lyrics</string>
+    <string name="collapse">Inklappen</string>
+    <string name="expand">Uitklappen</string>
+
+    <string name="genre_adventure">Avontuur</string>
+    <string name="genre_fantasy">Fantasie</string>
+    <string name="genre_animation">Animatie</string>
+    <string name="genre_drama">Drama</string>
+    <string name="genre_horror">Horror</string>
+    <string name="genre_action">Actie</string>
+    <string name="genre_comedy">Komedie</string>
+    <string name="genre_history">Geschiedenis</string>
+    <string name="genre_western">Western</string>
+    <string name="genre_thriller">Thriller</string>
+    <string name="genre_crime">Misdaad</string>
+    <string name="genre_documentary">Documentaire</string>
+    <string name="genre_science_fiction">Sciencefiction</string>
+    <string name="genre_mystery">Mysterie</string>
+    <string name="genre_music">Muziek</string>
+    <string name="genre_romance">Romantiek</string>
+    <string name="genre_family">Familie</string>
+    <string name="genre_war">Oorlog</string>
+    <string name="genre_action_adventure">Actie &amp; Avontuur</string>
+    <string name="genre_kids">Kinderen</string>
+    <string name="genre_news">Nieuws</string>
+    <string name="genre_reality">Reality</string>
+    <string name="genre_sci_fi_fantasy">Sci-Fi &amp; Fantasie</string>
+    <string name="genre_soap">Soap</string>
+    <string name="genre_talk">Praatprogramma</string>
+    <string name="genre_war_politics">Oorlog &amp; Politiek</string>
+    <string name="genre_tv_movie">TV-film</string>
+    <string name="seasons_episodes">Seizoenen &amp; afleveringen</string>
+    <string name="add_to_watch_list">Toevogen aan Kijklijst</string>
+    <string name="no_lyrics_available">No lyrics available</string>
+    <string name="end_of_lyrics">Lyrics aangeboden door Musixmatch</string>
+</resources>

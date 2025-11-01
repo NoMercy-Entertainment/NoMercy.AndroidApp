@@ -1,0 +1,130 @@
+<resources>
+    <string name="app_name">NoMercy TV 2</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <string name="title_search">Search</string>
+    <string name="title_libraries">Libraries</string>
+    <string name="title_music">Music</string>
+    <string name="title_profile">Profile</string>
+    <string name="switch_server">Switch server</string>
+
+    <plurals name="days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <plurals name="hours">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">minute</item>
+        <item quantity="other">minute</item>
+    </plurals>
+    <plurals name="seconds">
+        <item quantity="one">seconds</item>
+        <item quantity="other">seconds</item>
+    </plurals>
+
+
+    <plurals name="hrs">
+        <item quantity="one">hr</item>
+        <item quantity="other">hrs</item>
+    </plurals>
+    <plurals name="min">
+        <item quantity="one">min</item>
+        <item quantity="other">min</item>
+    </plurals>
+    <plurals name="sec">
+        <item quantity="one">sec</item>
+        <item quantity="other">sec</item>
+    </plurals>
+
+<!--    Search -->
+    <string name="greeting_morning">Good Morning</string>
+    <string name="greeting_afternoon">Good Afternoon</string>
+    <string name="greeting_evening">Good Evening</string>
+    <string name="greeting_night">Good Night</string>
+
+    <string name="prompt_video">What would you like to see?</string>
+    <string name="prompt_music">What would you like to listen to?</string>
+    <string name="placeholder_video">Movie, show or person…</string>
+    <string name="placeholder_music">Song, album or artist…</string>
+<!--    Search end -->
+    
+<!--    Theme -->
+    <string name="section_device_name">Device name</string>
+    <string name="section_language">Display language</string>
+    <string name="section_screensaver_delay">Screensaver delay</string>
+    <string name="section_color_scheme">Scheme</string>
+    <string name="section_theme">Theme</string>
+<!--    Theme end-->
+
+    <string name="watch">Watch</string>
+    <string name="watch_trailer">Watch trailer</string>
+    <string name="collection">Collection</string>
+    <string name="genres">Genres</string>
+    <string name="cast">Cast</string>
+    <string name="crew">Crew</string>
+    <string name="posters">Posters</string>
+    <string name="backdrops">Backdrops</string>
+    <string name="continue_watching">Continue watching</string>
+    <string name="latest_in">Latest in %!</string>
+    <string name="view_all">View all</string>
+    <string name="keywords">Keywords</string>
+    <string name="read_more">Read more</string>
+    <string name="writer">Writer</string>
+    <string name="director">Director</string>
+    <string name="season">Season</string>
+    <string name="episode">Episode</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="similar">Similar</string>
+    <string name="collections">Collections</string>
+    <string name="read_less">Read less</string>
+    <string name="try_again">Try again</string>
+    <string name="wb_sign_in">Welcome back! Please sign in to continue.</string>
+    <string name="sign_in_with_keycloak">Sign in with Keycloak</string>
+    <string name="welcome">Welcome to NoMercy</string>
+    <string name="no_servers">No Servers Found</string>
+    <string name="no_servers_yet">You don\'t have access to any NoMercy servers yet. Please:</string>
+
+    <string name="setup_your_own_server">Set up your own NoMercy server</string>
+    <string name="check_again">Check Again</string>
+    <string name="details">Details</string>
+    <string name="lyrics">Lyrics</string>
+    <string name="collapse">Collapse</string>
+    <string name="expand">Expand</string>
+
+    <string name="genre_adventure">Adventure</string>
+    <string name="genre_fantasy">Fantasy</string>
+    <string name="genre_animation">Animation</string>
+    <string name="genre_drama">Drama</string>
+    <string name="genre_horror">Horror</string>
+    <string name="genre_action">Action</string>
+    <string name="genre_comedy">Comedy</string>
+    <string name="genre_history">History</string>
+    <string name="genre_western">Western</string>
+    <string name="genre_thriller">Thriller</string>
+    <string name="genre_crime">Crime</string>
+    <string name="genre_documentary">Documentary</string>
+    <string name="genre_science_fiction">Science Fiction</string>
+    <string name="genre_mystery">Mystery</string>
+    <string name="genre_music">Music</string>
+    <string name="genre_romance">Romance</string>
+    <string name="genre_family">Family</string>
+    <string name="genre_war">War</string>
+    <string name="genre_action_adventure">Action &amp; Adventure</string>
+    <string name="genre_kids">Kids</string>
+    <string name="genre_news">News</string>
+    <string name="genre_reality">Reality</string>
+    <string name="genre_sci_fi_fantasy">Sci-Fi &amp; Fantasy</string>
+    <string name="genre_soap">Soap</string>
+    <string name="genre_talk">Talk</string>
+    <string name="genre_war_politics">War &amp; Politics</string>
+    <string name="genre_tv_movie">TV Movie</string>
+    <string name="seasons_episodes">Seasons &amp; episodes</string>
+    <string name="add_to_watch_list">Add to watchlist</string>
+    <string name="no_lyrics_available">No lyrics available</string>
+    <string name="end_of_lyrics">Lyrics provided by Musixmatch</string>
+</resources>

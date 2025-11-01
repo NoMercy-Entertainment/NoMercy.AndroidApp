@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:width="24dp"
+    android:height="24dp">
+    <path
+        android:pathData="M5 17v2.165c0 0.484 0.347 0.899 0.823 0.98 4.721 0.807 7.633 0.807 12.354 0a0.99 0.99 0 0 0 0.823 -0.98V17M5 17c5 1 9 1 14 0M5 17L2 8.5 8.5 13 12 6m7 11l3 -8.5 -6.5 4.5L12 6m0 0l-1 -1.5L12 3l1 1.5z"
+        android:strokeColor="@color/currentColor"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
