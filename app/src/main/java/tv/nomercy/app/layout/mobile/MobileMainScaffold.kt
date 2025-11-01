@@ -16,14 +16,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.R
-import tv.nomercy.app.layout.mobile.BottomNavigationBar
 import tv.nomercy.app.components.MoooomIconName
 import tv.nomercy.app.components.music.FullPlayerScreen
 import tv.nomercy.app.components.music.MiniPlayer
@@ -32,9 +31,9 @@ import tv.nomercy.app.shared.stores.GlobalStores
 
 @Composable
 fun MobileMainScaffold(
-    isImmersive: Boolean = false
+    isImmersive: Boolean = false,
+    navController: NavHostController
 ) {
-    val navController = rememberNavController()
     val navItems = listOf(
         AppNavItem("/home", R.string.title_home, MoooomIconName.Home1),
         AppNavItem("/search", R.string.title_search, MoooomIconName.SearchMagnifyingGlass),

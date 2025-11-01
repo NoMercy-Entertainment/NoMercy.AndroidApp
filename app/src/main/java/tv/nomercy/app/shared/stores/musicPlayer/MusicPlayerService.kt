@@ -31,6 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.core.graphics.drawable.IconCompat
 import coil3.request.allowHardware
 import kotlinx.coroutines.cancel
 import tv.nomercy.app.R
@@ -50,6 +51,8 @@ class MusicPlayerService : Service() {
     private var observeJob: Job? = null
     private var periodicJob: Job? = null
 
+    private val favorites = mutableSetOf<String>()
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private val imageLoader by lazy { ImageLoader(this) }
@@ -60,7 +63,8 @@ class MusicPlayerService : Service() {
 
         mediaSession = MediaSessionCompat(this, "MusicPlayerService").apply {
             isActive = true
-            val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON).setClass(this@MusicPlayerService, MediaButtonReceiver::class.java)
+            val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
+                .setClass(this@MusicPlayerService, MediaButtonReceiver::class.java)
             val mediaButtonPending = PendingIntent.getBroadcast(
                 this@MusicPlayerService,
                 0,
@@ -89,6 +93,8 @@ class MusicPlayerService : Service() {
                     when (action) {
                         ACTION_FAST_FORWARD -> seekRelative(SEEK_STEP_MS)
                         ACTION_REWIND -> seekRelative(-SEEK_STEP_MS)
+                        ACTION_FAVORITE -> handleFavorite()
+                        ACTION_UNFAVORITE -> handleUnfavorite()
                         else -> super.onCustomAction(action, extras)
                     }
                 }
@@ -118,26 +124,40 @@ class MusicPlayerService : Service() {
         super.onDestroy()
     }
 
-    private fun stopServiceIfInactive() {
+    fun stopServiceIfInactive() {
         if (!playerStore.isPlaying.value) {
             stopSelf()
         }
     }
 
     private fun startObservingPlayerState() {
+        observeJob?.cancel()
+
+        // Single parent job that launches lightweight collectors for the important flows.
         observeJob = serviceScope.launch {
-            playerStore.isPlaying.collectLatest { isPlaying ->
-                if (!isPlaying) {
-                    delay(5000) // Wait for 5 seconds before stopping the service
-                    stopServiceIfInactive()
+            // Observe play/pause changes and update immediately
+            launch {
+                playerStore.isPlaying.collectLatest { isPlaying ->
+                    updateMediaSessionState(isPlaying, playerStore.currentSong.value)
+                    updateNotificationAsync()
                 }
             }
-        }
 
-        serviceScope.launch {
-            playerStore.currentSong.collectLatest { item ->
-                updateMediaSessionState(playerStore.isPlaying.value, item)
-                updateNotificationAsync()
+            // Observe time updates (position/progress) so notification progress stays in sync
+            launch {
+                playerStore.timeState.collectLatest {
+                    // use the latest isPlaying/currentSong when updating
+                    updateMediaSessionState(playerStore.isPlaying.value, playerStore.currentSong.value)
+                    updateNotificationAsync()
+                }
+            }
+
+            // Keep observing current song changes (covers/metadata)
+            launch {
+                playerStore.currentSong.collectLatest { item ->
+                    updateMediaSessionState(playerStore.isPlaying.value, item)
+                    updateNotificationAsync()
+                }
             }
         }
     }
@@ -165,8 +185,21 @@ class MusicPlayerService : Service() {
                 or PlaybackStateCompat.ACTION_FAST_FORWARD
                 or PlaybackStateCompat.ACTION_REWIND)
 
+
+        val isFav = currentSong?.path?.let { favorites.contains(it) } ?: false
+        val favActionId = if (isFav) ACTION_UNFAVORITE else ACTION_FAVORITE
+        val favActionLabel = if (isFav) "Remove Favorite" else "Add to Favorites"
+        val favActionIcon = if (isFav) R.drawable.heartfilled else R.drawable.heart
+
+        val favCustom = PlaybackStateCompat.CustomAction.Builder(
+            favActionId,
+            favActionLabel,
+            favActionIcon
+        ).build()
+
         val state = PlaybackStateCompat.Builder()
             .setActions(actions)
+            .addCustomAction(favCustom)
             .setState(
                 if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
                 position,
@@ -212,11 +245,53 @@ class MusicPlayerService : Service() {
         val playPauseIcon = if (isPlaying) R.drawable.nmpausesolid else R.drawable.nmplaysolid
         val playPauseAction = if (isPlaying) ACTION_PAUSE else ACTION_PLAY
 
+        val isFav = currentSong?.path?.let { favorites.contains(it) } ?: false
+        val favIcon = if (isFav) R.drawable.heartfilled else R.drawable.heart
+        val favLabel = if (isFav) "Remove Favorite" else "Add to Favorites"
+        val favAction = if (isFav) ACTION_UNFAVORITE else ACTION_FAVORITE
+
         val playPauseIntent = pendingServiceIntent(playPauseAction, requestCode = 0)
         val nextIntent = pendingServiceIntent(ACTION_NEXT, requestCode = 2)
         val prevIntent = pendingServiceIntent(ACTION_PREV, requestCode = 3)
         val ffIntent = pendingServiceIntent(ACTION_FAST_FORWARD, requestCode = 4)
         val rwIntent = pendingServiceIntent(ACTION_REWIND, requestCode = 5)
+        val favIntent = pendingServiceIntent(favAction, requestCode = 6)
+
+        val rewindAction = NotificationCompat.Action.Builder(
+            IconCompat.createWithResource(this, R.drawable.nmrewindhalftone),
+            "Rewind",
+            rwIntent
+        ).build()
+
+        val prevAction = NotificationCompat.Action.Builder(
+            IconCompat.createWithResource(this, R.drawable.nmprevioushalftone),
+            "Previous",
+            prevIntent
+        ).build()
+
+        val playPauseActionCompat = NotificationCompat.Action.Builder(
+            IconCompat.createWithResource(this, playPauseIcon),
+            if (isPlaying) "Pause" else "Play",
+            playPauseIntent
+        ).build()
+
+        val nextAction = NotificationCompat.Action.Builder(
+            IconCompat.createWithResource(this, R.drawable.nmforwardhalftone),
+            "Next",
+            nextIntent
+        ).build()
+
+        val ffAction = NotificationCompat.Action.Builder(
+            IconCompat.createWithResource(this, R.drawable.nmforwardhalftone),
+            "Fast Forward",
+            ffIntent
+        ).build()
+
+        val favActionCompat = NotificationCompat.Action.Builder(
+            IconCompat.createWithResource(this, favIcon),
+            favLabel,
+            favIntent
+        ).build()
 
         val builder = NotificationCompat.Builder(this, _channelId)
             .setContentTitle(title)
@@ -224,14 +299,17 @@ class MusicPlayerService : Service() {
             .setSmallIcon(R.drawable.ic_mediasession_icon)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .addAction(R.drawable.nmrewindhalftone, "Rewind", rwIntent)
-            .addAction(R.drawable.nmprevioushalftone, "Previous", prevIntent)
-            .addAction(playPauseIcon, if (isPlaying) "Pause" else "Play", playPauseIntent)
-            .addAction(R.drawable.nmforwardhalftone, "Next", nextIntent)
-            .addAction(R.drawable.nmforwardhalftone, "Fast Forward", ffIntent)
+            // indices: 0=Rewind, 1=Previous, 2=Play/Pause, 3=Next, 4=Fast Forward, 5=Favorite
+            .addAction(rewindAction)      // 0
+            .addAction(prevAction)        // 1
+            .addAction(playPauseActionCompat) // 2
+            .addAction(nextAction)        // 3
+            .addAction(ffAction)          // 4
+            .addAction(favActionCompat)   // 5
             .setStyle(
                 androidx.media.app.NotificationCompat.MediaStyle()
                     .setMediaSession(mediaSession.sessionToken)
+                    // compact: Previous (1), Play/Pause (2), Next (3)
                     .setShowActionsInCompactView(1, 2, 3)
             )
 
@@ -310,6 +388,18 @@ class MusicPlayerService : Service() {
             ACTION_PLAY_TRACK -> {
                 Log.w(TAG, "ACTION_PLAY_TRACK not implemented: playlist/tracks logic is missing")
             }
+            ACTION_STOP_IF_INACTIVE -> {
+                stopServiceIfInactive()
+            }
+            ACTION_START_SERVICE -> {
+                // No-op, just ensure service is running
+            }
+            ACTION_FAVORITE -> {
+                handleFavorite()
+            }
+            ACTION_UNFAVORITE -> {
+                handleUnfavorite()
+            }
             else -> {}
         }
 
@@ -373,11 +463,39 @@ class MusicPlayerService : Service() {
         return baseUrl + separator + "width=$size&type=png&aspect_ratio=1"
     }
 
+    private fun handleFavorite() {
+        val song = playerStore.currentSong.value ?: return
+        val key = song.path
+        synchronized(favorites) {
+            if (!favorites.contains(key)) {
+                favorites.add(key)
+                Log.d(TAG, "Added to favorites: ${song.name}")
+            }
+        }
+
+        updateMediaSessionState(playerStore.isPlaying.value, playerStore.currentSong.value)
+        updateNotificationAsync()
+    }
+
+    private fun handleUnfavorite() {
+        val song = playerStore.currentSong.value ?: return
+        val key = song.path
+        synchronized(favorites) {
+            if (favorites.contains(key)) {
+                favorites.remove(key)
+                Log.d(TAG, "Removed from favorites: ${song.name}")
+            }
+        }
+
+        updateMediaSessionState(playerStore.isPlaying.value, playerStore.currentSong.value)
+        updateNotificationAsync()
+    }
+
     companion object {
         private const val TAG = "MusicPlayerService"
         private const val SEEK_STEP_MS = 10_000L
 
-        private const val ACTION_PLAY = "tv.nomercy.app.action.PLAY"
+        const val ACTION_PLAY = "tv.nomercy.app.action.PLAY"
         private const val ACTION_PAUSE = "tv.nomercy.app.action.PAUSE"
         private const val ACTION_NEXT = "tv.nomercy.app.action.NEXT"
         private const val ACTION_PREV = "tv.nomercy.app.action.PREV"
@@ -386,5 +504,10 @@ class MusicPlayerService : Service() {
         private const val ACTION_SEEK_BACKWARD = "tv.nomercy.app.action.SEEK_BACKWARD"
         private const val ACTION_FAST_FORWARD = "tv.nomercy.app.action.FAST_FORWARD"
         private const val ACTION_REWIND = "tv.nomercy.app.action.REWIND"
+
+        const val ACTION_STOP_IF_INACTIVE = "tv.nomercy.app.action.STOP_IF_INACTIVE"
+        const val ACTION_START_SERVICE = "tv.nomercy.app.action.START_SERVICE"
+        const val ACTION_FAVORITE = "tv.nomercy.app.action.FAVORITE"
+        const val ACTION_UNFAVORITE = "tv.nomercy.app.action.UNFAVORITE"
     }
 }

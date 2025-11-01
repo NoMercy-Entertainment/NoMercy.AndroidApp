@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.Platform
 import tv.nomercy.app.views.base.auth.shared.AuthState
 import tv.nomercy.app.views.base.auth.shared.AuthViewModel
@@ -41,6 +43,7 @@ fun SharedMainScreen(
     authViewModel: AuthViewModel,
     appConfigStore: AppConfigStore,
     isImmersiveState: Boolean,
+    onNavControllerReady: (NavHostController) -> Unit = {}
 ) {
     val context = LocalContext.current
     val serverConfigStore = GlobalStores.getServerConfigStore(context)
@@ -51,6 +54,13 @@ fun SharedMainScreen(
     )
 
     var isSetupComplete by remember { mutableStateOf(false) }
+
+    val navController = rememberNavController()
+
+    // Notify MainActivity that navController is ready
+    LaunchedEffect(navController) {
+        onNavControllerReady(navController)
+    }
 
     // Automatically start TV device-auth when the auth state becomes Unauthenticated on TV devices
     LaunchedEffect(authState) {
@@ -114,8 +124,8 @@ fun SharedMainScreen(
 
                 key(languageTrigger.intValue) {
                     when (platform) {
-                        Platform.Mobile -> MobileMainScaffold(isImmersive = isImmersiveState)
-                        Platform.TV -> TvMainScaffold(isImmersive = isImmersiveState)
+                        Platform.Mobile -> MobileMainScaffold(navController = navController, isImmersive = isImmersiveState)
+                        Platform.TV -> TvMainScaffold(navController = navController, isImmersive = isImmersiveState)
                     }
                 }
             }

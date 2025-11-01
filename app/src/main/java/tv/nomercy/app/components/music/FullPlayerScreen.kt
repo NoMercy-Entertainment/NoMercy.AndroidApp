@@ -150,7 +150,7 @@ fun FullPlayerScreen() {
 
             val animatedLyricsPadding by animateDpAsState(
                 targetValue = if (lyricsExpanded) 0.dp else 24.dp,
-                animationSpec = if (lyricsExpanded) tween(durationMillis = 300, delayMillis = 300) else tween(durationMillis = 300),
+                animationSpec = tween(durationMillis = 300),
                 label = "animatedLyricsPadding"
             )
 

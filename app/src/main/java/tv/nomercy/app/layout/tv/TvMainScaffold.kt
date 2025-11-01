@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import tv.nomercy.app.R
 import tv.nomercy.app.components.MoooomIconName
@@ -25,13 +26,13 @@ import tv.nomercy.app.shared.stores.GlobalStores
 
 @Composable
 fun TvMainScaffold(
-    isImmersive: Boolean = false
+    isImmersive: Boolean = false,
+    navController: NavHostController
 ) {
     GlobalStores.getServerConfigStore(LocalContext.current)
     GlobalStores.getLibraryStore(LocalContext.current)
     GlobalStores.getAppConfigStore(LocalContext.current)
 
-    val navController = rememberNavController()
     val navItems = listOf(
         AppNavItem("/home", R.string.title_home, MoooomIconName.Home1),
         AppNavItem("/libraries", R.string.title_libraries, MoooomIconName.Folder),

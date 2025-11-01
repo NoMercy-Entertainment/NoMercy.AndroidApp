@@ -19,6 +19,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "CAST_APP_ID", "\"925B4C3C\"")
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -48,9 +51,6 @@ android {
         compose = true
         buildConfig = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -59,9 +59,6 @@ android {
 }
 
 configurations.all {
-    resolutionStrategy {
-        force("com.google.dagger:dagger:2.48") // Dagger runtime
-    }
     exclude(group = "xmlpull", module = "xmlpull")
 }
 
@@ -98,7 +95,6 @@ dependencies {
 
     // JSON parsing
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.json.v160)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
 
     // OAuth2/OIDC Authentication (instead of Keycloak Android SDK)
@@ -128,7 +124,9 @@ dependencies {
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.ui.test)
-    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.lifecycle.process)
 
     // Debug tools
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -136,20 +134,24 @@ dependencies {
 
     // Test dependencies
     testImplementation(libs.junit)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom.v20231001))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
 
-
     implementation(libs.composemeshgradient)
-
     implementation(libs.coil3.coil.compose)
     implementation(libs.coil.network.ktor3)
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil3.coil.svg)
 
     implementation(libs.androidx.media)
+
+    // Google Cast (sender + Cast Connect TV receiver)
+    implementation(libs.androidx.mediarouter)
+    implementation(libs.gms.play.services.cast.framework)
+    implementation(libs.gms.play.services.cast.tv)
+    implementation(libs.play.services.cast)
 
 }

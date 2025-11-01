@@ -64,7 +64,7 @@ fun LyricsContainer(
 
     val animatedLyricsRadius by animateDpAsState(
         targetValue = if (isExpanded) 0.dp else 16.dp,
-        animationSpec = if (isExpanded) tween(durationMillis = 300, delayMillis = 300) else tween(durationMillis = 300),
+        animationSpec = tween(durationMillis = 300),
         label = "animatedLyricsRadius"
     )
 

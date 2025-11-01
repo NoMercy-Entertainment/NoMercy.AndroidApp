@@ -12,6 +12,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -105,10 +106,14 @@ class MusicPlayerStore(
 
     // region: Initialization & Configuration
     private fun ensureServiceRunning() {
-        val intent = Intent(context, MusicPlayerService::class.java).apply {
-            action = "tv.nomercy.app.action.PLAY"
+        try {
+            val intent = Intent(context, MusicPlayerService::class.java).apply {
+                action = MusicPlayerService.ACTION_START_SERVICE
+            }
+            ContextCompat.startForegroundService(context, intent)
+        } catch (e: Exception) {
+            Log.w("MusicPlayerStore", "Failed to start MusicPlayerService: ${e.message}")
         }
-        context.startForegroundService(intent)
     }
 
     private fun initializeMediaPlayers() {
@@ -521,9 +526,7 @@ class MusicPlayerStore(
     }
 
     fun play() {
-
-        val systemVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        ensureServiceRunning()
 
         if (!requestAudioFocus()) {
             _error.value = "Failed to gain audio focus"
@@ -586,6 +589,7 @@ class MusicPlayerStore(
             } else {
                 val currentSong = queue.currentSong.value
                 if (currentSong != null) {
+                    ensureServiceRunning()
                     prepareSource(currentSong.path)
                 } else {
                     Log.w("MusicPlayerStore", "No current song to play")
